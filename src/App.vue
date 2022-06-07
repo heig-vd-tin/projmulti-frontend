@@ -1,37 +1,84 @@
 <template>
-  <div id="app">
-    <nav>
-      <router-link to="/">Home</router-link> |
-      <router-link to="/about">About</router-link>
-    </nav>
-    <router-view />
-    <h1>Draggable</h1>
-    <draggable v-model="people">
-      <div v-for="(name, index) in people" :key="index">
-        <v-card>
-          <v-card-title>{{ name }}</v-card-title>
-          <v-card-text>I am v-card-text</v-card-text>
-        </v-card>
-      </div>
-    </draggable>
-  </div>
+  <v-app>
+    <v-row>
+      <v-col>
+        <h1>Liste 1</h1>
+        <draggable v-model="projects" group="projects">
+          <div v-for="(project, index) in projects" :key="index">
+            <projectDisplay :project="project"></projectDisplay>
+          </div>
+        </draggable>
+      </v-col>
+      <v-col>
+        <h1>Liste 2</h1>
+        <draggable v-model="selectedProjects" group="projects">
+          <div v-for="(project, index) in selectedProjects" :key="index">
+            <projectDisplay :project="project"></projectDisplay>
+          </div>
+        </draggable>
+      </v-col>
+    </v-row>
+    <v-row>
+      <v-col>
+        <projectForm></projectForm>
+      </v-col>
+    </v-row>
+  </v-app>
 </template>
 
 <script>
 import draggable from "vuedraggable";
+import projectDisplay from "./components/ProjectDisplay.vue";
+import projectForm from "./components/ProjectForm.vue";
 
 export default {
   components: {
     draggable,
+    projectDisplay,
+    projectForm,
   },
   data: () => ({
-    people: ["Arnold", "Ronnie", "Jay", "Kai"],
+    selectedProjects: [
+      {
+        id: 3,
+        title: "Imposter",
+        description: "Lorem ispum is sus",
+        owner_id: 3,
+        priority: 3,
+        orientations: ["eai", "eem"],
+        tags: ["web", "hmi"],
+      },
+    ],
+    projects: [
+      {
+        id: 0,
+        title: "Amongus",
+        description: "Lorem ispum is sus",
+        owner_id: 0,
+        priority: 2,
+        orientations: ["en", "eem"],
+        tags: ["programming", "hmi", "electronics"],
+      },
+      {
+        id: 1,
+        title: "Sugoma",
+        description: "Lorem ispum is sus",
+        owner_id: 6,
+        priority: 2,
+        orientations: ["mi"],
+        tags: ["web"],
+      },
+      {
+        id: 2,
+        title: "Sus",
+        description: "Lorem ispum is sus",
+        owner_id: 4,
+        priority: 6,
+        orientations: ["si", "mi"],
+        tags: [],
+      },
+    ],
   }),
-  watch: {
-    people(val) {
-      console.log(val);
-    },
-  },
 };
 </script>
 
