@@ -88,7 +88,7 @@ export default {
           description: this.description,
           orientations: this.selectedOrientations,
           tags: this.selectedTags,
-        }).then((response) => console.log(response.data));
+        });
       }
     },
     reset() {

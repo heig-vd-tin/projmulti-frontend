@@ -44,10 +44,11 @@ export default {
     ],
   }),
   methods: {
-    ...mapActions(["retrieveAllProjects"]),
+    ...mapActions(["retrieveAllProjects", "retrieveMyProjects"]),
   },
   mounted() {
     this.retrieveAllProjects();
+    this.retrieveMyProjects();
   },
 };
 </script>

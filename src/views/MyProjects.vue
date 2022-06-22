@@ -2,55 +2,58 @@
   <div>
     <v-row>
       <v-col>
-        <h3>Projets disponibles</h3>
-          <v-expansion-panels>
-        <draggable class="list-group" :list="list1" group="people">
-            <v-expansion-panel v-for="(project, index) in list1" :key="index">
-              <v-expansion-panel-header>
-                {{ project.title }}
-              </v-expansion-panel-header>
-              <v-expansion-panel-content v-html="project.description">
-              </v-expansion-panel-content>
-            </v-expansion-panel>
-        </draggable>
-          </v-expansion-panels>
+        <v-btn @click="updateClicked">Mettre à jour</v-btn>
       </v-col>
+    </v-row>
+    <v-row>
       <v-col>
-        <h3>Projets choisis</h3>
-        <draggable class="list-group" :list="list2" group="people">
-          <div
-            class="list-group-item"
-            v-for="(element, index) in list2"
-            :key="index"
+        <draggable :list="getMyProjects">
+          <v-card
+            v-for="project in getMyProjects"
+            :key="project.id"
+            style="margin-bottom: 15px"
           >
-            <ProjectDisplay :project="element"></ProjectDisplay>
-          </div>
+            <v-card-title>{{ project.title }}</v-card-title>
+            <v-card-text v-html="project.description"></v-card-text>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn @click="removeClicked(project)"
+                >Supprimer de ma liste</v-btn
+              >
+            </v-card-actions>
+          </v-card>
         </draggable>
       </v-col>
     </v-row>
   </div>
 </template>
 <script>
-import { mapGetters } from "vuex";
+import { mapActions, mapGetters } from "vuex";
 import draggable from "vuedraggable";
-import ProjectDisplay from "@/components/ProjectDisplay.vue";
 
 export default {
   name: "MyProjects",
   components: {
     draggable,
-    ProjectDisplay,
   },
   data: () => ({
-    list1: [],
-    list2: [],
+    myProjects: [],
   }),
-  methods: {},
-  computed: {
-    ...mapGetters(["getProjects"]),
+  methods: {
+    ...mapActions(["submitProjectPreference", "removeProjectPreference"]),
+    updateClicked() {
+      if (this.getMyProjects.length <= 5) {
+        this.submitProjectPreference({
+          projects_id: this.getMyProjects.map((item) => item.id),
+        });
+      }
+    },
+    removeClicked(project) {
+      this.removeProjectPreference({ projects_id: [project.id] });
+    },
   },
-  mounted() {
-    this.list1 = this.getProjects;
+  computed: {
+    ...mapGetters(["getMyProjects"]),
   },
 };
 </script>

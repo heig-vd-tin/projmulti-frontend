@@ -6,22 +6,34 @@ Vue.use(Vuex)
 
 export default new Vuex.Store({
   state: {
-    projects: [],
+    allProjects: [],
+    myProjects: [],
   },
   getters: {
-    getProjects: state => state.projects
+    getAllProjects: state => state.allProjects,
+    getMyProjects: state => state.myProjects,
   },
   mutations: {
-    setProjects(state, payload) {
-      state.projects = payload
-    }
+    setAllProjects(state, payload) { state.allProjects = payload },
+    pushAllProjects(state, payload) { state.allProjects.push(payload) },
+    setMyProjects(state, payload) { state.myProjects = payload },
+    pushMyProjects(state, payload) { state.myProjects.push(payload) },
   },
   actions: {
     retrieveAllProjects(context) {
-      axios.get("/project/all").then(response => context.commit("setProjects", response.data))
+      return axios.get("/project/all").then(response => context.commit("setAllProjects", response.data))
+    },
+    retrieveMyProjects(context) {
+      return axios.get("/project/preffered").then(response => context.commit("setMyProjects", response.data))
     },
     submitProjectForm(context, payload) {
-      return axios.post("/project/submit", payload)
+      return axios.post("/project/submit", payload).then(response => context.commit("pushAllProjects", response.data))
+    },
+    submitProjectPreference(context, payload) {
+      return axios.post("/project/add-preference", payload).then(response => context.commit("setMyProjects", response.data))
+    },
+    removeProjectPreference(context, payload) {
+      return axios.post("/project/remove-preference", payload).then(response => context.commit("setMyProjects", response.data))
     }
   },
   modules: {
