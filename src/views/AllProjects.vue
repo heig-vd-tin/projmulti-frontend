@@ -35,8 +35,9 @@
           <v-row>
             <v-col>
               <v-btn
+                v-if="getMyProjects.length < 5 && !isAlreadyInside(project)"
                 @click="addClicked(project)"
-                :disabled="getMyProjects.length >= 5 || isAlreadyInside(project)"
+                :loading="loading"
                 >Ajouter à ma liste
               </v-btn>
             </v-col>
@@ -52,7 +53,9 @@ import { mapGetters, mapActions } from "vuex";
 export default {
   name: "AllProjects",
   components: {},
-  data: () => ({}),
+  data: () => ({
+    loading: false,
+  }),
   methods: {
     ...mapActions(["submitProjectPreference"]),
     isAlreadyInside(project) {
@@ -62,9 +65,27 @@ export default {
       if (this.isAlreadyInside(project)) return;
       let projects = this.getMyProjects.slice(0);
       if (projects.push(project) <= 5) {
+        this.loading = true;
         this.submitProjectPreference({
           projects_id: projects.map((item) => item.id),
-        });
+        })
+          .then(() => {
+            this.$notify({
+              title: "Préférence ajoutée",
+              text: "La préférence a été enregistrée avec succès",
+              type: "success",
+            });
+          })
+          .catch(() => {
+            this.$notify({
+              title: "Erreur",
+              text: "La préférence n'a pas pu être enregistrée",
+              type: "error",
+            });
+          })
+          .finally(() => {
+            this.loading = false;
+          });
       }
     },
   },

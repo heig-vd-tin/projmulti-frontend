@@ -23,6 +23,11 @@ const routes = [
     name: "NewProject",
     component: () => import("@/views/NewProject")
   },
+  {
+    path: "/global",
+    name: "Global",
+    component: () => import("@/views/Global")
+  },
 ]
 
 const router = new VueRouter({

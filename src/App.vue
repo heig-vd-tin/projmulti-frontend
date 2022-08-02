@@ -1,5 +1,6 @@
 <template>
   <v-app>
+    <notifications :max="2" />
     <v-navigation-drawer app permanent>
       <v-list dense nav>
         <v-list-item
@@ -41,14 +42,24 @@ export default {
         icon: "mdi-account-group-outline",
         route: "/new-project",
       },
+      {
+        title: "Global",
+        icon: "mdi-clipboard-account-outline",
+        route: "/global",
+      },
     ],
   }),
   methods: {
-    ...mapActions(["retrieveAllProjects", "retrieveMyProjects"]),
+    ...mapActions([
+      "retrieveAllProjects",
+      "retrieveMyProjects",
+      "retrieveAllUsers",
+    ]),
   },
   mounted() {
     this.retrieveAllProjects();
     this.retrieveMyProjects();
+    this.retrieveAllUsers();
   },
 };
 </script>

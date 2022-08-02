@@ -8,16 +8,28 @@ export default new Vuex.Store({
   state: {
     allProjects: [],
     myProjects: [],
+    allUsers: [],
   },
   getters: {
     getAllProjects: state => state.allProjects,
     getMyProjects: state => state.myProjects,
+    getAllUsers: state => state.allUsers
   },
   mutations: {
     setAllProjects(state, payload) { state.allProjects = payload },
     pushAllProjects(state, payload) { state.allProjects.push(payload) },
-    setMyProjects(state, payload) { state.myProjects = payload },
-    pushMyProjects(state, payload) { state.myProjects.push(payload) },
+    setMyProjects(state, payload) {
+      state.myProjects = []
+      payload.forEach(project => {
+        project.loading = false
+        state.myProjects.push(project)
+      })
+    },
+    pushMyProjects(state, payload) {
+      payload.loading = false
+      state.myProjects.push(payload)
+    },
+    setAllUsers(state, payload) { state.allUsers = payload }
   },
   actions: {
     retrieveAllProjects(context) {
@@ -34,6 +46,9 @@ export default new Vuex.Store({
     },
     removeProjectPreference(context, payload) {
       return axios.post("/project/remove-preference", payload).then(response => context.commit("setMyProjects", response.data))
+    },
+    retrieveAllUsers(context) {
+      return axios.get("/user/all").then(response => context.commit("setAllUsers", response.data))
     }
   },
   modules: {

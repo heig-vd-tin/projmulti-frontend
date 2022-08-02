@@ -2,22 +2,18 @@
   <div>
     <v-row>
       <v-col>
-        <v-btn @click="updateClicked">Mettre à jour</v-btn>
-      </v-col>
-    </v-row>
-    <v-row>
-      <v-col>
-        <draggable :list="getMyProjects">
+        <draggable :list="getMyProjects" @change="update">
           <v-card
-            v-for="project in getMyProjects"
+            v-for="(project, index) in getMyProjects"
             :key="project.id"
             style="margin-bottom: 15px"
           >
             <v-card-title>{{ project.title }}</v-card-title>
+            <v-card-subtitle>Priorité {{ index + 1 }}</v-card-subtitle>
             <v-card-text v-html="project.description"></v-card-text>
             <v-card-actions>
               <v-spacer></v-spacer>
-              <v-btn @click="removeClicked(project)"
+              <v-btn @click="removeClicked(project)" :loading="project.loading"
                 >Supprimer de ma liste</v-btn
               >
             </v-card-actions>
@@ -37,19 +33,55 @@ export default {
     draggable,
   },
   data: () => ({
-    myProjects: [],
+    loading: false,
   }),
   methods: {
     ...mapActions(["submitProjectPreference", "removeProjectPreference"]),
-    updateClicked() {
+    update() {
       if (this.getMyProjects.length <= 5) {
+        this.$notify({
+          title: "Enregistrement en cours...",
+          type: "info",
+        });
         this.submitProjectPreference({
           projects_id: this.getMyProjects.map((item) => item.id),
-        });
+        })
+          .then(() => {
+            this.$notify({
+              title: "Sélection enregistrée",
+              text: "La sélection a été enregistrée avec succès",
+              type: "success",
+            });
+          })
+          .catch(() => {
+            this.$notify({
+              title: "Erreur",
+              text: "La sélection n'a pas pu être enregistrée",
+              type: "error",
+            });
+          });
       }
     },
     removeClicked(project) {
-      this.removeProjectPreference({ projects_id: [project.id] });
+      project.loading = true;
+      this.removeProjectPreference({ projects_id: [project.id] })
+        .then(() => {
+          this.$notify({
+            title: "Préférence retirée",
+            text: "La préférence a été effacée avec succès",
+            type: "success",
+          });
+        })
+        .catch(() => {
+          this.$notify({
+            title: "Erreur",
+            text: "La préférence n'a pas pu être effacée",
+            type: "error",
+          });
+        })
+        .finally(() => {
+          project.loading = false;
+        });
     },
   },
   computed: {
