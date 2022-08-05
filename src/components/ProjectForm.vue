@@ -13,17 +13,32 @@
     <v-select
       label="Orientations"
       v-model="selectedOrientations"
-      :items="orientations"
+      :items="getOrientations"
       multiple
       :rules="[rules.orientations]"
       :loading="loading"
+      return-object
     >
     </v-select>
 
+    <v-radio-group
+      v-for="(orientation, index) in selectedOrientations"
+      :key="index"
+      v-model="orientation.importance"
+      :label="`Importance de l'orientation ${orientation.value} :`"
+      row
+      mandatory
+    >
+      <v-radio value="1" label="souhaitable"></v-radio>
+      <v-radio value="2" label="important"></v-radio>
+      <v-radio value="3" label="indispensable"></v-radio>
+    </v-radio-group>
+
+    <!--  v-combobox ?  -->
     <v-autocomplete
       label="Tags"
       v-model="selectedTags"
-      :items="tags"
+      :items="getTags"
       multiple
       chips
       deletable-chips
@@ -56,7 +71,7 @@
 </template>
 
 <script>
-import { mapActions } from "vuex";
+import { mapGetters, mapActions } from "vuex";
 import { VueEditor } from "vue2-editor";
 const TITLE_MAX_LENGTH = 100;
 const TAGS_MAX = 3;
@@ -75,16 +90,6 @@ export default {
     description: "",
     selectedOrientations: [],
     selectedTags: [],
-    orientations: ["EAI", "EEM", "EN", "MI", "None"],
-    tags: [
-      "#Web",
-      "#Programming",
-      "#HMI",
-      "#Electronics",
-      "#Physics",
-      "#Math",
-      "#None",
-    ],
     rules: {
       title: (value) => !!value || "Titre obligatoire!",
       orientations: (value) =>
@@ -100,7 +105,10 @@ export default {
         this.submitProjectForm({
           title: this.title,
           description: this.description,
-          orientations: this.selectedOrientations,
+          orientations: this.selectedOrientations.map((item) => ({
+            name: item.value,
+            importance: item.importance,
+          })),
           tags: this.selectedTags,
         })
           .then(() => {
@@ -130,6 +138,9 @@ export default {
     resetValidation() {
       this.$refs.form.resetValidation();
     },
+  },
+  computed: {
+    ...mapGetters(["getOrientations", "getTags"]),
   },
 };
 </script>

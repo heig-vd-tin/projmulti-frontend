@@ -12,7 +12,6 @@
             <v-card
               style="margin-bottom: 50px"
               elevation="2"
-              :loading="project.loading"
               :disabled="project.loading"
             >
               <v-card-title style="justify-content: center">
@@ -86,9 +85,7 @@ export default {
   components: {
     draggable,
   },
-  data: () => ({
-    items: ["Sus", "Amongus", "Sugoma", "A", "B", "C", "D", "E", "F", "G", "H"],
-  }),
+  data: () => ({}),
   methods: {
     ...mapActions(["addAttribution", "removeAttribution"]),
     assigned(event, project) {

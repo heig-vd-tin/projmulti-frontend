@@ -7,7 +7,7 @@
             v-for="(project, index) in getMyProjects"
             :key="project.id"
             style="margin-bottom: 15px"
-            :loading="project.loading"
+            :disabled="project.loading"
           >
             <v-card-title>{{ project.title }}</v-card-title>
             <v-card-subtitle>Priorité {{ index + 1 }}</v-card-subtitle>
@@ -38,39 +38,25 @@ export default {
   }),
   methods: {
     ...mapActions(["submitProjectPreference", "removeProjectPreference"]),
-    update() {
+    update(event) {
+      event.moved.element.loading = true;
       if (this.getMyProjects.length <= 5) {
-        this.$notify({
-          title: "Enregistrement en cours...",
-          type: "info",
-        });
         this.submitProjectPreference({
           projects_id: this.getMyProjects.map((item) => item.id),
         })
-          .then(() => {
-            this.$notify({
-              title: "Sélection enregistrée",
-              type: "success",
-            });
-          })
           .catch(() => {
             this.$notify({
               title: "Erreur",
               text: "La sélection n'a pas pu être enregistrée",
               type: "error",
             });
-          });
+          })
+          .finally(() => (event.moved.element.loading = false));
       }
     },
     removeClicked(project) {
       project.loading = true;
       this.removeProjectPreference({ projects_id: [project.id] })
-        .then(() => {
-          this.$notify({
-            title: "Préférence retirée",
-            type: "success",
-          });
-        })
         .catch(() => {
           this.$notify({
             title: "Erreur",

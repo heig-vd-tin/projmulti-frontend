@@ -10,12 +10,31 @@ export default new Vuex.Store({
     myProjects: [],
     allUsers: [],
     unassignedUsers: [],
+    orientations: [
+      { header: "Génie électrique" },
+      { text: "Electronique - Automatisation industrielle", value: "EAI" },
+      { text: "Electronique embarquée - Mécatronique", value: "EEM" },
+      { text: "Systèmes énergétiques", value: "EN" },
+      { header: "Microtechniques" },
+      { text: "Mécatronique", value: "MI" },
+    ],
+    tags: [
+      "#Web",
+      "#Programming",
+      "#HMI",
+      "#Electronics",
+      "#Physics",
+      "#Math",
+      "#None",
+    ],
   },
   getters: {
     getAllProjects: state => state.allProjects,
     getMyProjects: state => state.myProjects,
     getAllUsers: state => state.allUsers,
     getUnassignedUsers: state => state.unassignedUsers,
+    getOrientations: state => state.orientations,
+    getTags: state => state.tags,
   },
   mutations: {
     setAllProjects(state, payload) { 

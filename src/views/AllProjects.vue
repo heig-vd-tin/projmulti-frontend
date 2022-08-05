@@ -1,52 +1,78 @@
 <template>
   <div>
-    <v-expansion-panels>
-      <v-expansion-panel v-for="project in getAllProjects" :key="project.id">
-        <v-expansion-panel-header>
-          <h4>{{ project.title }}</h4>
-        </v-expansion-panel-header>
-        <v-expansion-panel-content>
-          <v-row>
-            <v-col>
-              <div v-html="project.description"></div>
-            </v-col>
-          </v-row>
-          <v-row>
-            <v-col>
-              Orientations :
-              <v-chip-group column>
-                <v-chip
-                  v-for="orientation in project.orientations"
-                  :key="orientation.id"
-                >
-                  {{ orientation.name }}
-                </v-chip>
-              </v-chip-group>
-            </v-col>
-          </v-row>
-          <v-row v-if="project.tags.length">
-            <v-col>
-              Tags :
-              <v-chip-group column>
-                <v-chip v-for="tag in project.tags" :key="tag.id">
-                  {{ tag.name }}
-                </v-chip>
-              </v-chip-group>
-            </v-col>
-          </v-row>
-          <v-row>
-            <v-col>
-              <v-btn
-                v-if="getMyProjects.length < 5 && !isAlreadyInside(project)"
-                @click="addClicked(project)"
-                :loading="loading"
-                >Ajouter à ma liste
-              </v-btn>
-            </v-col>
-          </v-row>
-        </v-expansion-panel-content>
-      </v-expansion-panel>
-    </v-expansion-panels>
+    <v-row>
+      <v-col>
+        <v-select
+          label="Filtrer par orientations"
+          v-model="selectedOrientations"
+          :items="getOrientations"
+          multiple
+          clearable
+        >
+          <template v-slot:selection="{ item }">
+            <v-chip>
+              <span>{{ item.value }}</span>
+            </v-chip>
+          </template>
+        </v-select>
+        <v-select
+          label="Filtrer par tags"
+          v-model="selectedTags"
+          :items="getTags"
+          multiple
+          clearable
+        >
+          <template v-slot:selection="{ item }">
+            <v-chip>
+              <span>{{ item }}</span>
+            </v-chip>
+          </template>
+        </v-select>
+      </v-col>
+    </v-row>
+    <v-row>
+      <v-col
+        v-for="(project, index) in filteredProjects"
+        :key="index"
+        cols="auto"
+        md="4"
+      >
+        <v-card style="margin-bottom: 50px" elevation="2" :disabled="loading">
+          <v-card-title style="justify-content: center">
+            {{ project.title }}
+          </v-card-title>
+          <v-card-text v-html="project.description"></v-card-text>
+          <v-card-text>
+            Tags :
+            <v-chip-group column>
+              <v-chip v-for="tag in project.tags" :key="tag.id">
+                {{ tag.name }}
+              </v-chip>
+            </v-chip-group>
+          </v-card-text>
+          <v-card-text>
+            Orientations :
+            <v-chip-group column>
+              <v-chip
+                v-for="orientation in project.orientations"
+                :key="orientation.id"
+              >
+                {{ orientation.name }}
+              </v-chip>
+            </v-chip-group>
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn
+              v-if="getMyProjects.length < 5 && !isAlreadyInside(project)"
+              @click="addClicked(project)"
+              :loading="project.loading"
+              >Ajouter à ma liste de préférences
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-col>
+    </v-row>
   </div>
 </template>
 <script>
@@ -57,6 +83,8 @@ export default {
   components: {},
   data: () => ({
     loading: false,
+    selectedOrientations: [],
+    selectedTags: [],
   }),
   methods: {
     ...mapActions(["submitProjectPreference"]),
@@ -68,15 +96,10 @@ export default {
       let projects = this.getMyProjects.slice(0);
       if (projects.push(project) <= 5) {
         this.loading = true;
+        project.loading = true;
         this.submitProjectPreference({
           projects_id: projects.map((item) => item.id),
         })
-          .then(() => {
-            this.$notify({
-              title: "Préférence ajoutée",
-              type: "success",
-            });
-          })
           .catch(() => {
             this.$notify({
               title: "Erreur",
@@ -86,12 +109,33 @@ export default {
           })
           .finally(() => {
             this.loading = false;
+            project.loading = false;
           });
       }
     },
   },
   computed: {
-    ...mapGetters(["getAllProjects", "getMyProjects"]),
+    ...mapGetters([
+      "getAllProjects",
+      "getMyProjects",
+      "getOrientations",
+      "getTags",
+    ]),
+    filteredProjects() {
+      return this.getAllProjects
+        .filter((project) => {
+          if (!this.selectedOrientations.length) return true;
+          return project.orientations.some((orientation) =>
+            this.selectedOrientations.includes(orientation.name)
+          );
+        })
+        .filter((project) => {
+          if (!this.selectedTags.length) return true;
+          return project.tags.some((tag) =>
+            this.selectedTags.includes(tag.name)
+          );
+        });
+    },
   },
 };
 </script>
