@@ -9,27 +9,33 @@ export default new Vuex.Store({
     allProjects: [],
     myProjects: [],
     allUsers: [],
+    unassignedUsers: [],
   },
   getters: {
     getAllProjects: state => state.allProjects,
     getMyProjects: state => state.myProjects,
-    getAllUsers: state => state.allUsers
+    getAllUsers: state => state.allUsers,
+    getUnassignedUsers: state => state.unassignedUsers,
   },
   mutations: {
-    setAllProjects(state, payload) { state.allProjects = payload },
-    pushAllProjects(state, payload) { state.allProjects.push(payload) },
+    setAllProjects(state, payload) { 
+      state.allProjects = payload
+      state.allProjects.forEach(project => addLoading(project))
+    },
+    pushAllProjects(state, payload) { 
+      addLoading(payload)
+      state.allProjects.push(payload)
+     },
     setMyProjects(state, payload) {
-      state.myProjects = []
-      payload.forEach(project => {
-        project.loading = false
-        state.myProjects.push(project)
-      })
+      state.myProjects = payload
+      state.myProjects.forEach(project => addLoading(project))
     },
     pushMyProjects(state, payload) {
-      payload.loading = false
+      addLoading(payload)
       state.myProjects.push(payload)
     },
-    setAllUsers(state, payload) { state.allUsers = payload }
+    setAllUsers(state, payload) { state.allUsers = payload },
+    setUnassignedUsers(state, payload) { state.unassignedUsers = payload },
   },
   actions: {
     retrieveAllProjects(context) {
@@ -49,8 +55,25 @@ export default new Vuex.Store({
     },
     retrieveAllUsers(context) {
       return axios.get("/user/all").then(response => context.commit("setAllUsers", response.data))
+    },
+    retrieveUnassignedUsers(context) {
+      return axios.get("/user/unassigned").then(response => context.commit("setUnassignedUsers", response.data))
+    },
+    addAttribution(context, payload) {
+      return axios.post("/project/add-attribution", payload)
+    },
+    removeAttribution(context, payload) {
+      return axios.post("/project/remove-attribution", payload)
     }
   },
   modules: {
   }
 })
+
+function addProperty(object, name, value) {
+  Vue.set(object, name, value)
+}
+
+function addLoading(object) {
+  addProperty(object, "loading", false)
+}

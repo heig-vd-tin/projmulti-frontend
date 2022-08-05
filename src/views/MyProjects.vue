@@ -7,6 +7,7 @@
             v-for="(project, index) in getMyProjects"
             :key="project.id"
             style="margin-bottom: 15px"
+            :loading="project.loading"
           >
             <v-card-title>{{ project.title }}</v-card-title>
             <v-card-subtitle>Priorité {{ index + 1 }}</v-card-subtitle>
@@ -49,7 +50,6 @@ export default {
           .then(() => {
             this.$notify({
               title: "Sélection enregistrée",
-              text: "La sélection a été enregistrée avec succès",
               type: "success",
             });
           })
@@ -68,7 +68,6 @@ export default {
         .then(() => {
           this.$notify({
             title: "Préférence retirée",
-            text: "La préférence a été effacée avec succès",
             type: "success",
           });
         })

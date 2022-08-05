@@ -9,7 +9,12 @@
             cols="auto"
             md="4"
           >
-            <v-card style="margin-bottom: 50px" elevation="2">
+            <v-card
+              style="margin-bottom: 50px"
+              elevation="2"
+              :loading="project.loading"
+              :disabled="project.loading"
+            >
               <v-card-title style="justify-content: center">
                 {{ project.title }}
               </v-card-title>
@@ -41,7 +46,7 @@
                 <draggable
                   :list="project.attributed_users"
                   group="people"
-                  @change="(event) => attributedUpdate(event, project)"
+                  @change="(event) => assigned(event, project)"
                 >
                   <v-list-item
                     v-for="user in project.attributed_users"
@@ -58,8 +63,12 @@
       <v-col cols="auto">
         Liste des élèves
         <v-list>
-          <draggable :list="getAllUsers" group="people">
-            <v-list-item v-for="user in getAllUsers" :key="user.id">
+          <draggable
+            :list="getUnassignedUsers"
+            group="people"
+            @change="unassigned"
+          >
+            <v-list-item v-for="user in getUnassignedUsers" :key="user.id">
               {{ user.lastname }} {{ user.firstname }}
             </v-list-item>
           </draggable>
@@ -69,7 +78,7 @@
   </div>
 </template>
 <script>
-import { mapGetters } from "vuex";
+import { mapActions, mapGetters } from "vuex";
 import draggable from "vuedraggable";
 
 export default {
@@ -81,12 +90,32 @@ export default {
     items: ["Sus", "Amongus", "Sugoma", "A", "B", "C", "D", "E", "F", "G", "H"],
   }),
   methods: {
-    attributedUpdate(event, project) {
-      console.log(event, project);
+    ...mapActions(["addAttribution", "removeAttribution"]),
+    assigned(event, project) {
+      if (event.added) {
+        project.loading = true;
+        this.addAttribution({
+          project_id: project.id,
+          user_id: event.added.element.id,
+        })
+          .catch(() => {
+            this.$notify({
+              title: "Erreur",
+              text: "La sélection n'a pas pu être enregistrée",
+              type: "error",
+            });
+          })
+          .finally(() => (project.loading = false));
+      }
+    },
+    unassigned(event) {
+      if (event.added) {
+        this.removeAttribution({ user_id: event.added.element.id });
+      }
     },
   },
   computed: {
-    ...mapGetters(["getAllProjects", "getAllUsers"]),
+    ...mapGetters(["getAllProjects", "getUnassignedUsers"]),
   },
 };
 </script>

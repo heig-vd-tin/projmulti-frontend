@@ -13,23 +13,25 @@
           </v-row>
           <v-row>
             <v-col>
-              <h5>Orientations:</h5>
-              <v-chip
-                v-for="(orientation, index) in project.orientations"
-                :key="index"
-              >
-                {{ orientation.name }}
-              </v-chip>
+              Orientations :
+              <v-chip-group column>
+                <v-chip
+                  v-for="orientation in project.orientations"
+                  :key="orientation.id"
+                >
+                  {{ orientation.name }}
+                </v-chip>
+              </v-chip-group>
             </v-col>
           </v-row>
           <v-row v-if="project.tags.length">
             <v-col>
-              <div>
-                <h5>Tags:</h5>
-                <v-chip v-for="(tag, index) in project.tags" :key="index">
+              Tags :
+              <v-chip-group column>
+                <v-chip v-for="tag in project.tags" :key="tag.id">
                   {{ tag.name }}
                 </v-chip>
-              </div>
+              </v-chip-group>
             </v-col>
           </v-row>
           <v-row>
@@ -72,14 +74,13 @@ export default {
           .then(() => {
             this.$notify({
               title: "Préférence ajoutée",
-              text: "La préférence a été enregistrée avec succès",
               type: "success",
             });
           })
           .catch(() => {
             this.$notify({
               title: "Erreur",
-              text: "La préférence n'a pas pu être enregistrée",
+              text: "La préférence n'a pas pu être ajoutée",
               type: "error",
             });
           })

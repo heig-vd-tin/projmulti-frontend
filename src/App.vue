@@ -54,12 +54,14 @@ export default {
       "retrieveAllProjects",
       "retrieveMyProjects",
       "retrieveAllUsers",
+      "retrieveUnassignedUsers",
     ]),
   },
   mounted() {
     this.retrieveAllProjects();
     this.retrieveMyProjects();
     this.retrieveAllUsers();
+    this.retrieveUnassignedUsers();
   },
 };
 </script>
