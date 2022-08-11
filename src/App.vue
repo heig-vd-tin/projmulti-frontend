@@ -1,7 +1,22 @@
 <template>
   <v-app>
     <notifications :max="2" />
-    <v-navigation-drawer app permanent>
+    <v-app-bar app clipped-left>
+      <v-app-bar-nav-icon @click="drawer = !drawer"></v-app-bar-nav-icon>
+      <v-toolbar-title>Collapsing Bar</v-toolbar-title>
+      <v-spacer></v-spacer>
+      <v-menu offset-y>
+        <template v-slot:activator="{ on, attrs }">
+          <v-btn icon v-bind="attrs" v-on="on">
+            <v-icon large>mdi-account</v-icon>
+          </v-btn>
+        </template>
+        <v-list>
+          <v-list-item @click="keycloak.logout()"> Déconnexion </v-list-item>
+        </v-list>
+      </v-menu>
+    </v-app-bar>
+    <v-navigation-drawer app clipped v-model="drawer">
       <v-list dense nav>
         <v-list-item
           v-for="(item, index) in items"
@@ -29,7 +44,10 @@
 import { mapActions } from "vuex";
 
 export default {
+  name: "App",
+  props: ["keycloak"],
   data: () => ({
+    drawer: true,
     items: [
       {
         title: "Tous les projets",

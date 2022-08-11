@@ -5,14 +5,35 @@ import router from './router'
 import store from './store'
 import axios from 'axios'
 import Notification from 'vue-notification'
+import Keycloak from 'keycloak-js'
 
-axios.defaults.baseURL = 'http://localhost:8000/api'
+axios.defaults.baseURL = 'http://localhost:7000/api'
+let initOptions = {
+  url: `${process.env.VUE_APP_CLOAK_URL}`,
+  realm: `${process.env.VUE_APP_CLOAK_REALM}`,
+  clientId: `${process.env.VUE_APP_CLOAK_CLIENT_ID}`,
+}
+let keycloak = new Keycloak(initOptions)
+keycloak.init({ onLoad: 'login-required' }).then((auth) => {
+  if (!auth) {
+    window.location.reload()
+  }
+  else {
+    axios.defaults.headers.common['Authorization'] = `Bearer ${keycloak.token}`
+    Vue.config.productionTip = false
+    Vue.use(Notification)
+    new Vue({
+      vuetify,
+      router,
+      store,
+      render: h => h(App, { props: { keycloak: keycloak } })
+    }).$mount('#app')
+  }
 
-Vue.config.productionTip = false
-Vue.use(Notification)
-new Vue({
-  vuetify,
-  router,
-  store,
-  render: h => h(App)
-}).$mount('#app')
+  //Token Refresh
+  setInterval(async () => {
+    keycloak.updateToken(60).then((valid) => {
+      if (valid) axios.defaults.headers.common['Authorization'] = `Bearer ${keycloak.token}`
+    })
+  }, 18000)
+})
