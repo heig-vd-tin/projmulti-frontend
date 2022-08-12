@@ -5,13 +5,14 @@
         <v-select
           label="Filtrer par orientations"
           v-model="selectedOrientations"
-          :items="getOrientations"
+          :items="selectOrientations"
+          item-text="name"
           multiple
           clearable
         >
           <template v-slot:selection="{ item }">
             <v-chip>
-              <span>{{ item.value }}</span>
+              <span>{{ item.acronym }}</span>
             </v-chip>
           </template>
         </v-select>
@@ -19,12 +20,13 @@
           label="Filtrer par tags"
           v-model="selectedTags"
           :items="getTags"
+          item-text="name"
           multiple
           clearable
         >
           <template v-slot:selection="{ item }">
             <v-chip>
-              <span>{{ item }}</span>
+              <span>{{ item.name }}</span>
             </v-chip>
           </template>
         </v-select>
@@ -57,7 +59,7 @@
                 v-for="orientation in project.orientations"
                 :key="orientation.id"
               >
-                {{ orientation.name }}
+                {{ orientation.acronym }}
               </v-chip>
             </v-chip-group>
           </v-card-text>
@@ -98,7 +100,9 @@ export default {
         this.loading = true;
         project.loading = true;
         this.submitProjectPreference({
-          projects_id: projects.map((item) => item.id),
+          projects: projects.map((item, index) => {
+            return { id: item.id, priority: index + 1 };
+          }),
         })
           .catch(() => {
             this.$notify({
@@ -121,6 +125,13 @@ export default {
       "getOrientations",
       "getTags",
     ]),
+    selectOrientations() {
+      return this.getOrientations.flatMap((item, index, array) => {
+        if (index == 0 || array[index - 1].faculty_name !== item.faculty_name)
+          return [{ header: item.faculty_name }, item];
+        else return item;
+      });
+    },
     filteredProjects() {
       return this.getAllProjects
         .filter((project) => {

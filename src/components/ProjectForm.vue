@@ -13,11 +13,12 @@
     <v-select
       label="Orientations"
       v-model="selectedOrientations"
-      :items="getOrientations"
+      :items="selectOrientations"
       multiple
       :rules="[rules.orientations]"
       :loading="loading"
       return-object
+      item-text="name"
     >
     </v-select>
 
@@ -25,7 +26,7 @@
       v-for="(orientation, index) in selectedOrientations"
       :key="index"
       v-model="orientation.importance"
-      :label="`Importance de l'orientation ${orientation.value} :`"
+      :label="`Importance de l'orientation ${orientation.acronym} :`"
       row
       mandatory
     >
@@ -42,6 +43,8 @@
       multiple
       chips
       deletable-chips
+      return-object
+      item-text="name"
       :counter="tagsMax"
       :rules="[rules.tags]"
       :loading="loading"
@@ -106,10 +109,10 @@ export default {
           title: this.title,
           description: this.description,
           orientations: this.selectedOrientations.map((item) => ({
-            name: item.value,
+            id: item.id,
             importance: item.importance,
           })),
-          tags: this.selectedTags,
+          tags: this.selectedTags.map((item) => item.id),
         })
           .then(() => {
             this.$notify({
@@ -141,6 +144,13 @@ export default {
   },
   computed: {
     ...mapGetters(["getOrientations", "getTags"]),
+    selectOrientations() {
+      return this.getOrientations.flatMap((item, index, array) => {
+        if (index == 0 || array[index - 1].faculty_name !== item.faculty_name)
+          return [{ header: item.faculty_name }, item];
+        else return item;
+      });
+    },
   },
 };
 </script>

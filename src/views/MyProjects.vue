@@ -9,7 +9,7 @@
             style="margin-bottom: 15px"
             :disabled="project.loading"
           >
-            <v-card-title>{{ project.title }}</v-card-title>
+            <v-card-title>{{ project.title }} #{{ project.id }}</v-card-title>
             <v-card-subtitle>Priorité {{ index + 1 }}</v-card-subtitle>
             <v-card-text v-html="project.description"></v-card-text>
             <v-card-actions>
@@ -42,7 +42,9 @@ export default {
       event.moved.element.loading = true;
       if (this.getMyProjects.length <= 5) {
         this.submitProjectPreference({
-          projects_id: this.getMyProjects.map((item) => item.id),
+          projects: this.getMyProjects.map((item, index) => {
+            return { id: item.id, priority: index + 1 };
+          }),
         })
           .catch(() => {
             this.$notify({
@@ -56,7 +58,7 @@ export default {
     },
     removeClicked(project) {
       project.loading = true;
-      this.removeProjectPreference({ projects_id: [project.id] })
+      this.removeProjectPreference({ projects: [project.id] })
         .catch(() => {
           this.$notify({
             title: "Erreur",

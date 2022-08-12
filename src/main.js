@@ -19,6 +19,7 @@ keycloak.init({ onLoad: 'login-required' }).then((auth) => {
     window.location.reload()
   }
   else {
+    console.log(keycloak.token)
     axios.defaults.headers.common['Authorization'] = `Bearer ${keycloak.token}`
     Vue.config.productionTip = false
     Vue.use(Notification)
@@ -31,9 +32,9 @@ keycloak.init({ onLoad: 'login-required' }).then((auth) => {
   }
 
   //Token Refresh
-  setInterval(async () => {
-    keycloak.updateToken(60).then((valid) => {
-      if (valid) axios.defaults.headers.common['Authorization'] = `Bearer ${keycloak.token}`
-    })
-  }, 18000)
+  // setInterval(async () => {
+  //   keycloak.updateToken(60).then((valid) => {
+  //     if (valid) axios.defaults.headers.common['Authorization'] = `Bearer ${keycloak.token}`
+  //   })
+  // }, 18000)
 })

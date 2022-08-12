@@ -6,29 +6,16 @@ Vue.use(Vuex)
 
 export default new Vuex.Store({
   state: {
+    user: {},
     allProjects: [],
     myProjects: [],
     allUsers: [],
     unassignedUsers: [],
-    orientations: [
-      { header: "Génie électrique" },
-      { text: "Electronique - Automatisation industrielle", value: "EAI" },
-      { text: "Electronique embarquée - Mécatronique", value: "EEM" },
-      { text: "Systèmes énergétiques", value: "EN" },
-      { header: "Microtechniques" },
-      { text: "Mécatronique", value: "MI" },
-    ],
-    tags: [
-      "#Web",
-      "#Programming",
-      "#HMI",
-      "#Electronics",
-      "#Physics",
-      "#Math",
-      "#None",
-    ],
+    orientations: [],
+    tags: [],
   },
   getters: {
+    getUser: state => state.user,
     getAllProjects: state => state.allProjects,
     getMyProjects: state => state.myProjects,
     getAllUsers: state => state.allUsers,
@@ -37,16 +24,17 @@ export default new Vuex.Store({
     getTags: state => state.tags,
   },
   mutations: {
-    setAllProjects(state, payload) { 
+    setUser(state, payload) { state.user = payload },
+    setAllProjects(state, payload) {
       state.allProjects = payload
       state.allProjects.forEach(project => addLoading(project))
     },
-    pushAllProjects(state, payload) { 
+    pushAllProjects(state, payload) {
       addLoading(payload)
       state.allProjects.push(payload)
-     },
+    },
     setMyProjects(state, payload) {
-      state.myProjects = payload
+      state.myProjects = payload.sort((a, b) => a.priority > b.priority ? 1 : (a.priority == b.priority ? 0 : -1)).map(item => item.project)
       state.myProjects.forEach(project => addLoading(project))
     },
     pushMyProjects(state, payload) {
@@ -55,13 +43,18 @@ export default new Vuex.Store({
     },
     setAllUsers(state, payload) { state.allUsers = payload },
     setUnassignedUsers(state, payload) { state.unassignedUsers = payload },
+    setOrientations(state, payload) { state.orientations = payload },
+    setTags(state, payload) { state.tags = payload },
   },
   actions: {
+    retrieveUser(context) {
+      return axios.get("/user").then(response => context.commit("setUser", response.data))
+    },
     retrieveAllProjects(context) {
       return axios.get("/project/all").then(response => context.commit("setAllProjects", response.data))
     },
     retrieveMyProjects(context) {
-      return axios.get("/project/preffered").then(response => context.commit("setMyProjects", response.data))
+      return axios.get("/project/preferred").then(response => context.commit("setMyProjects", response.data))
     },
     submitProjectForm(context, payload) {
       return axios.post("/project/submit", payload).then(response => context.commit("pushAllProjects", response.data))
@@ -83,7 +76,13 @@ export default new Vuex.Store({
     },
     removeAttribution(context, payload) {
       return axios.post("/project/remove-attribution", payload)
-    }
+    },
+    retrieveOrientations(context) {
+      return axios.get("/orientation/all").then(response => context.commit("setOrientations", response.data))
+    },
+    retrieveTags(context) {
+      return axios.get("/tag/all").then(response => context.commit("setTags", response.data))
+    },
   },
   modules: {
   }

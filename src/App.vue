@@ -3,7 +3,9 @@
     <notifications :max="2" />
     <v-app-bar app clipped-left>
       <v-app-bar-nav-icon @click="drawer = !drawer"></v-app-bar-nav-icon>
-      <v-toolbar-title>Collapsing Bar</v-toolbar-title>
+      <v-toolbar-title>
+        {{ getUser.firstname }} {{ getUser.lastname }}
+      </v-toolbar-title>
       <v-spacer></v-spacer>
       <v-menu offset-y>
         <template v-slot:activator="{ on, attrs }">
@@ -41,7 +43,7 @@
 </template>
 
 <script>
-import { mapActions } from "vuex";
+import { mapGetters, mapActions } from "vuex";
 
 export default {
   name: "App",
@@ -69,17 +71,26 @@ export default {
   }),
   methods: {
     ...mapActions([
+      "retrieveUser",
       "retrieveAllProjects",
       "retrieveMyProjects",
       "retrieveAllUsers",
       "retrieveUnassignedUsers",
+      "retrieveOrientations",
+      "retrieveTags",
     ]),
   },
+  computed: {
+    ...mapGetters(["getUser"]),
+  },
   mounted() {
+    this.retrieveUser();
     this.retrieveAllProjects();
     this.retrieveMyProjects();
     this.retrieveAllUsers();
     this.retrieveUnassignedUsers();
+    this.retrieveOrientations();
+    this.retrieveTags();
   },
 };
 </script>
