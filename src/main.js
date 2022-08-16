@@ -19,7 +19,7 @@ keycloak.init({ onLoad: 'login-required' }).then((auth) => {
     window.location.reload()
   }
   else {
-    console.log(keycloak.token)
+    //console.log(keycloak.token)
     axios.defaults.headers.common['Authorization'] = `Bearer ${keycloak.token}`
     Vue.config.productionTip = false
     Vue.use(Notification)

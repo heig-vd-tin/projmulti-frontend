@@ -33,8 +33,12 @@ export default new Vuex.Store({
       addLoading(payload)
       state.allProjects.push(payload)
     },
-    setMyProjects(state, payload) {
-      state.myProjects = payload.sort((a, b) => a.priority > b.priority ? 1 : (a.priority == b.priority ? 0 : -1)).map(item => item.project)
+    setPreferredProjects(state, payload) {
+      state.myProjects = payload.sort((a, b) => a.priority > b.priority ? 1 : (a.priority == b.priority ? 0 : -1))
+      state.myProjects.forEach(project => addLoading(project))
+    },
+    setOwnedProjects(state, payload) {
+      state.myProjects = payload
       state.myProjects.forEach(project => addLoading(project))
     },
     pushMyProjects(state, payload) {
@@ -48,22 +52,25 @@ export default new Vuex.Store({
   },
   actions: {
     retrieveUser(context) {
-      return axios.get("/user").then(response => context.commit("setUser", response.data))
+      return axios.get("/user/me").then(response => context.commit("setUser", response.data))
     },
     retrieveAllProjects(context) {
       return axios.get("/project/all").then(response => context.commit("setAllProjects", response.data))
     },
-    retrieveMyProjects(context) {
-      return axios.get("/project/preferred").then(response => context.commit("setMyProjects", response.data))
+    retrievePreferredProjects(context) {
+      return axios.get("/project/preferred").then(response => context.commit("setPreferredProjects", response.data))
+    },
+    retrieveOwnedProjects(context) {
+      return axios.get("/project/owned").then(response => context.commit("setOwnedProjects", response.data))
     },
     submitProjectForm(context, payload) {
       return axios.post("/project/submit", payload).then(response => context.commit("pushAllProjects", response.data))
     },
     submitProjectPreference(context, payload) {
-      return axios.post("/project/add-preference", payload).then(response => context.commit("setMyProjects", response.data))
+      return axios.post("/project/add-preference", payload).then(response => context.commit("setPreferredProjects", response.data))
     },
     removeProjectPreference(context, payload) {
-      return axios.post("/project/remove-preference", payload).then(response => context.commit("setMyProjects", response.data))
+      return axios.post("/project/remove-preference", payload).then(response => context.commit("setPreferredProjects", response.data))
     },
     retrieveAllUsers(context) {
       return axios.get("/user/all").then(response => context.commit("setAllUsers", response.data))

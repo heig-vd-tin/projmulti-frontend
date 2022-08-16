@@ -5,18 +5,22 @@ Vue.use(VueRouter)
 
 const routes = [
   {
+    path: "*",
+    redirect: "/"
+  },
+  {
     path: "/",
     redirect: "/all-projects"
   },
   {
     path: "/all-projects",
     name: "AllProjects",
-    component: () => import("@/views/AllProjects")
+    component: () => import("@/views/allProjects/AllProjects"),
   },
   {
     path: "/my-projects",
     name: "MyProjects",
-    component: () => import("@/views/MyProjects")
+    component: () => import("@/views/myProjects/MyProjects")
   },
   {
     path: "/new-project",

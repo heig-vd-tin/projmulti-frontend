@@ -32,7 +32,7 @@
         </v-select>
       </v-col>
     </v-row>
-    <v-row v-if="getUser.role === UserRole.STUDENT">
+    <v-row>
       <v-col>
         <draggable
           :list="[]"
