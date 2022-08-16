@@ -1,5 +1,6 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
+import store from '@/store'
 
 Vue.use(VueRouter)
 
@@ -15,7 +16,7 @@ const routes = [
   {
     path: "/all-projects",
     name: "AllProjects",
-    component: () => import("@/views/allProjects/AllProjects"),
+    component: () => import("@/views/allProjects/AllProjects")
   },
   {
     path: "/my-projects",
@@ -25,12 +26,14 @@ const routes = [
   {
     path: "/new-project",
     name: "NewProject",
-    component: () => import("@/views/NewProject")
+    component: () => import("@/views/NewProject"),
+    beforeEnter: (to, from, next) => next(store.getters.getUser.isTeacher)
   },
   {
     path: "/global",
     name: "Global",
-    component: () => import("@/views/Global")
+    component: () => import("@/views/Global"),
+    beforeEnter: (to, from, next) => next(store.getters.getUser.isAdmin)
   },
 ]
 

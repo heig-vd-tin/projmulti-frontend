@@ -8,6 +8,11 @@ import Notification from 'vue-notification'
 import Keycloak from 'keycloak-js'
 
 axios.defaults.baseURL = 'http://localhost:7000/api'
+axios.interceptors.response.use((response) => response, (error) => {
+  if (error.response.status === 403) window.location.reload()
+  return error.response
+})
+
 let initOptions = {
   url: `${process.env.VUE_APP_CLOAK_URL}`,
   realm: `${process.env.VUE_APP_CLOAK_REALM}`,
@@ -31,10 +36,9 @@ keycloak.init({ onLoad: 'login-required' }).then((auth) => {
     }).$mount('#app')
   }
 
-  //Token Refresh
-  // setInterval(async () => {
-  //   keycloak.updateToken(60).then((valid) => {
+  // setInterval(() => {
+  //   keycloak.updateToken(300).then((valid) => {
   //     if (valid) axios.defaults.headers.common['Authorization'] = `Bearer ${keycloak.token}`
   //   })
-  // }, 18000)
+  // }, 60000)
 })

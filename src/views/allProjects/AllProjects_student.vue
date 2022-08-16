@@ -99,7 +99,6 @@
 <script>
 import { mapGetters, mapActions } from "vuex";
 import draggable from "vuedraggable";
-import { UserRole } from "@/data/constants.js";
 
 export default {
   name: "AllProjects",
@@ -111,7 +110,6 @@ export default {
     selectedOrientations: [],
     selectedTags: [],
     maxProjects: 5,
-    UserRole: UserRole,
   }),
   methods: {
     ...mapActions(["submitProjectPreference"]),

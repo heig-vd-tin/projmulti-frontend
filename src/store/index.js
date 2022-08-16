@@ -1,12 +1,13 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import axios from "axios"
+import User from "@/data/user"
 
 Vue.use(Vuex)
 
 export default new Vuex.Store({
   state: {
-    user: {},
+    user: new User({}),
     allProjects: [],
     myProjects: [],
     allUsers: [],
@@ -24,7 +25,7 @@ export default new Vuex.Store({
     getTags: state => state.tags,
   },
   mutations: {
-    setUser(state, payload) { state.user = payload },
+    setUser(state, payload) { state.user = new User(payload) },
     setAllProjects(state, payload) {
       state.allProjects = payload
       state.allProjects.forEach(project => addLoading(project))

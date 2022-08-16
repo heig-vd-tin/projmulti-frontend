@@ -51,7 +51,6 @@
 
 <script>
 import { mapGetters, mapActions } from "vuex";
-import { UserRole } from "@/data/constants.js";
 import getSidebar from "@/data/sidebar.js";
 
 export default {
@@ -79,6 +78,9 @@ export default {
       return getSidebar(this.getUser.role);
     },
   },
+  created() {
+    this.$router.push("/");
+  },
   async mounted() {
     let promises = [
       this.retrieveAllProjects(),
@@ -87,21 +89,17 @@ export default {
     ];
     this.loading = true;
     await this.retrieveUser();
-    switch (this.getUser.role) {
-      case UserRole.ADMIN:
-        promises = promises.concat([
-          this.retrieveOwnedProjects(),
-          this.retrieveAllUsers(),
-          this.retrieveUnassignedUsers(),
-        ]);
-        break;
-      case UserRole.PROFESSOR:
-        promises = promises.concat([this.retrieveOwnedProjects()]);
-        break;
-      case UserRole.STUDENT:
-        promises = promises.concat([this.retrievePreferredProjects()]);
-        break;
-    }
+    let user = this.getUser;
+    if (user.isAdmin)
+      promises = promises.concat([
+        this.retrieveOwnedProjects(),
+        this.retrieveAllUsers(),
+        this.retrieveUnassignedUsers(),
+      ]);
+    else if (user.isProfessor)
+      promises = promises.concat([this.retrieveOwnedProjects()]);
+    else if (user.isStudent)
+      promises = promises.concat([this.retrievePreferredProjects()]);
     await Promise.all(promises);
     this.loading = false;
   },

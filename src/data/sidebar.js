@@ -1,4 +1,4 @@
-import { UserRole } from "./constants"
+import User from "./user"
 
 const AllProjects = {
     title: "Tous les projets",
@@ -19,9 +19,9 @@ const Assignments = {
 
 export default function getSidebar(role) {
     switch (role) {
-        case UserRole.ADMIN: return [AllProjects, MyProjects, NewProject, Assignments]
-        case UserRole.PROFESSOR: return [AllProjects, MyProjects, NewProject]
-        case UserRole.STUDENT: return [AllProjects, MyProjects]
+        case User.ADMIN: return [AllProjects, MyProjects, NewProject, Assignments]
+        case User.PROFESSOR: return [AllProjects, MyProjects, NewProject]
+        case User.STUDENT: return [AllProjects, MyProjects]
         default: return []
     }
 }
