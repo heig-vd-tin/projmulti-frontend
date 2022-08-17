@@ -84,6 +84,7 @@
                   <v-chip
                     v-for="orientation in project.orientations"
                     :key="orientation.id"
+                    :color="`importance${orientation.pivot.importance}`"
                   >
                     {{ orientation.acronym }}
                   </v-chip>
@@ -179,6 +180,8 @@ export default {
 .dropzone {
   border-style: solid;
   border-width: 1px;
+  border-radius: 10px;
+  border-color: lightslategray;
   height: 70px;
   line-height: 70px;
   text-align: center;

@@ -31,9 +31,9 @@
       mandatory
       :loading="loading"
     >
-      <v-radio :value="1" label="souhaitable"></v-radio>
-      <v-radio :value="2" label="important"></v-radio>
-      <v-radio :value="3" label="indispensable"></v-radio>
+      <v-radio :value="1" label="souhaitable" color="importance1"></v-radio>
+      <v-radio :value="2" label="important" color="importance2"></v-radio>
+      <v-radio :value="3" label="indispensable" color="importance3"></v-radio>
     </v-radio-group>
 
     <!--  v-combobox ?  -->

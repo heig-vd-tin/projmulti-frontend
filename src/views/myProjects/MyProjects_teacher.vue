@@ -37,6 +37,7 @@
               <v-chip
                 v-for="orientation in project.orientations"
                 :key="orientation.id"
+                :color="`importance${orientation.pivot.importance}`"
               >
                 {{ orientation.acronym }}
               </v-chip>

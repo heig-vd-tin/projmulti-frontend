@@ -79,7 +79,7 @@ export default {
     },
   },
   created() {
-    this.$router.push("/");
+    // this.$router.push("/");
   },
   async mounted() {
     let promises = [

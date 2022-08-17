@@ -66,6 +66,14 @@ export default new Vuex.Store({
     },
     setAllUsers(state, payload) { state.allUsers = payload },
     setUnassignedUsers(state, payload) { state.unassignedUsers = payload },
+    pushUnassignedUsers(state, payload) {
+      state.unassignedUsers.push(payload)
+    },
+    removeUnassignedUsers(state, payload) {
+      let index = state.unassignedUsers.findIndex(item => item.id == payload.id)
+      if (index == -1) return
+      state.unassignedUsers.splice(index, 1)
+    },
     setOrientations(state, payload) { state.orientations = payload },
     setTags(state, payload) { state.tags = payload },
   },
@@ -106,11 +114,11 @@ export default new Vuex.Store({
     retrieveUnassignedUsers(context) {
       return axios.get("/user/unassigned").then(response => context.commit("setUnassignedUsers", response.data))
     },
-    addAttribution(context, payload) {
-      return axios.post("/project/add-attribution", payload)
+    addAssignment(context, payload) {
+      return axios.post("/project/add-assignment", payload).then(response => context.commit("removeUnassignedUsers", response.data))
     },
-    removeAttribution(context, payload) {
-      return axios.post("/project/remove-attribution", payload)
+    removeAssignment(context, payload) {
+      return axios.post("/project/remove-assignment", payload).then(response => context.commit("pushUnassignedUsers", response.data))
     },
     retrieveOrientations(context) {
       return axios.get("/orientation/all").then(response => context.commit("setOrientations", response.data))

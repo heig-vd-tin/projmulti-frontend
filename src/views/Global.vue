@@ -52,6 +52,7 @@
                   <v-chip
                     v-for="orientation in project.orientations"
                     :key="orientation.id"
+                    :color="`importance${orientation.pivot.importance}`"
                   >
                     {{ orientation.acronym }}
                   </v-chip>
@@ -60,16 +61,28 @@
 
               <v-card-text>
                 Élèves attribués :
+                <br />
+                <br />
                 <draggable
                   :list="project.assigned_users"
                   group="people"
                   @change="(event) => assigned(event, project)"
+                  class="dropzone"
                 >
                   <v-list-item
                     v-for="user in project.assigned_users"
                     :key="user.id"
                   >
-                    {{ user.lastname }} {{ user.firstname }}
+                    <v-list-item-content>
+                      <v-list-item-title>
+                        {{ user.lastname }} {{ user.firstname }}
+                      </v-list-item-title>
+                      <v-list-item-subtitle>
+                        <v-chip>
+                          {{ user.orientation.acronym }}
+                        </v-chip>
+                      </v-list-item-subtitle>
+                    </v-list-item-content>
                   </v-list-item>
                 </draggable>
               </v-card-text>
@@ -77,24 +90,33 @@
           </v-col>
         </v-row>
       </v-col>
-      <v-col cols="auto">
-        <v-text-field v-model="search" autofocus label="Recherche...">
-        </v-text-field>
-        Liste des élèves:
-        <v-list>
-          <draggable :list="filteredUsers" group="people" @change="unassigned">
-            <v-list-item v-for="user in filteredUsers" :key="user.id">
-              <v-list-item-content>
-                <v-list-item-title>
-                  {{ user.lastname }} {{ user.firstname }}
-                </v-list-item-title>
-                <v-list-item-subtitle>
-                  {{ user.orientation.acronym }}
-                </v-list-item-subtitle>
-              </v-list-item-content>
-            </v-list-item>
-          </draggable>
-        </v-list>
+      <v-col cols="2">
+        <div style="position: sticky; top: 80px">
+          <v-text-field v-model="search" autofocus label="Recherche...">
+          </v-text-field>
+          Liste des élèves:
+          <v-list>
+            <draggable
+              :list="filteredUsers"
+              group="people"
+              @change="unassigned"
+              class="dropzone"
+            >
+              <v-list-item v-for="user in filteredUsers" :key="user.id">
+                <v-list-item-content>
+                  <v-list-item-title>
+                    {{ user.lastname }} {{ user.firstname }}
+                  </v-list-item-title>
+                  <v-list-item-subtitle>
+                    <v-chip>
+                      {{ user.orientation.acronym }}
+                    </v-chip>
+                  </v-list-item-subtitle>
+                </v-list-item-content>
+              </v-list-item>
+            </draggable>
+          </v-list>
+        </div>
       </v-col>
     </v-row>
   </div>
@@ -113,11 +135,11 @@ export default {
     selectedOrientations: [],
   }),
   methods: {
-    ...mapActions(["addAttribution", "removeAttribution"]),
+    ...mapActions(["addAssignment", "removeAssignment"]),
     assigned(event, project) {
       if (!event.added) return;
       project.loading = true;
-      this.addAttribution({
+      this.addAssignment({
         project_id: project.id,
         user_id: event.added.element.id,
       })
@@ -132,7 +154,7 @@ export default {
     },
     unassigned(event) {
       if (!event.added) return;
-      this.removeAttribution({ user_id: event.added.element.id });
+      this.removeAssignment({ user_id: event.added.element.id });
     },
   },
   computed: {
@@ -153,14 +175,33 @@ export default {
       });
     },
     filteredUsers() {
-      return this.getUnassignedUsers.filter((user) => {
-        let search = this.search.toLowerCase();
-        return (
-          user.firstname.toLowerCase().includes(search) ||
-          user.lastname.toLowerCase().includes(search)
-        );
-      });
+      return this.getUnassignedUsers
+        .filter((user) => {
+          let search = this.search.toLowerCase();
+          return (
+            user.firstname.toLowerCase().includes(search) ||
+            user.lastname.toLowerCase().includes(search)
+          );
+        })
+        .sort((a, b) => a.lastname.localeCompare(b.lastname));
     },
   },
 };
 </script>
+<style scoped>
+.v-list-item {
+  border-style: solid;
+  border-width: 1px;
+  border-radius: 10px;
+  border-color: lightslategray;
+  text-align: center;
+  margin: 5px;
+}
+.dropzone {
+  border-style: solid;
+  border-width: 1px;
+  border-radius: 10px;
+  border-color: lightslategray;
+  min-height: 60px;
+}
+</style>
