@@ -59,11 +59,11 @@ export default {
     drag: false,
   }),
   methods: {
-    ...mapActions(["submitProjectPreference", "removeProjectPreference"]),
+    ...mapActions(["addProjectPreference", "removeProjectPreference"]),
     reorder(event) {
       if (!event.moved) return;
       event.moved.element.loading = true;
-      this.submitProjectPreference({
+      this.addProjectPreference({
         projects: this.getMyProjects.map((item, index) => {
           return { id: item.id, priority: index + 1 };
         }),

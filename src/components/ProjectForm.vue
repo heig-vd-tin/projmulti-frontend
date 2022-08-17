@@ -25,14 +25,15 @@
     <v-radio-group
       v-for="(orientation, index) in selectedOrientations"
       :key="index"
-      v-model="orientation.importance"
+      v-model="orientation.pivot.importance"
       :label="`Importance de l'orientation ${orientation.acronym} :`"
       row
       mandatory
+      :loading="loading"
     >
-      <v-radio value="1" label="souhaitable"></v-radio>
-      <v-radio value="2" label="important"></v-radio>
-      <v-radio value="3" label="indispensable"></v-radio>
+      <v-radio :value="1" label="souhaitable"></v-radio>
+      <v-radio :value="2" label="important"></v-radio>
+      <v-radio :value="3" label="indispensable"></v-radio>
     </v-radio-group>
 
     <!--  v-combobox ?  -->
@@ -51,23 +52,45 @@
     >
     </v-autocomplete>
 
+    <br />
     <VueEditor
       v-model="description"
       placeholder="Entrez une description..."
       :disabled="loading"
     ></VueEditor>
+    <br />
 
     <v-btn
+      v-if="editing"
       :disabled="!valid"
       color="success"
       class="mr-4"
-      @click="validate"
+      @click="edit"
+      :loading="loading"
+    >
+      Modifier
+    </v-btn>
+    <v-btn
+      v-else
+      :disabled="!valid"
+      color="success"
+      class="mr-4"
+      @click="create"
       :loading="loading"
     >
       Publier
     </v-btn>
 
-    <v-btn color="error" class="mr-4" @click="reset" :loading="loading">
+    <v-btn
+      v-if="editing"
+      color="error"
+      class="mr-4"
+      @click="$emit('cancel')"
+      :loading="loading"
+    >
+      Annuler
+    </v-btn>
+    <v-btn v-else color="error" class="mr-4" @click="reset" :loading="loading">
       Effacer
     </v-btn>
   </v-form>
@@ -83,6 +106,12 @@ export default {
   name: "ProjectForm",
   components: {
     VueEditor,
+  },
+  props: {
+    project: {
+      type: Object,
+      default: null,
+    },
   },
   data: () => ({
     titleMaxLength: TITLE_MAX_LENGTH,
@@ -101,56 +130,94 @@ export default {
     },
   }),
   methods: {
-    ...mapActions(["submitProjectForm"]),
-    validate() {
-      if (this.$refs.form.validate()) {
-        this.loading = true;
-        this.submitProjectForm({
-          title: this.title,
-          description: this.description,
-          orientations: this.selectedOrientations.map((item) => ({
-            id: item.id,
-            importance: item.importance,
-          })),
-          tags: this.selectedTags.map((item) => item.id),
-        })
-          .then(() => {
-            this.$notify({
-              title: "Formulaire envoyé",
-              text: "Le formulaire a été enregistré avec succès",
-              type: "success",
-            });
-            this.reset();
-          })
-          .catch(() => {
-            this.$notify({
-              title: "Erreur",
-              text: "Le formulaire n'a pas pu être envoyé",
-              type: "error",
-            });
-          })
-          .finally(() => {
-            this.loading = false;
+    ...mapActions(["createProject", "editProject"]),
+    edit() {
+      if (!this.$refs.form.validate()) return;
+      this.loading = true;
+      this.editProject(this.formObject)
+        .then(() => {
+          this.$notify({
+            title: "Formulaire envoyé",
+            text: "Le projet a été modifié avec succès",
+            type: "success",
           });
-      }
+          this.$emit("success");
+        })
+        .catch(() => {
+          this.$notify({
+            title: "Erreur",
+            text: "Le formulaire n'a pas pu être envoyé",
+            type: "error",
+          });
+          this.$emit("error");
+        })
+        .finally(() => {
+          this.loading = false;
+        });
+    },
+    create() {
+      if (!this.$refs.form.validate()) return;
+      this.loading = true;
+      this.createProject(this.formObject)
+        .then(() => {
+          this.$notify({
+            title: "Formulaire envoyé",
+            text: "Le projet a été enregistré avec succès",
+            type: "success",
+          });
+          this.reset();
+          this.$emit("success");
+        })
+        .catch(() => {
+          this.$notify({
+            title: "Erreur",
+            text: "Le formulaire n'a pas pu être envoyé",
+            type: "error",
+          });
+          this.$emit("error");
+        })
+        .finally(() => {
+          this.loading = false;
+        });
     },
     reset() {
       this.$refs.form.reset();
       this.description = "";
     },
-    resetValidation() {
-      this.$refs.form.resetValidation();
-    },
   },
   computed: {
     ...mapGetters(["getOrientations", "getTags"]),
+    editing() {
+      return !!this.project;
+    },
+    formObject() {
+      return {
+        id: this.editing ? this.project.id : -1,
+        title: this.title,
+        description: this.description,
+        tags: this.selectedTags.map((item) => item.id),
+        orientations: this.selectedOrientations.map((item) => ({
+          id: item.id,
+          importance: item.pivot.importance,
+        })),
+      };
+    },
     selectOrientations() {
       return this.getOrientations.flatMap((item, index, array) => {
+        item.pivot = { importance: 1 };
         if (index == 0 || array[index - 1].faculty_name !== item.faculty_name)
           return [{ header: item.faculty_name }, item];
         else return item;
       });
     },
+  },
+  created() {
+    if (this.editing) {
+      this.title = this.project.title;
+      this.description = this.project.description;
+      this.selectedOrientations = this.project.orientations;
+      this.selectedTags = this.project.tags;
+    }
   },
 };
 </script>

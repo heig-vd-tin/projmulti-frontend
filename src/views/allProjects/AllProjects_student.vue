@@ -112,14 +112,14 @@ export default {
     maxProjects: 5,
   }),
   methods: {
-    ...mapActions(["submitProjectPreference"]),
+    ...mapActions(["addProjectPreference"]),
     changed(event) {
       if (!event.added) return;
       let project = event.added.element;
       let projects = this.getMyProjects.slice(0);
       if (projects.push(project) > this.maxProjects) return;
       this.loading = true;
-      this.submitProjectPreference({
+      this.addProjectPreference({
         projects: projects.map((item, index) => {
           return { id: item.id, priority: index + 1 };
         }),

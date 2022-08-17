@@ -34,17 +34,35 @@ export default new Vuex.Store({
       addLoading(payload)
       state.allProjects.push(payload)
     },
+    updateAllProjects(state, payload) {
+      let index = state.allProjects.findIndex(item => item.id == payload.id)
+      if (index == -1) return
+      addLoading(payload)
+      Object.assign(state.allProjects[index], payload)
+    },
     setPreferredProjects(state, payload) {
-      state.myProjects = payload.sort((a, b) => a.priority > b.priority ? 1 : (a.priority == b.priority ? 0 : -1))
+      // state.myProjects = payload.sort((a, b) => a.priority > b.priority ? 1 : (a.priority == b.priority ? 0 : -1))
+      state.myProjects = payload.sort((a, b) => a.priority - b.priority)
       state.myProjects.forEach(project => addLoading(project))
     },
     setOwnedProjects(state, payload) {
       state.myProjects = payload
-      state.myProjects.forEach(project => addLoading(project))
+      state.myProjects.forEach(project => {
+        addLoading(project)
+        addEditing(project)
+      })
     },
     pushMyProjects(state, payload) {
       addLoading(payload)
+      addEditing(payload)
       state.myProjects.push(payload)
+    },
+    updateMyProjects(state, payload) {
+      let index = state.myProjects.findIndex(item => item.id == payload.id)
+      if (index == -1) return
+      addLoading(payload)
+      addEditing(payload)
+      Object.assign(state.myProjects[index], payload)
     },
     setAllUsers(state, payload) { state.allUsers = payload },
     setUnassignedUsers(state, payload) { state.unassignedUsers = payload },
@@ -64,10 +82,19 @@ export default new Vuex.Store({
     retrieveOwnedProjects(context) {
       return axios.get("/project/owned").then(response => context.commit("setOwnedProjects", response.data))
     },
-    submitProjectForm(context, payload) {
-      return axios.post("/project/submit", payload).then(response => context.commit("pushAllProjects", response.data))
+    createProject(context, payload) {
+      return axios.post("/project/create", payload).then(response => {
+        context.commit("pushAllProjects", response.data)
+        context.commit("pushMyProjects", response.data)
+      })
     },
-    submitProjectPreference(context, payload) {
+    editProject(context, payload) {
+      return axios.post("/project/edit", payload).then(response => {
+        context.commit("updateAllProjects", response.data)
+        context.commit("updateMyProjects", response.data)
+      })
+    },
+    addProjectPreference(context, payload) {
       return axios.post("/project/add-preference", payload).then(response => context.commit("setPreferredProjects", response.data))
     },
     removeProjectPreference(context, payload) {
@@ -102,4 +129,8 @@ function addProperty(object, name, value) {
 
 function addLoading(object) {
   addProperty(object, "loading", false)
+}
+
+function addEditing(object) {
+  addProperty(object, "editing", false)
 }

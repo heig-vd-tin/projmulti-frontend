@@ -10,7 +10,7 @@ import Keycloak from 'keycloak-js'
 axios.defaults.baseURL = 'http://localhost:7000/api'
 axios.interceptors.response.use((response) => response, (error) => {
   if (error.response.status === 403) window.location.reload()
-  return error.response
+  return Promise.reject(error.message)
 })
 
 let initOptions = {
@@ -36,9 +36,9 @@ keycloak.init({ onLoad: 'login-required' }).then((auth) => {
     }).$mount('#app')
   }
 
-  // setInterval(() => {
-  //   keycloak.updateToken(300).then((valid) => {
-  //     if (valid) axios.defaults.headers.common['Authorization'] = `Bearer ${keycloak.token}`
-  //   })
-  // }, 60000)
+  setInterval(() => {
+    keycloak.updateToken(300).then((valid) => {
+      if (valid) axios.defaults.headers.common['Authorization'] = `Bearer ${keycloak.token}`
+    })
+  }, 60000)
 })

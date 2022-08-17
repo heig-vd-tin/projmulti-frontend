@@ -7,7 +7,18 @@
         cols="auto"
         md="4"
       >
-        <v-card style="margin-bottom: 50px" elevation="2">
+        <v-card
+          v-if="project.editing"
+          style="margin-bottom: 50px; padding: 15px"
+          elevation="2"
+        >
+          <ProjectForm
+            :project="project"
+            @cancel="project.editing = false"
+            @success="project.editing = false"
+          ></ProjectForm>
+        </v-card>
+        <v-card v-else style="margin-bottom: 50px" elevation="2">
           <v-card-title style="justify-content: center">
             {{ project.title }} #{{ project.id }}
           </v-card-title>
@@ -37,6 +48,12 @@
               {{ user.lastname }} {{ user.firstname }}
             </v-list-item>
           </v-card-text>
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn icon @click="project.editing = true">
+              <v-icon>mdi-pencil</v-icon>
+            </v-btn>
+          </v-card-actions>
         </v-card>
       </v-col>
     </v-row>
@@ -44,10 +61,13 @@
 </template>
 <script>
 import { mapGetters } from "vuex";
+import ProjectForm from "@/components/ProjectForm.vue";
 
 export default {
   name: "MyProjects",
-  components: {},
+  components: {
+    ProjectForm,
+  },
   data: () => ({}),
   methods: {},
   computed: {
