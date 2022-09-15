@@ -41,7 +41,6 @@ export default new Vuex.Store({
       Object.assign(state.allProjects[index], payload)
     },
     setPreferredProjects(state, payload) {
-      // state.myProjects = payload.sort((a, b) => a.priority > b.priority ? 1 : (a.priority == b.priority ? 0 : -1))
       state.myProjects = payload.sort((a, b) => a.priority - b.priority)
       state.myProjects.forEach(project => addLoading(project))
     },
