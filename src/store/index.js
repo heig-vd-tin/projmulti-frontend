@@ -2,6 +2,7 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 import axios from "axios"
 import User from "@/data/user"
+import Project from "@/data/project"
 
 Vue.use(Vuex)
 
@@ -11,6 +12,7 @@ export default new Vuex.Store({
     allProjects: [],
     myProjects: [],
     allUsers: [],
+    allStudents: [],
     unassignedUsers: [],
     orientations: [],
     tags: [],
@@ -20,6 +22,7 @@ export default new Vuex.Store({
     getAllProjects: state => state.allProjects,
     getMyProjects: state => state.myProjects,
     getAllUsers: state => state.allUsers,
+    getAllStudents: state => state.allStudents,
     getUnassignedUsers: state => state.unassignedUsers,
     getOrientations: state => state.orientations,
     getTags: state => state.tags,
@@ -27,46 +30,47 @@ export default new Vuex.Store({
   mutations: {
     setUser(state, payload) { state.user = new User(payload) },
     setAllProjects(state, payload) {
-      state.allProjects = payload
-      state.allProjects.forEach(project => addLoading(project))
+      state.allProjects = payload.map(project => new Project(project))
+      //state.allProjects.forEach(project => addLoading(project))
     },
     pushAllProjects(state, payload) {
-      addLoading(payload)
-      state.allProjects.push(payload)
+      //addLoading(payload)
+      state.allProjects.push(new Project(payload))
     },
     updateAllProjects(state, payload) {
       let index = state.allProjects.findIndex(item => item.id == payload.id)
       if (index == -1) return
-      addLoading(payload)
-      Object.assign(state.allProjects[index], payload)
+      //addLoading(payload)
+      Object.assign(state.allProjects[index], new Project(payload))
     },
     setPreferredProjects(state, payload) {
       state.myProjects = payload.sort((a, b) => a.priority - b.priority)
-      state.myProjects.forEach(project => addLoading(project))
+      //state.myProjects.forEach(project => addLoading(project))
     },
     setOwnedProjects(state, payload) {
-      state.myProjects = payload
-      state.myProjects.forEach(project => {
-        addLoading(project)
-        addEditing(project)
-      })
+      state.myProjects = payload.map(project => new Project(project))
+      // state.myProjects.forEach(project => {
+      //   addLoading(project)
+      //   addEditing(project)
+      // })
     },
     pushMyProjects(state, payload) {
-      addLoading(payload)
-      addEditing(payload)
-      state.myProjects.push(payload)
+      // addLoading(payload)
+      // addEditing(payload)
+      state.myProjects.push(new Project(payload))
     },
     updateMyProjects(state, payload) {
       let index = state.myProjects.findIndex(item => item.id == payload.id)
       if (index == -1) return
-      addLoading(payload)
-      addEditing(payload)
-      Object.assign(state.myProjects[index], payload)
+      // addLoading(payload)
+      // addEditing(payload)
+      Object.assign(state.myProjects[index], new Project(payload))
     },
-    setAllUsers(state, payload) { state.allUsers = payload },
-    setUnassignedUsers(state, payload) { state.unassignedUsers = payload },
+    setAllUsers(state, payload) { state.allUsers = payload.map(user => new User(user)) },
+    setAllStudents(state, payload) { state.allStudents = payload.map(user => new User(user)) },
+    setUnassignedUsers(state, payload) { state.unassignedUsers = payload.map(user => new User(user)) },
     pushUnassignedUsers(state, payload) {
-      state.unassignedUsers.push(payload)
+      state.unassignedUsers.push(new User(payload))
     },
     removeUnassignedUsers(state, payload) {
       let index = state.unassignedUsers.findIndex(item => item.id == payload.id)
@@ -110,6 +114,9 @@ export default new Vuex.Store({
     retrieveAllUsers(context) {
       return axios.get("/user/all").then(response => context.commit("setAllUsers", response.data))
     },
+    retrieveAllStudents(context) {
+      return axios.get("/user/all-students").then(response => context.commit("setAllStudents", response.data))
+    },
     retrieveUnassignedUsers(context) {
       return axios.get("/user/unassigned").then(response => context.commit("setUnassignedUsers", response.data))
     },
@@ -130,14 +137,14 @@ export default new Vuex.Store({
   }
 })
 
-function addProperty(object, name, value) {
-  Vue.set(object, name, value)
-}
+// function addProperty(object, name, value) {
+//   Vue.set(object, name, value)
+// }
 
-function addLoading(object) {
-  addProperty(object, "loading", false)
-}
+// function addLoading(object) {
+//   addProperty(object, "loading", false)
+// }
 
-function addEditing(object) {
-  addProperty(object, "editing", false)
-}
+// function addEditing(object) {
+//   addProperty(object, "editing", false)
+// }
