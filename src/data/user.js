@@ -5,6 +5,7 @@ export default class User {
     static get TEACHERS() { return [this.ADMIN, this.PROFESSOR] }
 
     constructor(userData) {
+        //Base fields
         this.id = userData.id
         this.firstname = userData.firstname
         this.lastname = userData.lastname
@@ -12,6 +13,7 @@ export default class User {
         this.role = userData.role
         this.orientation_id = userData.orientation_id
         this.orientation = userData.orientation
+        this.preferences = userData.preferences ?? []
     }
 
     get isAdmin() { return User.ADMIN === this.role }
