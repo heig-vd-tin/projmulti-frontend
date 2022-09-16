@@ -1,6 +1,6 @@
 <template>
-  <div>
-    <v-row>
+  <v-container fluid>
+    <v-row style="height: 10%">
       <v-col>
         <v-select
           label="Filtrer par orientations"
@@ -18,51 +18,37 @@
         </v-select>
       </v-col>
     </v-row>
-    <v-row>
-      <v-col>
-        <v-row>
-          <v-col
-            v-for="(project, index) in filteredProjects"
-            :key="index"
-            cols="auto"
-            md="4"
+    <v-row style="height: 90%">
+      <v-col style="height: 100%">
+        <v-list nav style="height: 100%; overflow-y: auto" class="dropzone">
+          <v-list-item-group
+            v-model="selectedProjectIndex"
+            color="blue"
+            @change="projectSelected"
           >
-            <v-card
-              style="margin-bottom: 50px"
-              elevation="2"
+            <v-list-item
+              v-for="(project, index) in projects"
+              :key="index"
               :disabled="project.loading"
             >
-              <v-card-title style="justify-content: center">
-                {{ project.title }} #{{ project.id }}
-              </v-card-title>
-              <v-card-text v-html="project.description"></v-card-text>
+              <v-list-item-content>
+                <v-list-item-title
+                  v-text="`PROJ#${project.id}`"
+                ></v-list-item-title>
 
-              <v-card-text>
-                Tags :
-                <v-chip-group column>
-                  <v-chip v-for="tag in project.tags" :key="tag.id">
-                    {{ tag.name }}
-                  </v-chip>
-                </v-chip-group>
-              </v-card-text>
-
-              <v-card-text>
-                Orientations :
-                <v-chip-group column>
+                <v-chip-group>
                   <v-chip
                     v-for="orientation in project.orientations"
                     :key="orientation.id"
-                    :color="`importance${orientation.pivot.importance}`"
+                    outlined
+                    label
+                    :color="getProjectOrientationColor(orientation, project)"
                   >
-                    {{ orientation.acronym }}
+                    {{ orientation.acronym }} :
+                    {{ project.getAssignedUsers(orientation.acronym).length }}
                   </v-chip>
                 </v-chip-group>
-              </v-card-text>
 
-              <v-card-text>
-                Élèves attribués :
-                <br />
-                <br />
                 <draggable
                   :list="project.assigned_users"
                   group="people"
@@ -74,52 +60,54 @@
                     :key="user.id"
                   >
                     <v-list-item-content>
-                      <v-list-item-title>
-                        {{ user.lastname }} {{ user.firstname }}
-                      </v-list-item-title>
-                      <v-list-item-subtitle>
-                        <v-chip>
-                          {{ user.orientation.acronym }}
-                        </v-chip>
-                      </v-list-item-subtitle>
+                      <v-chip outlined label>
+                        STU#{{ user.id }} : {{ user.orientation.acronym }}
+                      </v-chip>
                     </v-list-item-content>
                   </v-list-item>
                 </draggable>
-              </v-card-text>
-            </v-card>
-          </v-col>
-        </v-row>
+              </v-list-item-content>
+            </v-list-item>
+          </v-list-item-group>
+        </v-list>
       </v-col>
-      <v-col cols="2">
-        <div style="position: sticky; top: 80px">
-          <v-text-field v-model="search" autofocus label="Recherche...">
-          </v-text-field>
-          Liste des élèves:
-          <v-list>
-            <draggable
-              :list="filteredUsers"
-              group="people"
-              @change="unassigned"
-              class="dropzone"
-            >
-              <v-list-item v-for="user in filteredUsers" :key="user.id">
+
+      <v-col style="height: 100%">
+        <!--v-text-field v-model="search" autofocus label="Recherche..." /-->
+        <v-list nav style="height: 100%; overflow-y: auto" class="dropzone">
+          <v-list-item-group
+            v-model="selectedStudentIndex"
+            color="blue"
+            @change="studentSelected"
+          >
+            <draggable :list="[]" group="people" @change="unassigned">
+              <v-list-item v-for="(user, index) in students" :key="index">
                 <v-list-item-content>
-                  <v-list-item-title>
-                    {{ user.lastname }} {{ user.firstname }}
-                  </v-list-item-title>
+                  <v-list-item-title> STU#{{ user.id }} </v-list-item-title>
                   <v-list-item-subtitle>
-                    <v-chip>
+                    <v-chip outlined label>
                       {{ user.orientation.acronym }}
                     </v-chip>
+                    <v-chip-group>
+                      <v-chip
+                        v-for="preferred in user.preferences"
+                        :key="preferred.id"
+                        outlined
+                        label
+                        :color="getUserPreferenceColor(preferred.project_id)"
+                      >
+                        PROJ#{{ getProjectFromId(preferred.project_id).id }}
+                      </v-chip>
+                    </v-chip-group>
                   </v-list-item-subtitle>
                 </v-list-item-content>
               </v-list-item>
             </draggable>
-          </v-list>
-        </div>
+          </v-list-item-group>
+        </v-list>
       </v-col>
     </v-row>
-  </div>
+  </v-container>
 </template>
 <script>
 import { mapActions, mapGetters } from "vuex";
@@ -133,6 +121,10 @@ export default {
   data: () => ({
     search: "",
     selectedOrientations: [],
+    selectedProjectIndex: null,
+    selectedStudentIndex: null,
+    projects: [],
+    students: [],
   }),
   methods: {
     ...mapActions(["addAssignment", "removeAssignment"]),
@@ -156,51 +148,101 @@ export default {
       if (!event.added) return;
       this.removeAssignment({ user_id: event.added.element.id });
     },
+    getProjectOrientationColor(orientation, project) {
+      if (project.getAssignedUsers(orientation.acronym).length) return "green";
+      else if (
+        this.selectedStudentIndex != null &&
+        this.selectedStudent.orientation.id == orientation.id
+      )
+        return "blue";
+      else return orientation.pivot.importance >= 3 ? "red" : "gray";
+    },
+    getUserPreferenceColor(projectId) {
+      if (
+        this.selectedProjectIndex == null ||
+        this.selectedProject.id != projectId
+      )
+        return "";
+      return "blue";
+    },
+    getProjectFromId(id) {
+      return this.getAllProjects.find((project) => project.id == id);
+    },
+    initArrays() {
+      this.projects = this.getAllProjects.slice();
+      this.students = this.getAllStudents.slice();
+    },
+    projectSelected() {
+      if (this.selectedProjectIndex == null) {
+        this.initArrays();
+        return;
+      }
+      this.selectedStudentIndex = undefined;
+      this.students = this.getAllStudents
+        .filter((user) => {
+          return this.selectedProject.preferred_users.some(
+            (usr) => usr.id == user.id
+          );
+        })
+        .sort((a, b) => {
+          let priority_a = a.preferences.find(
+            (pref) => pref.project_id == this.selectedProject.id
+          ).priority;
+          let priority_b = b.preferences.find(
+            (pref) => pref.project_id == this.selectedProject.id
+          ).priority;
+          return priority_a - priority_b;
+        });
+    },
+    studentSelected() {
+      if (this.selectedStudentIndex == null) {
+        this.initArrays();
+        return;
+      }
+      this.selectedProjectIndex = undefined;
+      this.projects = this.getAllProjects
+        .filter((project) => {
+          return this.selectedStudent.preferences.some(
+            (pref) => pref.project_id == project.id
+          );
+        })
+        .reverse();
+    },
   },
   computed: {
-    ...mapGetters(["getAllProjects", "getUnassignedUsers", "getOrientations"]),
+    ...mapGetters(["getAllProjects", "getAllStudents", "getOrientations"]),
     selectOrientations() {
       return this.getOrientations.flatMap((item, index, array) => {
-        if (index == 0 || array[index - 1].faculty_name !== item.faculty_name)
+        if (index == 0 || array[index - 1].faculty_name != item.faculty_name)
           return [{ header: item.faculty_name }, item];
         else return item;
       });
     },
-    filteredProjects() {
-      return this.getAllProjects.filter((project) => {
-        if (!this.selectedOrientations.length) return true;
-        return project.orientations.some((orientation) =>
-          this.selectedOrientations.includes(orientation.name)
-        );
-      });
+    selectedProject() {
+      return this.projects[this.selectedProjectIndex];
     },
-    filteredUsers() {
-      return this.getUnassignedUsers
-        .filter((user) => {
-          let search = this.search.toLowerCase();
-          return (
-            user.firstname.toLowerCase().includes(search) ||
-            user.lastname.toLowerCase().includes(search)
-          );
-        })
-        .sort((a, b) => a.lastname.localeCompare(b.lastname));
+    selectedStudent() {
+      return this.students[this.selectedStudentIndex];
     },
+  },
+  mounted() {
+    this.initArrays();
   },
 };
 </script>
 <style scoped>
-.v-list-item {
+/*.v-list-item {
   border-style: solid;
   border-width: 1px;
   border-radius: 10px;
   border-color: lightslategray;
   text-align: center;
   margin: 5px;
-}
+}*/
 .dropzone {
   border-style: solid;
   border-width: 1px;
-  border-radius: 10px;
+  /*border-radius: 10px;*/
   border-color: lightslategray;
   min-height: 60px;
 }
