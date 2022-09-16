@@ -40,10 +40,11 @@
           </v-list-item>
         </v-list>
       </v-navigation-drawer>
-      <v-main>
-        <v-container fluid>
-          <router-view :key="$route.path" />
-        </v-container>
+      <v-main style="height: 100vh">
+        <router-view
+          :key="$route.path"
+          style="max-height: 100%; height: 100%"
+        />
       </v-main>
     </div>
   </v-app>
@@ -67,7 +68,7 @@ export default {
       "retrieveOwnedProjects",
       "retrievePreferredProjects",
       "retrieveAllUsers",
-      "retrieveUnassignedUsers",
+      "retrieveAllStudents",
       "retrieveOrientations",
       "retrieveTags",
     ]),
@@ -94,7 +95,7 @@ export default {
       promises = promises.concat([
         this.retrieveOwnedProjects(),
         this.retrieveAllUsers(),
-        this.retrieveUnassignedUsers(),
+        this.retrieveAllStudents(),
       ]);
     else if (user.isProfessor)
       promises = promises.concat([this.retrieveOwnedProjects()]);
