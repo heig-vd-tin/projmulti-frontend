@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <v-container fluid style="max-height: 100%; overflow-y: auto">
     <v-row>
       <v-col
         v-for="(project, index) in getMyProjects"
@@ -58,7 +58,7 @@
         </v-card>
       </v-col>
     </v-row>
-  </div>
+  </v-container>
 </template>
 <script>
 import { mapGetters } from "vuex";

@@ -1,7 +1,7 @@
 <template>
-  <div>
+  <v-container fluid style="max-height: 100%; overflow-y: auto">
     <ProjectForm></ProjectForm>
-  </div>
+  </v-container>
 </template>
 <script>
 import ProjectForm from "@/components/ProjectForm.vue";

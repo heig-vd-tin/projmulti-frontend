@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <v-container fluid style="max-height: 100%; overflow-y: auto">
     <v-row>
       <v-col>
         <draggable
@@ -43,7 +43,7 @@
         </draggable>
       </v-col>
     </v-row>
-  </div>
+  </v-container>
 </template>
 <script>
 import { mapActions, mapGetters } from "vuex";
