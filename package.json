@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "serve": "vue-cli-service serve --port 8081 --watch",
+    "serve": "vue-cli-service serve --port 8081",
     "build": "vue-cli-service build",
     "watch": "vue-cli-service build --watch",
     "build-dist": "vue-cli-service build --dest ../backend/public --no-clean",
