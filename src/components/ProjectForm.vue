@@ -11,11 +11,11 @@
     </v-text-field>
 
     <v-select
-      label="Orientations"
-      v-model="selectedOrientations"
-      :items="selectOrientations"
+      label="Domains"
+      v-model="selectedDomains"
+      :items="selectDomains"
       multiple
-      :rules="[rules.orientations]"
+      :rules="[rules.domains]"
       :loading="loading"
       return-object
       item-text="name"
@@ -23,10 +23,10 @@
     </v-select>
 
     <v-radio-group
-      v-for="(orientation, index) in selectedOrientations"
+      v-for="(domain, index) in selectedDomains"
       :key="index"
-      v-model="orientation.pivot.importance"
-      :label="`Importance de l'orientation ${orientation.acronym} :`"
+      v-model="domain.pivot.importance"
+      :label="`Importance du domain ${domain.name} :`"
       row
       mandatory
       :loading="loading"
@@ -120,12 +120,12 @@ export default {
     valid: false,
     title: "",
     description: "",
-    selectedOrientations: [],
+    selectedDomains: [],
     selectedTags: [],
     rules: {
       title: (value) => !!value || "Titre obligatoire!",
-      orientations: (value) =>
-        value.length >= 1 || "Veuillez sélectionner au moins 1 orientation!",
+      domains: (value) =>
+        value.length >= 1 || "Veuillez sélectionner au moins 1 domain!",
       tags: (value) => value.length <= TAGS_MAX || `Maximum ${TAGS_MAX} tags!`,
     },
   }),
@@ -186,7 +186,7 @@ export default {
     },
   },
   computed: {
-    ...mapGetters(["getOrientations", "getTags"]),
+    ...mapGetters(["getDomains", "getTags"]),
     editing() {
       return !!this.project;
     },
@@ -196,17 +196,17 @@ export default {
         title: this.title,
         description: this.description,
         tags: this.selectedTags.map((item) => item.id),
-        orientations: this.selectedOrientations.map((item) => ({
+        domains: this.selectedDomains.map((item) => ({
           id: item.id,
           importance: item.pivot.importance,
         })),
       };
     },
-    selectOrientations() {
-      return this.getOrientations.flatMap((item, index, array) => {
+    selectDomains() {
+      return this.getDomains.flatMap((item, index, array) => {
         item.pivot = { importance: 1 };
-        if (index == 0 || array[index - 1].faculty_name !== item.faculty_name)
-          return [{ header: item.faculty_name }, item];
+        if (index == 0 || array[index - 1].name !== item.name)
+          return [{ header: item.name }, item];
         else return item;
       });
     },
@@ -215,7 +215,7 @@ export default {
     if (this.editing) {
       this.title = this.project.title;
       this.description = this.project.description;
-      this.selectedOrientations = this.project.orientations;
+      this.selectedDomains = this.project.domains;
       this.selectedTags = this.project.tags;
     }
   },
