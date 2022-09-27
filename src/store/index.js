@@ -15,6 +15,7 @@ export default new Vuex.Store({
     allStudents: [],
     unassignedUsers: [],
     orientations: [],
+    domains: [],
     tags: [],
   },
   getters: {
@@ -25,6 +26,7 @@ export default new Vuex.Store({
     getAllStudents: state => state.allStudents,
     getUnassignedUsers: state => state.unassignedUsers,
     getOrientations: state => state.orientations,
+    getDomains: state => state.domains,
     getTags: state => state.tags,
   },
   mutations: {
@@ -78,6 +80,7 @@ export default new Vuex.Store({
       state.unassignedUsers.splice(index, 1)
     },
     setOrientations(state, payload) { state.orientations = payload },
+    setDomains(state, payload) { state.domains = payload },
     setTags(state, payload) { state.tags = payload },
   },
   actions: {
@@ -128,6 +131,9 @@ export default new Vuex.Store({
     },
     retrieveOrientations(context) {
       return axios.get("/orientation/all").then(response => context.commit("setOrientations", response.data))
+    },
+    retrieveDomains(context) {
+      return axios.get("/domain/all").then(response => context.commit("setDomains", response.data))
     },
     retrieveTags(context) {
       return axios.get("/tag/all").then(response => context.commit("setTags", response.data))

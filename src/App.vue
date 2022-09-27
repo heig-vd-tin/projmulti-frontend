@@ -70,6 +70,7 @@ export default {
       "retrieveAllUsers",
       "retrieveAllStudents",
       "retrieveOrientations",
+      "retrieveDomains",
       "retrieveTags",
     ]),
   },
@@ -86,6 +87,7 @@ export default {
     let promises = [
       this.retrieveAllProjects(),
       this.retrieveOrientations(),
+      this.retrieveDomains(),
       this.retrieveTags(),
     ];
     this.loading = true;
