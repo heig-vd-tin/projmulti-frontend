@@ -3,9 +3,9 @@
     <v-row>
       <v-col>
         <v-select
-          label="Filtrer par orientations"
-          v-model="selectedOrientations"
-          :items="selectOrientations"
+          label="Filtrer par domains"
+          v-model="selectedDomains"
+          :items="selectDomains"
           item-text="name"
           multiple
           clearable
@@ -79,14 +79,14 @@
                 </v-chip-group>
               </v-card-text>
               <v-card-text>
-                Orientations :
+                Domains :
                 <v-chip-group column>
                   <v-chip
-                    v-for="orientation in project.orientations"
-                    :key="orientation.id"
-                    :color="`importance${orientation.pivot.importance}`"
+                    v-for="domain in project.domains"
+                    :key="domain.id"
+                    :color="`importance${domain.pivot.importance}`"
                   >
-                    {{ orientation.acronym }}
+                    {{ domain.name }}
                   </v-chip>
                 </v-chip-group>
               </v-card-text>
@@ -108,7 +108,7 @@ export default {
   },
   data: () => ({
     loading: false,
-    selectedOrientations: [],
+    selectedDomains: [],
     selectedTags: [],
     maxProjects: 5,
   }),
@@ -141,14 +141,14 @@ export default {
     ...mapGetters([
       "getAllProjects",
       "getMyProjects",
-      "getOrientations",
+      "getDomains",
       "getTags",
       "getUser",
     ]),
-    selectOrientations() {
-      return this.getOrientations.flatMap((item, index, array) => {
-        if (index == 0 || array[index - 1].faculty_name !== item.faculty_name)
-          return [{ header: item.faculty_name }, item];
+    selectDomains() {
+      return this.getDomains.flatMap((item, index, array) => {
+        if (index == 0 || array[index - 1].name !== item.name)
+          return [{ header: item.name }, item];
         else return item;
       });
     },
@@ -158,9 +158,9 @@ export default {
           return !this.getMyProjects.some((item) => item.id == project.id);
         })
         .filter((project) => {
-          if (!this.selectedOrientations.length) return true;
-          return project.orientations.some((orientation) =>
-            this.selectedOrientations.includes(orientation.name)
+          if (!this.selectedDomains.length) return true;
+          return project.domains.some((domain) =>
+            this.selectedDomains.includes(domain.name)
           );
         })
         .filter((project) => {

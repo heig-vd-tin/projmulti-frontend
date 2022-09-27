@@ -97,7 +97,6 @@ export default {
     filteredProjects() {
       return this.getAllProjects
         .filter((project) => {
-          console.log(project)
           if (!this.selectedDomains.length) return true;
           return project.domains.some((domain) =>
             this.selectedDomains.includes(domain.name)
