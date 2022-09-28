@@ -21,35 +21,7 @@
     </v-row>
     <v-row>
       <v-col v-for="(project, index) in filteredProjects" :key="index" cols="auto" md="4">
-        <v-card style="margin-bottom: 50px" elevation="2">
-          <v-card-title style="justify-content: center">
-            {{ project.title }} #{{ project.id }}
-          </v-card-title>
-          <v-card-text v-html="project.description"></v-card-text>
-          <v-card-text>
-            Tags :
-            <v-chip-group column>
-              <v-chip v-for="tag in project.tags" :key="tag.id">
-                {{ tag.name }}
-              </v-chip>
-            </v-chip-group>
-          </v-card-text>
-          <v-card-text>
-            Domains :
-            <v-chip-group column>
-              <v-chip v-for="domain in project.domains" :key="domain.id" outlined :color="getColor(domain)">
-                <v-tooltip bottom :color="getColor(domain)">
-                  <template v-slot:activator="{ on }">
-                    <v-icon v-on="on" center>
-                      {{ domain.icon }}
-                    </v-icon>
-                  </template>
-                  <span>{{ domain.name }}</span>
-                </v-tooltip>
-              </v-chip>
-            </v-chip-group>
-          </v-card-text>
-        </v-card>
+        <project-view-component :project="project" />
       </v-col>
     </v-row>
   </v-container>
@@ -57,14 +29,18 @@
 <script>
 import { mapGetters } from "vuex";
 import { getDomainColor } from "@/data/helpers.js";
+import ProjectViewComponent from "../ProjectViewComponent.vue";
 
 export default {
   name: "AllProjects",
-  components: {},
+  components: {
+    "project-view-component": ProjectViewComponent
+  },
   data: () => ({
     selectedDomains: [],
     selectedOrientations: [],
     selectedTags: [],
+    dialog: false
   }),
   methods: {
     getColor: function (domain) {

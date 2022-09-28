@@ -4,6 +4,7 @@ export default class Project{
         this.id = projectData.id
         this.title = projectData.title
         this.description = projectData.description
+        this.short_description = projectData.short_description
         this.owner_id = projectData.owner_id
         //Situationnal fields
         this.orientations = projectData.orientations ?? []

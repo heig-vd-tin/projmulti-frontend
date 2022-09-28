@@ -9,6 +9,7 @@ import { mapGetters } from "vuex";
 import AllProjectsStudent from "./AllProjects_student.vue";
 import AllProjectsTeacher from "./AllProjects_teacher.vue";
 
+
 export default {
   name: "AllProjects",
   components: {
