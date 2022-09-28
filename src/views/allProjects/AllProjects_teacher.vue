@@ -2,28 +2,15 @@
   <v-container fluid style="max-height: 100%; overflow-y: auto">
     <v-row>
       <v-col>
-        <v-select
-          label="Filtrer par domains"
-          v-model="selectedDomains"
-          :items="selectDomains"
-          item-text="name"
-          multiple
-          clearable
-        >
+        <v-select label="Filtrer par domains" v-model="selectedDomains" :items="selectDomains" item-text="name" multiple
+          clearable>
           <template v-slot:selection="{ item }">
             <v-chip>
               <span>{{ item.acronym }}</span>
             </v-chip>
           </template>
         </v-select>
-        <v-select
-          label="Filtrer par tags"
-          v-model="selectedTags"
-          :items="getTags"
-          item-text="name"
-          multiple
-          clearable
-        >
+        <v-select label="Filtrer par tags" v-model="selectedTags" :items="getTags" item-text="name" multiple clearable>
           <template v-slot:selection="{ item }">
             <v-chip>
               <span>{{ item.name }}</span>
@@ -33,12 +20,7 @@
       </v-col>
     </v-row>
     <v-row>
-      <v-col
-        v-for="(project, index) in filteredProjects"
-        :key="index"
-        cols="auto"
-        md="4"
-      >
+      <v-col v-for="(project, index) in filteredProjects" :key="index" cols="auto" md="4">
         <v-card style="margin-bottom: 50px" elevation="2">
           <v-card-title style="justify-content: center">
             {{ project.title }} #{{ project.id }}
@@ -55,16 +37,15 @@
           <v-card-text>
             Domains :
             <v-chip-group column>
-              <v-chip
-                v-for="domain in project.domains"
-                :key="domain.id"
-                outlined
-                :color="getColor(domain)"
-              >
-              
-              <v-icon center>
-                {{ domain.icon }}
-              </v-icon>
+              <v-chip v-for="domain in project.domains" :key="domain.id" outlined :color="getColor(domain)">
+                <v-tooltip bottom :color="getColor(domain)">
+                  <template v-slot:activator="{ on }">
+                    <v-icon v-on="on" center>
+                      {{ domain.icon }}
+                    </v-icon>
+                  </template>
+                  <span>{{ domain.name }}</span>
+                </v-tooltip>
               </v-chip>
             </v-chip-group>
           </v-card-text>
