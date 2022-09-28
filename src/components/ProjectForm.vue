@@ -200,6 +200,7 @@ export default {
     reset() {
       this.$refs.form.reset();
       this.description = "";
+      this.short_description = "";
     },
   },
   computed: {
@@ -212,6 +213,7 @@ export default {
         id: this.editing ? this.project.id : -1,
         title: this.title,
         description: this.description,
+        short_description: this.short_description,
         tags: this.selectedTags.map((item) => item.id),
         domains: this.selectedDomains.map((item) => ({
           id: item.id,
@@ -230,6 +232,7 @@ export default {
     if (this.editing) {
       this.title = this.project.title;
       this.description = this.project.description;
+      this.short_description = this.project.short_description;
       this.selectedDomains = this.project.domains;
       this.selectedTags = this.project.tags;
     }
