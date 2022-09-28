@@ -8,8 +8,11 @@
     <div v-if="!loading">
       <notifications :max="2" />
       <v-app-bar app clipped-left>
+
         <v-app-bar-nav-icon @click="drawer = !drawer"></v-app-bar-nav-icon>
+        
         <v-spacer></v-spacer>
+
         <v-toolbar-title>
           {{ getUser.firstname }} {{ getUser.lastname }}
         </v-toolbar-title>
@@ -33,14 +36,6 @@
             </v-list-item-icon>
             <v-list-item-content>
               <v-list-item-title>{{ item.title }}</v-list-item-title>
-            </v-list-item-content>
-          </v-list-item>
-        </v-list>
-
-        <v-list>
-          <v-list-item v-for="(item, i) in projects" :key="i">
-            <v-list-item-content >
-              <v-list-item-title v-text="item.title"></v-list-item-title>
             </v-list-item-content>
           </v-list-item>
         </v-list>

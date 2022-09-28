@@ -10,6 +10,8 @@
             </v-chip>
           </template>
         </v-select>
+        </v-col>
+        <v-col>
         <v-select label="Filtrer par tags" v-model="selectedTags" :items="getTags" item-text="name" multiple clearable>
           <template v-slot:selection="{ item }">
             <v-chip>
@@ -17,6 +19,9 @@
             </v-chip>
           </template>
         </v-select>
+      </v-col>
+      <v-col>
+        <v-switch v-model="filterMyProject" label="My project"></v-switch>
       </v-col>
     </v-row>
     <v-row>
@@ -47,7 +52,8 @@ export default {
     selectedOrientations: [],
     selectedTags: [],
     selectedProject: null,
-    dialog: false
+    dialog: false,
+    filterMyProject: false
   }),
   methods: {
     getColor: function (domain) {
@@ -57,7 +63,7 @@ export default {
   mounted() {
   },
   computed: {
-    ...mapGetters(["getAllProjects", "getOrientations", "getDomains", "getTags"]), // tmz : getOrientation can be deleted ?
+    ...mapGetters(["getAllProjects", "getOrientations", "getDomains", "getTags", "getUser"]), // tmz : getOrientation can be deleted ?
     selectDomains() {
       return this.getDomains.flatMap((item, index, array) => {
         if (index == 0 || array[index - 1].name !== item.name)
@@ -78,6 +84,9 @@ export default {
           return project.tags.some((tag) =>
             this.selectedTags.includes(tag.name)
           );
+        })
+        .filter((project) => {
+            return !this.filterMyProject || project.owner_id == this.getUser.id
         });
     }
   },
