@@ -58,9 +58,13 @@
               <v-chip
                 v-for="domain in project.domains"
                 :key="domain.id"
-                :color="`importance${domain.pivot.importance}`"
+                outlined
+                :color="getColor(domain)"
               >
-                {{ domain.name }}
+              
+              <v-icon center>
+                {{ domain.icon }}
+              </v-icon>
               </v-chip>
             </v-chip-group>
           </v-card-text>
@@ -71,6 +75,7 @@
 </template>
 <script>
 import { mapGetters } from "vuex";
+import { getDomainColor } from "@/data/helpers.js";
 
 export default {
   name: "AllProjects",
@@ -80,10 +85,12 @@ export default {
     selectedOrientations: [],
     selectedTags: [],
   }),
-  methods: {},
+  methods: {
+    getColor: function (domain) {
+      return getDomainColor(domain);
+    },
+  },
   mounted() {
-    console.log(this)
-    window.as = this
   },
   computed: {
     ...mapGetters(["getAllProjects", "getOrientations", "getDomains", "getTags"]), // tmz : getOrientation can be deleted ?
@@ -108,7 +115,7 @@ export default {
             this.selectedTags.includes(tag.name)
           );
         });
-    },
+    }
   },
 };
 </script>

@@ -22,13 +22,14 @@ let keycloak = new Keycloak(initOptions)
 
 // tmz : Disable keycloak for now
 Vue.config.productionTip = false
-      Vue.use(Notification)
-      new Vue({
-        vuetify,
-        router,
-        store,
-        render: h => h(App, { props: { keycloak: keycloak } })
-      }).$mount('#app')
+Vue.use(Notification)
+
+new Vue({
+  vuetify,
+  router,
+  store,
+  render: h => h(App, { props: { keycloak: keycloak } })
+}).$mount('#app')
 
 /*
   keycloak.init({ onLoad: 'login-required' }).then((auth) => {
