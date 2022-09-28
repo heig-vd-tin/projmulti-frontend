@@ -34,6 +34,7 @@
       fab
       dark
       color="cyan"
+      to="/new-project"
     >
       <v-icon dark>
         mdi-plus

@@ -30,6 +30,12 @@ const routes = [
     beforeEnter: (to, from, next) => next(store.getters.getUser.isTeacher)
   },
   {
+    path: "/edit-project/:project_id",
+    name: "EditProject",
+    component: () => import("@/views/EditProject"),
+    beforeEnter: (to, from, next) => next(store.getters.getUser.isTeacher)
+  },
+  {
     path: "/global",
     name: "Global",
     component: () => import("@/views/Global"),

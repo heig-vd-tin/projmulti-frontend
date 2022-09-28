@@ -39,6 +39,7 @@
       dark
       small
       color="cyan"
+      :to="'/edit-project/' + project.id"
     >
       <v-icon dark>
         mdi-pencil
