@@ -28,11 +28,11 @@
             <span>{{ domain.name }}</span>
           </v-tooltip>
         </v-chip>
-      </v-chip-group>
+      </v-chip-group>    
     </v-card-text>
     
-    <div class="text-right pb-2">
-    <v-btn
+        <div class="text-right pb-2">
+            <v-btn
       class="mx-2"
       v-show=owner
       fab
@@ -44,7 +44,8 @@
         mdi-pencil
       </v-icon>
     </v-btn>
-    </div>
+  </div>
+    
   </v-card>
 </template>
 

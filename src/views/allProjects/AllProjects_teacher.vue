@@ -23,6 +23,24 @@
       <v-col>
         <v-switch v-model="filterMyProject" label="My project"></v-switch>
       </v-col>
+      <v-col> 
+      <!-- tmz : format code -->
+            <div>
+            Add project
+            <v-btn
+      class="mx-2"
+      small
+      v-show=true
+      fab
+      dark
+      color="cyan"
+    >
+      <v-icon dark>
+        mdi-plus
+      </v-icon>
+    </v-btn>
+    </div>
+      </v-col>
     </v-row>
     <v-row>
       <v-col v-for="(project, index) in filteredProjects" :key="index" cols="auto" md="4" >
@@ -70,6 +88,9 @@ export default {
           return [{ header: item.name }, item];
         else return item;
       });
+    },
+    is_student() {
+      return this.getUser.isStudent
     },
     filteredProjects() {
       return this.getAllProjects
