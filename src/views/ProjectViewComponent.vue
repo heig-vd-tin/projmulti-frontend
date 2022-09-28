@@ -3,11 +3,11 @@
     <v-card-title style="justify-content: center">
       {{ project.title }} #{{ project.id }}
     </v-card-title>
-    <v-card-subtitle class="font-weight-medium text-decoration-underline" :hidden=light>Short description :</v-card-subtitle>
+    <v-card-subtitle class="font-weight-medium text-decoration-underline" :hidden=light>Short description:</v-card-subtitle>
     <v-card-text v-html="project.short_description"></v-card-text>
-    <v-card-subtitle class="font-weight-medium text-decoration-underline" :hidden=light>Description :</v-card-subtitle>
+    <v-card-subtitle class="font-weight-medium text-decoration-underline" :hidden=light>Description:</v-card-subtitle>
     <v-card-text :hidden=light v-html="project.description"></v-card-text>
-    <v-card-subtitle class="font-weight-medium text-decoration-underline" :hidden=light>Tags :</v-card-subtitle>
+    <v-card-subtitle class="font-weight-medium text-decoration-underline" :hidden=light>Tags:</v-card-subtitle>
     <v-card-text :hidden=light>
       <v-chip-group column>
         <v-chip v-for="tag in project.tags" :key="tag.id">
@@ -15,7 +15,7 @@
         </v-chip>
       </v-chip-group>
     </v-card-text>
-    <v-card-subtitle class="font-weight-medium text-decoration-underline" :hidden=light>Domains :</v-card-subtitle>
+    <v-card-subtitle class="font-weight-medium text-decoration-underline" :hidden=light>Domains:</v-card-subtitle>
     <v-card-text>
       <v-chip-group column>
         <v-chip v-for="domain in project.domains" :key="domain.id" outlined :color="getColor(domain)">

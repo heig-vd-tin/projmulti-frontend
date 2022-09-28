@@ -20,7 +20,7 @@
       </v-col>
     </v-row>
     <v-row>
-      <v-col v-for="(project, index) in filteredProjects" :key="index" cols="auto" md="4">
+      <v-col v-for="(project, index) in filteredProjects" :key="index" cols="auto" md="4" >
         <project-view-component @click="dialog = true; selectedProject = project" :project="project" :light=true />
       </v-col>
     </v-row>

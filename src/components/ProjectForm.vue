@@ -10,6 +10,16 @@
     >
     </v-text-field>
 
+    <v-text-field
+      label="Résumé court"
+      v-model="short_description"
+      :counter="shortDescMaxLength"
+      :maxlength="shortDescMaxLength"
+      :rules="[rules.shortDesc]"
+      :loading="loading"
+    >
+    </v-text-field>
+
     <v-select
       label="Domains"
       v-model="selectedDomains"
@@ -22,6 +32,7 @@
     >
     </v-select>
 
+    <!--
     <v-radio-group
       v-for="(domain, index) in selectedDomains"
       :key="index"
@@ -35,6 +46,8 @@
       <v-radio :value="2" label="important" color="importance2"></v-radio>
       <v-radio :value="3" label="indispensable" color="importance3"></v-radio>
     </v-radio-group>
+    -->
+
 
     <!--  v-combobox ?  -->
     <v-autocomplete
@@ -100,6 +113,7 @@
 import { mapGetters, mapActions } from "vuex";
 import { VueEditor } from "vue2-editor";
 const TITLE_MAX_LENGTH = 100;
+const SHORT_DESC_MAX_LENGTH = 200;
 const TAGS_MAX = 3;
 
 export default {
@@ -115,15 +129,18 @@ export default {
   },
   data: () => ({
     titleMaxLength: TITLE_MAX_LENGTH,
+    shortDescMaxLength: SHORT_DESC_MAX_LENGTH,
     tagsMax: TAGS_MAX,
     loading: false,
     valid: false,
     title: "",
     description: "",
+    short_description: "",
     selectedDomains: [],
     selectedTags: [],
     rules: {
       title: (value) => !!value || "Titre obligatoire!",
+      shortDesc: (value) => !!value || "Résumé obligatoire!",
       domains: (value) =>
         value.length >= 1 || "Veuillez sélectionner au moins 1 domain!",
       tags: (value) => value.length <= TAGS_MAX || `Maximum ${TAGS_MAX} tags!`,
@@ -203,11 +220,9 @@ export default {
       };
     },
     selectDomains() {
-      return this.getDomains.flatMap((item, index, array) => {
+      return this.getDomains.flatMap((item) => {
         item.pivot = { importance: 1 };
-        if (index == 0 || array[index - 1].name !== item.name)
-          return [{ header: item.name }, item];
-        else return item;
+        return item;
       });
     },
   },
