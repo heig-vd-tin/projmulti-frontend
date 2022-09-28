@@ -55,62 +55,42 @@
           class="row"
           group="projects"
         >
-          <v-col
-            v-for="(project, index) in filteredProjects"
-            :key="index"
-            cols="auto"
-            md="4"
-          >
-            <v-card
-              style="margin-bottom: 50px"
-              elevation="2"
-              :disabled="loading"
-            >
-              <v-card-title style="justify-content: center">
-                {{ project.title }} #{{ project.id }}
-              </v-card-title>
-              <v-card-text v-html="project.description"></v-card-text>
-              <v-card-text>
-                Tags :
-                <v-chip-group column>
-                  <v-chip v-for="tag in project.tags" :key="tag.id">
-                    {{ tag.name }}
-                  </v-chip>
-                </v-chip-group>
-              </v-card-text>
-              <v-card-text>
-                Domains :
-                <v-chip-group column>
-                  <v-chip
-                    v-for="domain in project.domains"
-                    :key="domain.id"
-                    :color="`importance${domain.pivot.importance}`"
-                  >
-                    {{ domain.name }}
-                  </v-chip>
-                </v-chip-group>
-              </v-card-text>
-            </v-card>
-          </v-col>
-        </draggable>
+    <v-row>
+      <v-col v-for="(project, index) in filteredProjects" :key="index" cols="auto" md="4" >
+        <project-view-component @click="dialog = true; selectedProject = project" :project="project" :light=true />
       </v-col>
     </v-row>
+        </draggable>
+
+      </v-col>
+    </v-row>
+
+      <v-dialog v-model="dialog" v-if="selectedProject !== null" max-width="60%">
+      <v-card>
+        <project-view-component :project="selectedProject" :light=false />
+      </v-card>
+    </v-dialog>
+
   </v-container>
 </template>
 <script>
 import { mapGetters, mapActions } from "vuex";
 import draggable from "vuedraggable";
+import ProjectViewComponent from "../ProjectViewComponent.vue";
 
 export default {
   name: "AllProjects",
   components: {
     draggable,
+    "project-view-component": ProjectViewComponent
   },
   data: () => ({
     loading: false,
     selectedDomains: [],
     selectedTags: [],
+    selectedProject: null,
     maxProjects: 5,
+    dialog: false
   }),
   methods: {
     ...mapActions(["addProjectPreference"]),

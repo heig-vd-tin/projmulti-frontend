@@ -31,13 +31,12 @@
       </v-chip-group>    
     </v-card-text>
     
-        <div class="text-right pb-2">
-            <v-btn
-      class="mx-2"
+    <v-btn
+      class="pos-abs-br"
       v-show=owner
       fab
       dark
-      small
+      x-small
       color="cyan"
       :to="'/edit-project/' + project.id"
     >
@@ -45,8 +44,21 @@
         mdi-pencil
       </v-icon>
     </v-btn>
-  </div>
     
+    <v-btn
+      class="pos-abs-br"
+      v-show="getUser.isStudent"
+      fab
+      dark
+      x-small
+      color="cyan"
+      :to="'/edit-project/' + project.id"
+    >
+      <v-icon dark>
+        mdi-plus
+      </v-icon>
+    </v-btn>
+
   </v-card>
 </template>
 
@@ -80,3 +92,19 @@ export default {
   }
 }
 </script>
+
+<style>
+  .pos-abs-br {
+    bottom: 10px;
+    right: 10px;
+    position: absolute;
+    margin: 0;
+  }
+
+  .pos-abs-tr {
+    top: 10px;
+    right: 10px;
+    position: absolute;
+    margin: 0;
+  }
+</style>
