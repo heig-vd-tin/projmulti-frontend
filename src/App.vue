@@ -24,13 +24,10 @@
           </v-list>
         </v-menu>
       </v-app-bar>
+
       <v-navigation-drawer app clipped v-model="drawer">
         <v-list dense nav>
-          <v-list-item
-            v-for="(item, index) in sidebar"
-            :key="index"
-            :to="item.route"
-          >
+          <v-list-item v-for="(item, index) in sidebar" :key="index" :to="item.route">
             <v-list-item-icon>
               <v-icon>{{ item.icon }}</v-icon>
             </v-list-item-icon>
@@ -39,12 +36,18 @@
             </v-list-item-content>
           </v-list-item>
         </v-list>
+
+        <v-list>
+          <v-list-item v-for="(item, i) in projects" :key="i">
+            <v-list-item-content >
+              <v-list-item-title v-text="item.title"></v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+        </v-list>
       </v-navigation-drawer>
+
       <v-main style="height: 100vh">
-        <router-view
-          :key="$route.path"
-          style="max-height: 100%; height: 100%"
-        />
+        <router-view :key="$route.path" style="max-height: 100%; height: 100%" />
       </v-main>
     </div>
   </v-app>
@@ -75,10 +78,13 @@ export default {
     ]),
   },
   computed: {
-    ...mapGetters(["getUser"]),
+    ...mapGetters(["getUser", "getAllProjects"]),
     sidebar() {
       return getSidebar(this.getUser.role);
     },
+    projects() {
+      return this.getAllProjects;
+    }
   },
   created() {
     // this.$router.push("/");
