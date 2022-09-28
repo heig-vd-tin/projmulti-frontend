@@ -16,7 +16,7 @@
       </v-chip-group>
     </v-card-text>
     <v-card-subtitle class="font-weight-medium text-decoration-underline" :hidden=light>Domains:</v-card-subtitle>
-    <v-card-text>
+    <v-card-text class="py-0">
       <v-chip-group column>
         <v-chip v-for="domain in project.domains" :key="domain.id" outlined :color="getColor(domain)">
           <v-tooltip bottom :color="getColor(domain)">
@@ -30,11 +30,27 @@
         </v-chip>
       </v-chip-group>
     </v-card-text>
+    
+    <div class="text-right pb-2">
+    <v-btn
+      class="mx-2"
+      v-show=owner
+      fab
+      dark
+      small
+      color="cyan"
+    >
+      <v-icon dark>
+        mdi-pencil
+      </v-icon>
+    </v-btn>
+    </div>
   </v-card>
 </template>
 
 
 <script>
+import { mapGetters } from "vuex";
 import { getDomainColor } from "@/data/helpers.js";
 
 export default {
@@ -52,6 +68,12 @@ export default {
   methods: {
     getColor: function (domain) {
       return getDomainColor(domain);
+    }
+  },
+  computed: {
+    ...mapGetters(["getUser"]),
+    owner() {
+      return this.getUser.id == this.project.owner_id
     }
   }
 }
