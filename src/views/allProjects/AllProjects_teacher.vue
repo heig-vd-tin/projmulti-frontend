@@ -21,9 +21,15 @@
     </v-row>
     <v-row>
       <v-col v-for="(project, index) in filteredProjects" :key="index" cols="auto" md="4">
-        <project-view-component :project="project" />
+        <project-view-component @click="dialog = true; selectedProject = project" :project="project" :light=true />
       </v-col>
     </v-row>
+
+    <v-dialog v-model="dialog" v-if="selectedProject !== null" max-width="60%">
+      <v-card>
+        <project-view-component :project="selectedProject" :light=false />
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 <script>
@@ -40,6 +46,7 @@ export default {
     selectedDomains: [],
     selectedOrientations: [],
     selectedTags: [],
+    selectedProject: null,
     dialog: false
   }),
   methods: {

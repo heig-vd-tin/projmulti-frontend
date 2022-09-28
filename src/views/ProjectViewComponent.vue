@@ -1,20 +1,22 @@
 <template>
-  <v-card style="margin-bottom: 50px" elevation="2">
+  <v-card @click="$emit('click')" style="margin-bottom: 50px" elevation="2">
     <v-card-title style="justify-content: center">
       {{ project.title }} #{{ project.id }}
     </v-card-title>
+    <v-card-subtitle class="font-weight-medium text-decoration-underline" :hidden=light>Short description :</v-card-subtitle>
     <v-card-text v-html="project.short_description"></v-card-text>
-    <v-card-text hidden="true" v-html="project.description"></v-card-text>
-    <v-card-text hidden="true">
-      Tags :
+    <v-card-subtitle class="font-weight-medium text-decoration-underline" :hidden=light>Description :</v-card-subtitle>
+    <v-card-text :hidden=light v-html="project.description"></v-card-text>
+    <v-card-subtitle class="font-weight-medium text-decoration-underline" :hidden=light>Tags :</v-card-subtitle>
+    <v-card-text :hidden=light>
       <v-chip-group column>
         <v-chip v-for="tag in project.tags" :key="tag.id">
           {{ tag.name }}
         </v-chip>
       </v-chip-group>
     </v-card-text>
+    <v-card-subtitle class="font-weight-medium text-decoration-underline" :hidden=light>Domains :</v-card-subtitle>
     <v-card-text>
-      Domains :
       <v-chip-group column>
         <v-chip v-for="domain in project.domains" :key="domain.id" outlined :color="getColor(domain)">
           <v-tooltip bottom :color="getColor(domain)">
@@ -41,6 +43,10 @@ export default {
     project: {
       type: Object,
       required: true
+    },
+    light: {
+      type: Boolean,
+      default: true
     }
   },
   methods: {
