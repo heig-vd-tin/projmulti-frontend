@@ -8,12 +8,14 @@ export default class Project{
         this.description = projectData.description
         this.short_description = projectData.short_description
         this.owner_id = projectData.owner_id
+        this.selected = projectData.selected
         //Situationnal fields
         this.orientations = projectData.orientations ?? []
         this.domains = projectData.domains ?? []
         this.tags = projectData.tags ?? []
         this.preferred_users = projectData.preferred_users ?? []
         this.assigned_users = projectData.assigned_users ?? []
+        this.matched_users = projectData.matched_users ?? []
         //Extra fields
         this.loading = false
         this.editing = false
@@ -26,7 +28,16 @@ export default class Project{
 
     // eslint-disable-next-line
     getPreferredUsers(orientationAcronym){
-        return this.preferred_users//.filter(user => user.orientation.acronym === orientationAcronym)
+        if( orientationAcronym != null){
+            console.log("a")
+        }
+        let r = this.preferred_users 
+        //console.log(r.count())
+        return r//.filter(user => user.orientation.acronym === orientationAcronym)
+    }
+
+    getMatchedUsers(){
+        return this.matched_users
     }
 
     getAssignedUsers(domain_id){

@@ -1,8 +1,9 @@
 <template>
-  <v-card @click="eventClick" style="margin-bottom: 50px" elevation="2">
+  <v-card @click="eventClick" style="margin-bottom: 50px" elevation="2" :color="getColorSelected()">
     <v-card-title style="justify-content: center">
       {{ project.title }} #{{ project.id }}
     </v-card-title>
+    <v-card-text :hidden=!isAdmin>Owner id : {{project.owner_id}}</v-card-text>
     <v-card-subtitle class="font-weight-medium text-decoration-underline" :hidden=light>Short description:
     </v-card-subtitle>
     <v-card-text v-html="project.short_description"></v-card-text>
@@ -38,12 +39,29 @@
       </v-icon>
     </v-btn>
 
+    <!--Admin selected-->
+    <v-btn class="pos-abs-br" @click="adminSelectClick" v-show="isAdmin" fab dark x-small :color=adminSelectButtonColor>
+      <v-icon dark v-if="project.selected">
+        mdi-minus
+      </v-icon>
+      <v-icon dark v-else>
+        mdi-plus
+      </v-icon>
+    </v-btn>
+
     <!--Student unselected-->
     <v-btn class="pos-abs-br" @click="$emit('removepref')" v-show="studentSelected() & light" fab dark x-small color="red">
       <v-icon dark>
         mdi-minus
       </v-icon>
     </v-btn>
+
+    <!--Nbr student admin-->
+    <div class="pos-abs-tr text-right">
+      <v-chip color="blue lighten-3" v-show="isAdmin">
+        {{project.getPreferredUsers(null).length}} / {{ project.getMatchedUsers().length }}
+      </v-chip>
+    </div>
 
     <!--Student selected-->
     <v-btn class="pos-abs-tr" v-show="studentSelected()" fab dark x-small color="green">
@@ -93,7 +111,7 @@ export default {
     }
   },
   methods: {
-    ...mapActions(["addProjectPreference"]),
+    ...mapActions(["addProjectPreference", "selectProject", "unselectProject"]),
 
     eventClick: function (event) {
       //console.log(event.target.tagName);
@@ -102,8 +120,30 @@ export default {
         this.$emit("click", event)
       }
     },
+    adminSelectClick: function (){
+      console.log("click", this.project.id)
+
+      this.selectProject({
+          id: this.project.id, selected: !this.project.selected
+        })
+        .catch(() => {
+          this.$notify({
+            title: "Erreur",
+            text: "La modification de sélection a échouée",
+            type: "error",
+          });
+        })
+        .finally(() => {
+        });
+    },
     getColor: function (domain) {
       return getDomainColor(domain)
+    },
+    getColorSelected: function(){
+      if( this.project.selected )
+        return 'light-green accent-1'
+      else
+        return 'white'
     },
     priorityFree(level) {
       let exist = this.getMyProjects.find(p => p.priority == level)
@@ -150,9 +190,15 @@ export default {
     },
   },
   computed: {
-    ...mapGetters(["getUser", "getMyProjects"]),
+    ...mapGetters(["getUser", "getMyProjects", "getMatchedUsers"]),
     owner() {
       return this.getUser.isTeacher && (this.getUser.id == this.project.owner_id)
+    },
+    adminSelectButtonColor() {
+      return this.project.selected ? 'red' : 'green'
+    },
+    isAdmin() {
+      return this.getUser.isAdmin
     },
     showChooseButton() {
       return !(this.getUser.isStudent && !this.light && this.studentPriority == 0)

@@ -173,7 +173,7 @@ export default {
       return this.getAllProjects.find((project) => project.id == id);
     },
     initArrays() {
-      this.projects = this.getAllProjects.slice();
+      this.projects = this.getAllProjects.filter(p => p.selected).slice();
       this.students = this.getAllStudents.slice();
     },
     projectSelected() {
@@ -207,7 +207,7 @@ export default {
       this.projects = this.getAllProjects
         .filter((project) => {
           return this.selectedStudent.preferences.some(
-            (pref) => pref.project_id == project.id
+            (pref) => pref.project_id == project.id && project.selected
           );
         })
         .reverse();
