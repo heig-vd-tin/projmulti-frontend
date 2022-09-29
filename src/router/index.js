@@ -41,6 +41,12 @@ const routes = [
     component: () => import("@/views/Global"),
     beforeEnter: (to, from, next) => next(store.getters.getUser.isAdmin)
   },
+  {
+    path: "/select",
+    name: "Select",
+    component: () => import("@/views/Select"),
+    beforeEnter: (to, from, next) => next(store.getters.getUser.isAdmin)
+  }
 ]
 
 const router = new VueRouter({

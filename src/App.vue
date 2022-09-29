@@ -20,7 +20,12 @@
         <v-btn 
           v-show="getUser.isAdmin"
           to="/all-projects">
-          Projects
+          Select projects
+        </v-btn>
+        <v-btn 
+          v-show="getUser.isAdmin"
+          to="/all-projects">
+          Projects list
         </v-btn>
         <v-spacer></v-spacer>
 

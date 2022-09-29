@@ -19,19 +19,22 @@ export default class Project{
         this.editing = false
     }
 
+    getUserPreference(user){
+        let res = this.preferred_users.find(pu => pu.id === user.id)
+        return res.pivot.priority
+    }
+
     // eslint-disable-next-line
     getPreferredUsers(orientationAcronym){
         return this.preferred_users//.filter(user => user.orientation.acronym === orientationAcronym)
     }
 
     getAssignedUsers(domain_id){
-        console.log("ass 1 ", domain_id)
-        let os = getOrientationFromDomainId(domain_id)
-        console.log("ass 2", os)
-        console.log("ass 3", this.assigned_users)
-        return this.assigned_users.filter(user => {
-            os.find(o => o === user.orientation.id)
-        })
+        let os = getOrientationFromDomainId(domain_id, false)
+        let res = this.assigned_users.filter(user => {
+            return os.find(o => o == user.orientation_id) != undefined
+        })       
+        return res
     }
 
     getRequiredOrientations(){
