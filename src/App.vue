@@ -12,6 +12,17 @@
         <v-app-bar-nav-icon @click="drawer = !drawer"></v-app-bar-nav-icon>
         
         <v-spacer></v-spacer>
+        <v-btn 
+          v-show="getUser.isAdmin"
+          to="/global">
+          Assign
+        </v-btn>
+        <v-btn 
+          v-show="getUser.isAdmin"
+          to="/all-projects">
+          Projects
+        </v-btn>
+        <v-spacer></v-spacer>
 
         <v-toolbar-title>
           {{ getUser.firstname }} {{ getUser.lastname }}
