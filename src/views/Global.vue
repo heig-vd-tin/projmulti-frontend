@@ -38,14 +38,14 @@
 
                 <v-chip-group>
                   <v-chip
-                    v-for="orientation in project.orientations"
-                    :key="orientation.id"
+                    v-for="domain in project.domains"
+                    :key="domain.id"
                     outlined
                     label
-                    :color="getProjectOrientationColor(orientation, project)"
+                    :color="getProjectDomainColor(domain, project)"
                   >
-                    {{ orientation.acronym }} :
-                    {{ project.getAssignedUsers(orientation.acronym).length }}
+                    {{ domain.name }} :
+                    {{ project.getAssignedUsers(domain.id).length }}
                   </v-chip>
                 </v-chip-group>
 
@@ -148,8 +148,12 @@ export default {
       if (!event.added) return;
       this.removeAssignment({ user_id: event.added.element.id });
     },
+    getProjectDomainColor(domain, project) {
+      if(domain || project)
+        return 'green'
+    },
     getProjectOrientationColor(orientation, project) {
-      if (project.getAssignedUsers(orientation.acronym).length) return "green";
+      if (project.getAssignedUsers(orientation).length) return "green";
       else if (
         this.selectedStudentIndex != null &&
         this.selectedStudent.orientation.id == orientation.id
@@ -210,7 +214,7 @@ export default {
     },
   },
   computed: {
-    ...mapGetters(["getAllProjects", "getAllStudents", "getOrientations"]),
+    ...mapGetters(["getAllProjects", "getAllStudents", "getOrientations", "getDomains"]),
     selectOrientations() {
       return this.getOrientations.flatMap((item, index, array) => {
         if (index == 0 || array[index - 1].faculty_name != item.faculty_name)

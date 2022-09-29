@@ -18,3 +18,22 @@ export function getDomainColor(domain) {
             return 'colors.blue-grey lighten-2';
     }
 }
+
+export function getOrientationFromDomainId(domain_id, enlarge)
+{
+    switch (domain_id){
+        case '1': // meca
+            return [7, 8];
+        case '2': // electronic
+            return enlarge ? [2,7,3] : [2];
+        case '3': // electric
+            return enlarge ? [2,3,7] : [2,3];
+        case '4': // Thermic
+            return [5,6];
+        case '5': // Energy
+            return [4];
+        case '6': // Programming
+            return enlarge ? [1,2,7] : [1];
+    }
+    return [];
+}

@@ -1,3 +1,5 @@
+import {getOrientationFromDomainId} from './helpers'
+
 export default class Project{
     constructor(projectData){
         //Base fields
@@ -17,12 +19,19 @@ export default class Project{
         this.editing = false
     }
 
+    // eslint-disable-next-line
     getPreferredUsers(orientationAcronym){
-        return this.preferred_users.filter(user => user.orientation.acronym === orientationAcronym)
+        return this.preferred_users//.filter(user => user.orientation.acronym === orientationAcronym)
     }
 
-    getAssignedUsers(orientationAcronym){
-        return this.assigned_users.filter(user => user.orientation.acronym === orientationAcronym)
+    getAssignedUsers(domain_id){
+        console.log("ass 1 ", domain_id)
+        let os = getOrientationFromDomainId(domain_id)
+        console.log("ass 2", os)
+        console.log("ass 3", this.assigned_users)
+        return this.assigned_users.filter(user => {
+            os.find(o => o === user.orientation.id)
+        })
     }
 
     getRequiredOrientations(){
