@@ -28,7 +28,7 @@
         </v-menu>
       </v-app-bar>
 
-      <v-navigation-drawer app clipped v-model="drawer">
+      <!--<v-navigation-drawer app clipped v-model="drawer">
         <v-list dense nav>
           <v-list-item v-for="(item, index) in sidebar" :key="index" :to="item.route">
             <v-list-item-icon>
@@ -39,7 +39,7 @@
             </v-list-item-content>
           </v-list-item>
         </v-list>
-      </v-navigation-drawer>
+      </v-navigation-drawer>-->
 
       <v-main style="height: 100vh">
         <router-view :key="$route.path" style="max-height: 100%; height: 100%" />
