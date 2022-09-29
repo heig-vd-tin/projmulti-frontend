@@ -87,7 +87,7 @@ export default {
   computed: {
     ...mapGetters(["getUser"]),
     owner() {
-      return this.getUser.id == this.project.owner_id
+      return this.getUser.isTeacher && (this.getUser.id == this.project.owner_id)
     }
   }
 }

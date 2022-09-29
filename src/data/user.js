@@ -19,5 +19,6 @@ export default class User {
     get isAdmin() { return User.ADMIN === this.role }
     get isProfessor() { return User.PROFESSOR === this.role }
     get isStudent() { return User.STUDENT === this.role }
-    get isTeacher() { return User.TEACHERS.includes(this.role) }
+    //get isTeacher() { return User.TEACHERS.includes(this.role) }
+    get isTeacher() { return User.PROFESSOR === this.role }
 }
