@@ -39,19 +39,19 @@
     </v-row>
     <v-row>
       <v-col v-for="(project, index) in filteredProjects" :key="index" cols="auto" md="4">
-        <project-view-component @click="dialog = true; selectedProject = project" :project="project" :light=true />
+        <project-view-component @removepref="onRemovePref(project.id)" @click="dialog = true; selectedProject = project" :project="project" :light=true />
       </v-col>
     </v-row>
 
     <v-dialog v-model="dialog" v-if="selectedProject !== null" max-width="60%">
       <v-card>
-        <project-view-component :project="selectedProject" :light=false />
+        <project-view-component @close="dialog=false" :project="selectedProject" :light=false />
       </v-card>
     </v-dialog>
   </v-container>
 </template>
 <script>
-import { mapGetters } from "vuex";
+import { mapGetters, mapActions } from "vuex";
 import { getDomainColor } from "@/data/helpers.js";
 import ProjectViewComponent from "../ProjectViewComponent.vue";
 
@@ -71,14 +71,34 @@ export default {
     filterMyProject: false
   }),
   methods: {
+    ...mapActions(["removeProjectPreference"]),
     getColor: function (domain) {
       return getDomainColor(domain);
     },
+    onRemovePref(prj_id) {
+      //this.project.loading = true;
+      this.removeProjectPreference({ projects: [prj_id] })
+        .catch(() => {
+          this.$notify({
+            title: "Erreur",
+            text: "La préférence n'a pas pu être effacée",
+            type: "error",
+          })
+        })
+        .finally(() => {
+          //this.project.loading = false
+        })
+    }
   },
   mounted() {
   },
   computed: {
-    ...mapGetters(["getAllProjects", "getMyProjects", "getOrientations", "getDomains", "getTags", "getUser"]), // tmz : getOrientation can be deleted ?
+    ...mapGetters(["getAllProjects",
+      "getMyProjects",
+      "getDomains",
+      "getTags",
+      "getUser",
+    ]),
     selectDomains() {
       return this.getDomains.flatMap((item, index, array) => {
         if (index == 0 || array[index - 1].name !== item.name)
@@ -107,13 +127,13 @@ export default {
           );
         })
         .filter((project) => {
-          if(this.isTeacher){
+          if (this.isTeacher) {
             return !this.filterMyProject || project.owner_id == this.getUser.id
           }
 
-          if(this.isStudent){
-            console.log(this.getMyProjects)
-            return !this.getMyProjects.some((item) => item.id == project.id);
+          if (this.isStudent) {
+            //console.log(this.getMyProjects)
+            return !this.filterMyProject || this.getMyProjects.some((item) => item.id == project.id);
           }
         });
     }
@@ -122,16 +142,17 @@ export default {
 </script>
 
 <style scoped>
-  .hidden-ghost {
-    display: none;
-  }
-  .dropzone {
-    border-style: solid;
-    border-width: 1px;
-    border-radius: 10px;
-    border-color: lightslategray;
-    height: 70px;
-    line-height: 70px;
-    text-align: center;
-  }
-  </style>
+.hidden-ghost {
+  display: none;
+}
+
+.dropzone {
+  border-style: solid;
+  border-width: 1px;
+  border-radius: 10px;
+  border-color: lightslategray;
+  height: 70px;
+  line-height: 70px;
+  text-align: center;
+}
+</style>
