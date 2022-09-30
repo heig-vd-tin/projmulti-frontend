@@ -2,14 +2,8 @@
   <v-container fluid>
     <v-row style="height: 10%">
       <v-col>
-        <v-select
-          label="Filtrer par orientations"
-          v-model="selectedOrientations"
-          :items="selectOrientations"
-          item-text="name"
-          multiple
-          clearable
-        >
+        <v-select label="Filtrer par orientations" v-model="selectedOrientations" :items="selectOrientations"
+          item-text="name" multiple clearable>
           <template v-slot:selection="{ item }">
             <v-chip>
               <span>{{ item.acronym }}</span>
@@ -21,44 +15,22 @@
     <v-row style="height: 90%">
       <v-col style="height: 100%">
         <v-list nav style="height: 100%; overflow-y: auto" class="dropzone">
-          <v-list-item-group
-            v-model="selectedProjectIndex"
-            color="blue"
-            @change="projectSelected"
-          >
-            <v-list-item
-              v-for="(project, index) in projects"
-              :key="index"
-              :disabled="project.loading"
-            >
+          <v-list-item-group v-model="selectedProjectIndex" color="blue" @change="projectSelected">
+            <v-list-item v-for="(project, index) in projects" :key="index" :disabled="project.loading">
               <v-list-item-content>
-                <v-list-item-title
-                  v-text="`PROJ#${project.id}`"
-                ></v-list-item-title>
+                <v-list-item-title v-text="`PROJ#${project.id}`"></v-list-item-title>
 
                 <v-chip-group>
-                  <v-chip
-                    v-for="domain in project.domains"
-                    :key="domain.id"
-                    outlined
-                    label
-                    :color="getProjectDomainColor(domain, project)"
-                  >
+                  <v-chip v-for="domain in project.domains" :key="domain.id" outlined label
+                    :color="getProjectDomainColor(domain, project)">
                     {{ domain.name }} :
                     <!--{{ project.getAssignedUsers(domain.id).length }}-->
                   </v-chip>
                 </v-chip-group>
 
-                <draggable
-                  :list="project.assigned_users"
-                  group="people"
-                  @change="(event) => assigned(event, project)"
-                  class="dropzone"
-                >
-                  <v-list-item
-                    v-for="user in project.assigned_users"
-                    :key="user.id"
-                  >
+                <draggable :list="project.assigned_users" group="people" @change="(event) => assigned(event, project)"
+                  class="dropzone">
+                  <v-list-item v-for="user in project.assigned_users" :key="user.id">
                     <v-list-item-content>
                       <v-chip outlined label>
                         STU#{{ user.id }} : {{ user.orientation.acronym }} : {{ project.getUserPreference(user)}}
@@ -75,11 +47,7 @@
       <v-col style="height: 100%">
         <!--v-text-field v-model="search" autofocus label="Recherche..." /-->
         <v-list nav style="height: 100%; overflow-y: auto" class="dropzone">
-          <v-list-item-group
-            v-model="selectedStudentIndex"
-            color="blue"
-            @change="studentSelected"
-          >
+          <v-list-item-group v-model="selectedStudentIndex" color="blue" @change="studentSelected">
             <draggable :list="[]" group="people" @change="unassigned">
               <v-list-item v-for="(user, index) in students" :key="index">
                 <v-list-item-content>
@@ -89,13 +57,8 @@
                       {{ user.orientation.acronym }}
                     </v-chip>
                     <v-chip-group>
-                      <v-chip
-                        v-for="preferred in user.preferences"
-                        :key="preferred.id"
-                        outlined
-                        label
-                        :color="getUserPreferenceColor(preferred.project_id)"
-                      >
+                      <v-chip v-for="preferred in user.preferences" :key="preferred.id" outlined label
+                        :color="getUserPreferenceColor(preferred.project_id, user)">
                         PROJ#{{ getProjectFromId(preferred.project_id).id }}
                       </v-chip>
                     </v-chip-group>
@@ -149,7 +112,7 @@ export default {
       this.removeAssignment({ user_id: event.added.element.id });
     },
     getProjectDomainColor(domain, project) {
-      if(domain || project)
+      if (domain || project)
         return 'green'
     },
     getProjectOrientationColor(orientation, project) {
@@ -161,12 +124,16 @@ export default {
         return "blue";
       else return orientation.pivot.importance >= 3 ? "red" : "gray";
     },
-    getUserPreferenceColor(projectId) {
-      if (
-        this.selectedProjectIndex == null ||
-        this.selectedProject.id != projectId
-      )
+    getUserPreferenceColor(projectId, user) {
+      let res = user.assignments.find( a => a.project_id == projectId )
+      if( res ){
+        console.log("vert find")
+        return "green"
+      } 
+      
+      if ( this.selectedProjectIndex == null || this.selectedProject.id != projectId )
         return "";
+
       return "blue";
     },
     getProjectFromId(id) {

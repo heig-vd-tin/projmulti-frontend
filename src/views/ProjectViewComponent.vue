@@ -59,7 +59,12 @@
     <!--Nbr student admin-->
     <div class="pos-abs-tr text-right">
       <v-chip color="blue lighten-3" v-show="isAdmin">
-        {{project.getPreferredUsers(null).length}} / {{ project.getMatchedUsers().length }}
+        {{project.getPreferredUsers(3,null).length}} / {{ project.getMatchedUsers(3).length }}
+      </v-chip>
+    </div>
+    <div class="pos-abs-tr text-right mt-10">
+      <v-chip color="blue lighten-3" v-show="isAdmin">
+        {{project.getPreferredUsers(5,null).length}} / {{ project.getMatchedUsers(5).length }}
       </v-chip>
     </div>
 

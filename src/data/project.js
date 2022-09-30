@@ -27,17 +27,17 @@ export default class Project{
     }
 
     // eslint-disable-next-line
-    getPreferredUsers(orientationAcronym){
+    getPreferredUsers(maxPriority, orientationAcronym){
         if( orientationAcronym != null){
             console.log("a")
         }
-        let r = this.preferred_users 
-        //console.log(r.count())
+        let r = this.preferred_users.filter(user => user.pivot.priority <= maxPriority)
+
         return r//.filter(user => user.orientation.acronym === orientationAcronym)
     }
 
-    getMatchedUsers(){
-        return this.matched_users
+    getMatchedUsers(maxPriority){
+        return this.matched_users.filter(user => user.pivot.priority <= maxPriority)
     }
 
     getAssignedUsers(domain_id){

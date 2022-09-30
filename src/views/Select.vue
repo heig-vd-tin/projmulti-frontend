@@ -46,7 +46,7 @@ export default {
       return r
     },
     sortProj(a, b) {
-      if (a.getPreferredUsers().length < b.getPreferredUsers().length)
+      if (a.getPreferredUsers(5,null).length < b.getPreferredUsers(5,null).length)
         return 1
       else
         return -1

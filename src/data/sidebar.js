@@ -2,26 +2,57 @@ import User from "./user"
 
 const AllProjects = {
     title: "Tous les projets",
+    action: "route",
     icon: "mdi-format-list-text",
     route: "/all-projects",
 }
-const MyProjects = { title: "Mes projets", icon: "mdi-account", route: "/my-projects" }
+const MyProjects = {
+     title: "Mes projets", 
+     action: "route",
+     icon: "mdi-account", 
+     route: "/my-projects" }
+
 const NewProject = {
     title: "Nouveau projet",
+    action: "route",
     icon: "mdi-account-group-outline",
     route: "/new-project",
 }
 const Assignments = {
     title: "Assignations",
+    action: "route",
     icon: "mdi-clipboard-account-outline",
     route: "/global",
 }
 
+const SelectPrj = {
+    title: "Select project",
+    action: "route",
+    icon: "mdi-clipboard-account-outline",
+    route: "/select",
+}
+
+const AutoSelect = {
+    title: "Auto select project",
+    action: "autoSelect",
+    icon: "mdi-refresh-auto",
+    route: "",
+}
+
+const AutoAffect = {
+    title: "Auto affect student",
+    action: "autoAffect",
+    icon: "mdi-refresh-auto",
+    route: "",
+}
+
 export default function getSidebar(role) {
     switch (role) {
-        case User.ADMIN: return [AllProjects, MyProjects, NewProject, Assignments]
-        case User.PROFESSOR: return [AllProjects, MyProjects, NewProject]
-        case User.STUDENT: return [AllProjects, MyProjects]
+        case User.ADMIN: return [
+            AllProjects, MyProjects, NewProject, 
+            Assignments, SelectPrj, AutoSelect, AutoAffect]
+        //case User.PROFESSOR: return [AllProjects, MyProjects, NewProject]
+        //case User.STUDENT: return [AllProjects, MyProjects]
         default: return []
     }
 }

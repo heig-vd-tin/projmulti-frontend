@@ -14,6 +14,7 @@ export default class User {
         this.orientation_id = userData.orientation_id
         this.orientation = userData.orientation
         this.preferences = userData.preferences ?? []
+        this.assignments = userData.assignments ?? []
     }
 
     get isAdmin() { return User.ADMIN === this.role }
