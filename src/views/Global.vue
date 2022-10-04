@@ -19,6 +19,7 @@
             <v-list-item v-for="(project, index) in projects" :key="index" :disabled="project.loading">
               <v-list-item-content>
                 <v-list-item-title v-text="`PROJ#${project.id}`"></v-list-item-title>
+                <v-list-item-subtitle>{{project.title}} / {{project.reference}} / {{project.owner_id}}</v-list-item-subtitle>
 
                 <v-chip-group>
                   <v-chip v-for="domain in project.domains" :key="domain.id" outlined label

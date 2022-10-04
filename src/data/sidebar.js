@@ -18,11 +18,19 @@ const NewProject = {
     icon: "mdi-account-group-outline",
     route: "/new-project",
 }
+
 const Assignments = {
     title: "Assignations",
     action: "route",
     icon: "mdi-clipboard-account-outline",
     route: "/global",
+}
+
+const Infos = {
+    title: "Infos",
+    action: "route",
+    icon: "mdi-clipboard-account-outline",
+    route: "/infos",
 }
 
 const SelectPrj = {
@@ -56,7 +64,7 @@ const AutoAffect = {
 export default function getSidebar(role) {
     switch (role) {
         case User.ADMIN: return [
-            AllProjects, MyProjects, NewProject, 
+            AllProjects, MyProjects, NewProject, Infos,
             Assignments, SelectPrj, FindMatches, AutoSelect, AutoAffect]
         //case User.PROFESSOR: return [AllProjects, MyProjects, NewProject]
         //case User.STUDENT: return [AllProjects, MyProjects]

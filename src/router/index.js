@@ -46,6 +46,12 @@ const routes = [
     name: "Select",
     component: () => import("@/views/Select"),
     beforeEnter: (to, from, next) => next(store.getters.getUser.isAdmin)
+  },
+  {
+    path: "/infos",
+    name: "Infos",
+    component: () => import("@/views/Infos"),
+    beforeEnter: (to, from, next) => next(store.getters.getUser.isAdmin)
   }
 ]
 
