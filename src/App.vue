@@ -89,6 +89,11 @@ export default {
         case "route":
           this.$router.push(item.route)
           break
+        case "findMatches":
+          axios
+            .get('/assignment/calcul-match')
+            .then(response => (console.log(response)))
+          break
         case "autoSelect":
           axios
             .get('/assignment/auto-select')

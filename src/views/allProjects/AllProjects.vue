@@ -108,7 +108,7 @@ export default {
       return this.getUser.isStudent
     },
     isTeacher() {
-      return this.getUser.isTeacher
+      return this.getUser.isTeacher || this.getUser.isAdmin
     },
     filteredProjects() {
       return this.getAllProjects

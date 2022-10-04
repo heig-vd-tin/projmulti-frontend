@@ -32,6 +32,13 @@ const SelectPrj = {
     route: "/select",
 }
 
+const FindMatches = {
+    title: "Find matches project",
+    action: "findMatches",
+    icon: "mdi-refresh-auto",
+    route: "",
+}
+
 const AutoSelect = {
     title: "Auto select project",
     action: "autoSelect",
@@ -50,7 +57,7 @@ export default function getSidebar(role) {
     switch (role) {
         case User.ADMIN: return [
             AllProjects, MyProjects, NewProject, 
-            Assignments, SelectPrj, AutoSelect, AutoAffect]
+            Assignments, SelectPrj, FindMatches, AutoSelect, AutoAffect]
         //case User.PROFESSOR: return [AllProjects, MyProjects, NewProject]
         //case User.STUDENT: return [AllProjects, MyProjects]
         default: return []
