@@ -1,16 +1,18 @@
 <template>
   <v-container fluid style="max-height: 100%; overflow-y: auto">
 
-    <v-row>
-      <v-col v-for="(user, key_u) in getTeachers()" :key="key_u">
-        <v-card>{{user.id}} : {{user.firstname}} prj : {{getNbrOfProject(user.id)}} </v-card>
-      </v-col>
-    </v-row>
-    <v-row>
-      <v-col cols="auto" md="4" v-for="(project, index) in getProjects()" :key="index">
-        <project-view-component @click="dialog = true; selectedProject = project" :project="project" :light=true />
-      </v-col>
-    </v-row>
+    <div id="main_page">
+      <div id="col_user">
+        <div v-for="(user, key_u) in getTeachers()" :key="key_u">
+          <v-card class="mx-4 my-6">{{user.id}} : {{user.firstname}} {{user.lastname}} <br/> Nbr proj : {{getNbrOfProject(user.id)}} </v-card>
+        </div>
+      </div>
+
+      <div id="col_project">
+          <project-view-component class="card_project" 
+              v-for="(project, index) in getProjects()" :key="index" @click="dialog = true; selectedProject = project" :project="project" :light=true />          
+      </div>      
+    </div>
 
     <v-dialog v-model="dialog" v-if="selectedProject !== null" max-width="60%">
       <v-card>
@@ -67,5 +69,33 @@ export default {
 </script>
 
 <style>
+#main_page {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  align-items: flex-start;
+  align-content: flex-start;
+}
 
+#col_project {
+  flex: 1 1 50%;
+  width: 70%;
+
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: stretch;
+}
+
+#col_user {
+  flex: 0 0 250px;
+}
+
+.card_project {
+  flex: 0 0.5 30%;
+  min-height: 200px;
+  margin: 10px;
+  background-color: lightblue;
+}
 </style>

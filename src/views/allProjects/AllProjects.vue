@@ -37,11 +37,9 @@
       </v-col>
 
     </v-row>
-    <v-row>
-      <v-col v-for="(project, index) in filteredProjects" :key="index" cols="auto" md="4">
-        <project-view-component @removepref="onRemovePref(project.id)" @click="dialog = true; selectedProject = project" :project="project" :light=true />
-      </v-col>
-    </v-row>
+    <div id="col_project">
+        <project-view-component class="card_project" v-for="(project, index) in filteredProjects" :key="index" @removepref="onRemovePref(project.id)" @click="dialog = true; selectedProject = project" :project="project" :light=true />
+    </div>
 
     <v-dialog v-model="dialog" v-if="selectedProject !== null" max-width="60%">
       <v-card>
@@ -142,6 +140,19 @@ export default {
 </script>
 
 <style scoped>
+#col_project {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: stretch;
+}
+
+.card_project {
+  flex: 0 0.5 30%;
+  margin: 10px;
+  background-color: lightblue;
+}
+
 .hidden-ghost {
   display: none;
 }

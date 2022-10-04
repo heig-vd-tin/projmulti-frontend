@@ -1,5 +1,5 @@
 <template>
-  <v-card @click="eventClick" style="margin-bottom: 50px" elevation="2" :color="getColorSelected()">
+  <v-card class="d-flex flex-column" @click="eventClick" style="margin-bottom: 30px" elevation="2" :color="getColorSelected()">
     <v-card-title style="justify-content: center">
       {{ project.title }} #{{ project.id }}
     </v-card-title>
@@ -17,21 +17,24 @@
         </v-chip>
       </v-chip-group>
     </v-card-text>
-    <v-card-subtitle class="font-weight-medium text-decoration-underline" :hidden=light>Domains:</v-card-subtitle>
-    <v-card-text class="py-0">
-      <v-chip-group column>
-        <v-chip v-for="domain in project.domains" :key="domain.id" outlined :color="getColor(domain)">
-          <v-tooltip bottom :color="getColor(domain)">
-            <template v-slot:activator="{ on }">
-              <v-icon v-on="on" center>
-                {{ domain.icon }}
-              </v-icon>
-            </template>
-            <span>{{ domain.name }}</span>
-          </v-tooltip>
-        </v-chip>
-      </v-chip-group>
-    </v-card-text>
+    <v-spacer></v-spacer>
+    <div id="group_domain">
+      <v-card-subtitle class="font-weight-medium text-decoration-underline" :hidden=light>Domains:</v-card-subtitle>
+      <v-card-text :class="classDomain">
+        <v-chip-group column>
+          <v-chip v-for="domain in project.domains" :key="domain.id" outlined :color="getColor(domain)">
+            <v-tooltip bottom :color="getColor(domain)">
+              <template v-slot:activator="{ on }">
+                <v-icon v-on="on" center>
+                  {{ domain.icon }}
+                </v-icon>
+              </template>
+              <span>{{ domain.name }}</span>
+            </v-tooltip>
+          </v-chip>
+        </v-chip-group>
+      </v-card-text>
+    </div>
 
     <v-btn class="pos-abs-br" v-show=owner fab dark x-small color="cyan" :to="'/edit-project/' + project.id">
       <v-icon dark>
@@ -196,6 +199,9 @@ export default {
   },
   computed: {
     ...mapGetters(["getUser", "getMyProjects", "getMatchedUsers"]),
+    classDomain() {
+      return this.light ? "py-1" : "py-4"
+    },
     owner() {
       return this.getUser.isTeacher && (this.getUser.id == this.project.owner_id)
     },
@@ -222,6 +228,10 @@ export default {
 </script>
 
 <style>
+#group_domain{
+  
+}
+
 .v-speed-dial {
   bottom: 10px;
   right: 10px;
