@@ -37,18 +37,27 @@
                   </v-chip>
                 </v-chip-group>
 
-                <draggable :list="project.assigned_users" group="people" @change="assigned($event, project)"
-                  class="dropzone">
-                  <v-list-item-group>
+                <v-list-item-group>
+                    <draggable width="100%" :list="project.assigned_users" group="people" @change="assigned($event, project)" class="dropzone">
                   <v-list-item v-for="user in project.assigned_users" :key="user.id">
                     <v-list-item-content>
                       <v-chip outlined label>
+                   
+                      
+                        <v-btn fab dark height="20px" width="20px" color="red" @click.stop="removeStudent($event, user, project)">
+                        <v-icon dark size="20px">
+            mdi-minus
+          </v-icon>
+                      </v-btn>
+                      <div class="mx-3">
                         STU#{{ user.id }} : {{ user.orientation.acronym }} : {{ project.getUserPreference(user)}}
-                      </v-chip>
+                      </div>
+                      
+                    </v-chip>
                     </v-list-item-content>
                   </v-list-item>
-                </v-list-item-group>
                 </draggable>
+                </v-list-item-group>
                 
               </v-list-item-content>
             </v-list-item>
@@ -104,6 +113,12 @@ export default {
   }),
   methods: {
     ...mapActions(["addAssignment", "removeAssignment"]),
+    // eslint-disable-next-line
+    removeStudent(event, user, project){
+      
+      //console.log(project.id, user.id)
+      this.removeAssignment({ user_id: user.id });
+    },
     assigned(event, project) {
       if (!event.added) return;
       project.loading = true;
