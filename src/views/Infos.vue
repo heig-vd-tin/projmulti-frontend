@@ -1,6 +1,7 @@
 <template>
   <v-container fluid style="max-height: 100%; overflow-y: auto">
     Number of projects: {{ getProjects().length }} <br />
+    Number of selected projects: {{ getSelectedProject().length }} <br />
     Number of teachers: {{ getTeachers().length }} <br />
     Number of students: {{ getStudents().length }} <br />
     <br />
@@ -41,6 +42,9 @@ export default {
   methods: {
     getProjects() {
       return this.getAllProjects//.sort(this.sortProj)
+    },
+    getSelectedProject(){
+      return this.getAllProjects.filter(p => p.selected)
     },
     getTeachers() {
       let r = this.getAllUsers.filter(u => u.role == 'professor' || u.role == 'admin')
