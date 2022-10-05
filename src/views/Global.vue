@@ -11,11 +11,14 @@
           </template>
         </v-select>
       </v-col>
+      <v-col>
+          <v-switch v-model="filterNoAssigned" @change="switchFilterAssignChange()" label="NoAssigned"></v-switch>
+        </v-col>
     </v-row>
     <v-row style="height: 90%">
       <v-col style="height: 100%">
         <v-list nav style="height: 100%; overflow-y: auto" class="dropzone">
-          <v-list-item-group v-model="selectedProjectIndex" color="blue" @change="projectSelected">
+          <v-list-item-group v-model="selectedProjectIndex" color="blue" @change="projectSelected($event)">
             <v-list-item v-for="(project, index) in projects" :key="index" :disabled="project.loading">
               <v-list-item-content>
                 <v-list-item-title v-text="`PROJ#${project.id}`"></v-list-item-title>
@@ -29,7 +32,8 @@
                   </v-chip>
                 </v-chip-group>
 
-                <draggable :list="project.assigned_users" group="people" @change="(event) => assigned(event, project)"
+                <!--<draggable :list="project.assigned_users" group="people" @change="($event) => assigned($event, project)"-->
+                <draggable :list="project.assigned_users" group="people" @change="assigned($event, project)"
                   class="dropzone">
                   <v-list-item v-for="user in project.assigned_users" :key="user.id">
                     <v-list-item-content>
@@ -48,9 +52,9 @@
       <v-col style="height: 100%">
         <!--v-text-field v-model="search" autofocus label="Recherche..." /-->
         <v-list nav style="height: 100%; overflow-y: auto" class="dropzone">
-          <v-list-item-group v-model="selectedStudentIndex" color="blue" @change="studentSelected">
+          <v-list-item-group v-model="selectedStudentIndex" color="blue" @change="studentSelected($event)">
             <draggable :list="[]" group="people" @change="unassigned">
-              <v-list-item v-for="(user, index) in students" :key="index">
+              <v-list-item v-for="(user, index) in filtredStudents" :key="index">
                 <v-list-item-content>
                   <v-list-item-title> STU#{{ user.id }} </v-list-item-title>
                   <v-list-item-subtitle>
@@ -87,12 +91,14 @@ export default {
     selectedOrientations: [],
     selectedProjectIndex: null,
     selectedStudentIndex: null,
+    filterNoAssigned : false,
     projects: [],
     students: [],
   }),
   methods: {
     ...mapActions(["addAssignment", "removeAssignment"]),
     assigned(event, project) {
+      console.log("assigned", event, project)
       if (!event.added) return;
       project.loading = true;
       this.addAssignment({
@@ -107,6 +113,19 @@ export default {
           });
         })
         .finally(() => (project.loading = false));
+    },
+    switchFilterAssignChange(){
+      this.selectedProjectIndex = null
+      this.selectedStudentIndex = null
+      this.initArrays()
+    },
+    initArrays() {
+      this.projects = this.getAllProjects.filter(p => p.selected).slice();
+
+      if(this.filterNoAssigned)
+        this.students =  this.getAllStudents.filter(u => u.assignments.length == 0)
+      else
+        this.students =  this.getAllStudents
     },
     unassigned(event) {
       if (!event.added) return;
@@ -128,9 +147,12 @@ export default {
     getUserPreferenceColor(projectId, user) {
       let res = user.assignments.find( a => a.project_id == projectId )
       if( res ){
-        console.log("vert find")
         return "green"
-      } 
+      }
+      
+      if( !this.getProjectFromId(projectId).selected ){
+        return "red"
+      }
       
       if ( this.selectedProjectIndex == null || this.selectedProject.id != projectId )
         return "";
@@ -140,15 +162,17 @@ export default {
     getProjectFromId(id) {
       return this.getAllProjects.find((project) => project.id == id);
     },
-    initArrays() {
-      this.projects = this.getAllProjects.filter(p => p.selected).slice();
-      this.students = this.getAllStudents.slice();
-    },
-    projectSelected() {
+    projectSelected(event) {
+      console.log("project selected", event, this.projects[event].id, 
+        this.selectedProjectIndex, this.selectedStudentIndex)
+      if(this.selectedStudentIndex)
+        console.log(this.students[this.selectedStudentIndex].id)
+
       if (this.selectedProjectIndex == null) {
         this.initArrays();
         return;
       }
+      this.filterNoAssigned = false
       this.selectedStudentIndex = undefined;
       this.students = this.getAllStudents
         .filter((user) => {
@@ -167,6 +191,10 @@ export default {
         });
     },
     studentSelected() {
+      console.log("Stdu", this.selectedStudentIndex)
+      if(this.selectedStudentIndex != null)
+        console.log(this.selectedStudent.id)
+
       if (this.selectedStudentIndex == null) {
         this.initArrays();
         return;
@@ -189,6 +217,12 @@ export default {
           return [{ header: item.faculty_name }, item];
         else return item;
       });
+    },
+    filtredStudents(){
+      if(this.filterNoAssigned)
+        return this.students.filter(u => u.assignments.length == 0)
+      else
+        return this.students
     },
     selectedProject() {
       return this.projects[this.selectedProjectIndex];
