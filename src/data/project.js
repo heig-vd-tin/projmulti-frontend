@@ -24,7 +24,10 @@ export default class Project{
 
     getUserPreference(user){
         let res = this.preferred_users.find(pu => pu.id === user.id)
-        return res.pivot.priority
+        if(res){
+            return res.pivot.priority
+        }
+        return null
     }
 
     // eslint-disable-next-line
