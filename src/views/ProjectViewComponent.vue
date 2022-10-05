@@ -1,5 +1,6 @@
 <template>
-  <v-card class="d-flex flex-column" @click="eventClick" style="margin-bottom: 30px" elevation="2" :color="getColorSelected()">
+  <v-card class="d-flex flex-column" @click="eventClick" style="margin-bottom: 30px" elevation="2"
+    :color="getColorSelected()">
     <v-card-title style="justify-content: center">
       {{ project.title }} #{{ project.id }}
     </v-card-title>
@@ -37,43 +38,76 @@
     </div>
 
     <v-btn class="pos-abs-br" v-show=owner fab dark x-small color="cyan" :to="'/edit-project/' + project.id">
-      <v-icon dark>
-        mdi-pencil
-      </v-icon>
+      <v-tooltip bottom color="red">
+        <template v-slot:activator="{ on }">
+          <v-icon v-on="on" dark>
+            mdi-pencil
+          </v-icon>
+        </template>
+        <span>Edit project</span>
+      </v-tooltip>
     </v-btn>
 
     <!--Admin selected-->
     <v-btn class="pos-abs-br" @click="adminSelectClick" v-show="isAdmin" fab dark x-small :color=adminSelectButtonColor>
-      <v-icon dark v-if="project.selected">
-        mdi-minus
-      </v-icon>
-      <v-icon dark v-else>
-        mdi-plus
-      </v-icon>
+      <v-tooltip bottom>
+        <template v-slot:activator="{ on }">
+          <v-icon v-on="on" dark v-if="project.selected">
+            mdi-minus
+          </v-icon>
+          <v-icon v-on="on" dark v-else>
+            mdi-plus
+          </v-icon>
+        </template>
+        <span>Select / Unselect project</span>
+      </v-tooltip>
+
     </v-btn>
 
     <!--Student unselected-->
-    <v-btn class="pos-abs-br" @click="$emit('removepref')" v-show="studentSelected() & light" fab dark x-small color="red">
-      <v-icon dark>
-        mdi-minus
-      </v-icon>
+    <v-btn class="pos-abs-br" @click="$emit('removepref')" v-show="studentSelected() & light" fab dark x-small
+      color="red">
+      <v-tooltip bottom color="red">
+        <template v-slot:activator="{ on }">
+          <v-icon v-on="on" dark>
+            mdi-minus
+          </v-icon>
+        </template>
+        <span>Supprimer le projet des sélections</span>
+      </v-tooltip>
     </v-btn>
 
     <!--Nbr student admin-->
     <div class="pos-abs-tr text-right">
-      <v-chip color="blue lighten-3" v-show="isAdmin">
-        {{project.getPreferredUsers(3,null).length}} / {{ project.getMatchedUsers(3).length }}
-      </v-chip>
+      <v-tooltip bottom>
+        <template v-slot:activator="{ on }">
+          <v-chip v-on="on" color="blue lighten-3" v-show="isAdmin">
+            {{project.getPreferredUsers(3,null).length}} / {{ project.getMatchedUsers(3).length }}
+          </v-chip>
+        </template>
+        <span>Choosen by student with priority &#60;= 3 / Choosen and orientation match with priority &#60;= 3</span>
+      </v-tooltip>
     </div>
+
     <div class="pos-abs-tr text-right mt-10">
-      <v-chip color="blue lighten-3" v-show="isAdmin">
-        {{project.getPreferredUsers(5,null).length}} / {{ project.getMatchedUsers(5).length }}
-      </v-chip>
+      <v-tooltip bottom>
+        <template v-slot:activator="{ on }">
+          <v-chip v-on="on" color="blue lighten-3" v-show="isAdmin">
+            {{project.getPreferredUsers(5,null).length}} / {{ project.getMatchedUsers(5).length }}
+          </v-chip>
+        </template>
+        <span>Choosen by student / Choosen and orientation match</span>
+      </v-tooltip>
     </div>
 
     <!--Student selected-->
     <v-btn class="pos-abs-tr" v-show="studentSelected()" fab dark x-small color="green">
-      <span class="font-weight-bold text-h5">{{studentPriority}}</span>
+      <v-tooltip bottom>
+        <template v-slot:activator="{ on }">
+          <span v-on="on" class="font-weight-bold text-h5">{{studentPriority}}</span>
+        </template>
+        <span>Selected project with priority</span>
+      </v-tooltip>
     </v-btn>
 
     <!--Student priority-->
@@ -128,12 +162,12 @@ export default {
         this.$emit("click", event)
       }
     },
-    adminSelectClick: function (){
+    adminSelectClick: function () {
       console.log("click", this.project.id)
 
       this.selectProject({
-          id: this.project.id, selected: !this.project.selected
-        })
+        id: this.project.id, selected: !this.project.selected
+      })
         .catch(() => {
           this.$notify({
             title: "Erreur",
@@ -147,8 +181,8 @@ export default {
     getColor: function (domain) {
       return getDomainColor(domain)
     },
-    getColorSelected: function(){
-      if( this.project.selected )
+    getColorSelected: function () {
+      if (this.project.selected)
         return 'light-green accent-1'
       else
         return 'white'
@@ -168,12 +202,12 @@ export default {
       return prjs != null && this.getUser.isStudent
     },
     onClickPrefBtn(priority) {
-      if( this.priorityFree(priority) ){
+      if (this.priorityFree(priority)) {
         this.addPrjPref(priority)
       }
     },
     addPrjPref(priority) {
-      let projects = this.getMyProjects.slice(0);     
+      let projects = this.getMyProjects.slice(0);
       let p = this.project
       p.priority = priority
       projects.push(p)
@@ -193,7 +227,7 @@ export default {
         })
         .finally(() => {
           this.loading = false
-          this.$emit("close")   
+          this.$emit("close")
         });
     },
   },
@@ -228,9 +262,7 @@ export default {
 </script>
 
 <style>
-#group_domain{
-  
-}
+#group_domain {}
 
 .v-speed-dial {
   bottom: 10px;
