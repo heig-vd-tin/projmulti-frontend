@@ -165,7 +165,7 @@ export default {
     },
     studentSelected() {
       let prjs = this.getMyProjects.find(p => p.id == this.project.id)
-      return prjs != null
+      return prjs != null && this.getUser.isStudent
     },
     onClickPrefBtn(priority) {
       if( this.priorityFree(priority) ){

@@ -159,6 +159,7 @@ export default {
             type: "success",
           });
           this.$emit("success");
+          this.$router.push('/all-projects')
         })
         .catch(() => {
           this.$notify({
@@ -184,6 +185,7 @@ export default {
           });
           this.reset();
           this.$emit("success");
+          this.$router.push('/all-projects')
         })
         .catch(() => {
           this.$notify({
