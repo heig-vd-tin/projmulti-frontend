@@ -37,8 +37,8 @@
       </v-card-text>
     </div>
 
-    <v-btn class="pos-abs-br" v-show=owner fab dark x-small color="cyan" :to="'/edit-project/' + project.id">
-      <v-tooltip bottom color="red">
+    <v-btn class="pos-abs-br" v-show="owner & canEdit" fab dark x-small color="cyan" :to="'/edit-project/' + project.id">
+      <v-tooltip bottom>
         <template v-slot:activator="{ on }">
           <v-icon v-on="on" dark>
             mdi-pencil
@@ -49,7 +49,7 @@
     </v-btn>
 
     <!--Admin selected-->
-    <v-btn class="pos-abs-br" @click="adminSelectClick" v-show="isAdmin" fab dark x-small :color=adminSelectButtonColor>
+    <v-btn class="pos-abs-br" @click="adminSelectClick" v-show="isAdmin & canSelect" fab dark x-small :color=adminSelectButtonColor>
       <v-tooltip bottom>
         <template v-slot:activator="{ on }">
           <v-icon v-on="on" dark v-if="project.selected">
@@ -61,7 +61,6 @@
         </template>
         <span>Select / Unselect project</span>
       </v-tooltip>
-
     </v-btn>
 
     <!--Student unselected-->
@@ -150,6 +149,14 @@ export default {
     light: {
       type: Boolean,
       default: true
+    },
+    canSelect: {
+      type: Boolean,
+      default: false
+    },
+    canEdit: {
+      type: Boolean,
+      default: false
     }
   },
   methods: {
@@ -163,7 +170,6 @@ export default {
       }
     },
     adminSelectClick: function () {
-      console.log("click", this.project.id)
 
       this.selectProject({
         id: this.project.id, selected: !this.project.selected

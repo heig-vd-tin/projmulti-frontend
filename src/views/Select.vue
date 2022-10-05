@@ -9,7 +9,7 @@
       </div>
 
       <div id="col_project">
-          <project-view-component class="card_project" 
+          <project-view-component class="card_project" :canSelect="true"
               v-for="(project, index) in getProjects()" :key="index" @click="dialog = true; selectedProject = project" :project="project" :light=true />          
       </div>      
     </div>

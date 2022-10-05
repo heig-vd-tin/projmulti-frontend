@@ -38,7 +38,7 @@
 
     </v-row>
     <div id="col_project">
-        <project-view-component class="card_project" v-for="(project, index) in filteredProjects" :key="index" @removepref="onRemovePref(project.id)" @click="dialog = true; selectedProject = project" :project="project" :light=true />
+        <project-view-component :canEdit="true" class="card_project" v-for="(project, index) in filteredProjects" :key="index" @removepref="onRemovePref(project.id)" @click="dialog = true; selectedProject = project" :project="project" :light=true />
     </div>
 
     <v-dialog v-model="dialog" v-if="selectedProject !== null" max-width="60%">
