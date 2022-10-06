@@ -29,7 +29,7 @@
                 <v-list-item-subtitle>{{project.title}} / {{project.reference}} / {{project.owner_id}}
                 </v-list-item-subtitle>
 
-                <v-chip-group>
+                <v-chip-group class="chip_domain">
                   <v-chip v-for="domain in project.domains" :key="domain.id" outlined label
                     :color="getProjectDomainColor(domain, project)">
                     {{ domain.name }} :
@@ -37,28 +37,28 @@
                   </v-chip>
                 </v-chip-group>
 
-                <v-list-item-group>
-                    <draggable width="100%" :list="project.assigned_users" group="people" @change="assigned($event, project)" class="dropzone">
-                  <v-list-item v-for="user in project.assigned_users" :key="user.id">
-                    <v-list-item-content>
-                      <v-chip outlined label>
-                   
-                      
-                        <v-btn fab dark height="20px" width="20px" color="red" @click.stop="removeStudent($event, user, project)">
-                        <v-icon dark size="20px">
-            mdi-minus
-          </v-icon>
-                      </v-btn>
-                      <div class="mx-3">
-                        STU#{{ user.id }} : {{ user.orientation.acronym }} : {{ project.getUserPreference(user)}}
-                      </div>
-                      
-                    </v-chip>
-                    </v-list-item-content>
-                  </v-list-item>
-                </draggable>
+                <v-list-item-group class="students_list align-content-start flex-wrap">
+                  <draggable width="100%" :list="project.assigned_users" group="people"
+                    @change="assigned($event, project)" class="dropzone">
+                    <v-list-item v-for="user in project.assigned_users" :key="user.id" class="students_list_items">
+                      <v-list-item-content>
+                        <v-chip outlined label>
+                          <v-btn fab dark height="20px" width="20px" color="red"
+                            @click.stop="removeStudent($event, user, project)">
+                            <v-icon dark size="20px">
+                              mdi-minus
+                            </v-icon>
+                          </v-btn>
+                          <div class="mx-3">
+                            STU#{{ user.id }} : {{ user.orientation.acronym }} : {{ project.getUserPreference(user)}}
+                          </div>
+
+                        </v-chip>
+                      </v-list-item-content>
+                    </v-list-item>
+                  </draggable>
                 </v-list-item-group>
-                
+
               </v-list-item-content>
             </v-list-item>
           </v-list-item-group>
@@ -114,8 +114,8 @@ export default {
   methods: {
     ...mapActions(["addAssignment", "removeAssignment"]),
     // eslint-disable-next-line
-    removeStudent(event, user, project){
-      
+    removeStudent(event, user, project) {
+
       //console.log(project.id, user.id)
       this.removeAssignment({ user_id: user.id });
     },
@@ -264,5 +264,21 @@ export default {
   /*border-radius: 10px;*/
   border-color: lightslategray;
   min-height: 60px;
+  width:100%;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.students_list {
+  display: flex;
+  flex: 0 0 100%;
+}
+
+.students_list_items {
+  flex: 0 0 200px;
+}
+
+.chip_domain{
+  flex: 0 0 100%;
 }
 </style>
