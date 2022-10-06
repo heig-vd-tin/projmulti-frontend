@@ -1,4 +1,3 @@
-import {getOrientationFromDomainId} from './helpers'
 
 export default class Project{
     constructor(projectData){
@@ -45,9 +44,8 @@ export default class Project{
     }
 
     getAssignedUsers(domain_id){
-        let os = getOrientationFromDomainId(domain_id, false)
         let res = this.assigned_users.filter(user => {
-            return os.find(o => o == user.orientation_id) != undefined
+            return user.pivot.domain_id == domain_id
         })       
         return res
     }

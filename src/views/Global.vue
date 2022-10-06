@@ -43,12 +43,7 @@
                     <v-list-item v-for="user in project.assigned_users" :key="user.id" class="students_list_items">
                       <v-list-item-content>
                         <v-chip outlined label>
-                          <v-btn fab dark height="20px" width="20px" color="red"
-                            @click.stop="removeStudent($event, user, project)">
-                            <v-icon dark size="20px">
-                              mdi-minus
-                            </v-icon>
-                          </v-btn>
+
                           <div class="mx-3">
                             STU#{{ user.id }} : {{ user.orientation.acronym }} : {{ project.getUserPreference(user)}}
                           </div>
@@ -65,18 +60,18 @@
         </v-list>
       </v-col>
 
-      <v-col style="height: 100%">
+      <v-col style="height: 100%" cols="5">
         <!--v-text-field v-model="search" autofocus label="Recherche..." /-->
         <v-list nav style="height: 100%; overflow-y: auto" class="dropzone">
           <v-list-item-group v-model="selectedStudentIndex" color="blue" @change="studentSelected($event)">
             <draggable :list="students" group="people" @change="unassigned">
               <v-list-item v-for="(user, index) in students" :key="index">
                 <v-list-item-content>
-                  <v-list-item-title> STU#{{ user.id }} </v-list-item-title>
+                  <v-list-item-title> STU#{{ user.id }}  -  {{ user.orientation.acronym }}</v-list-item-title>
                   <v-list-item-subtitle>
-                    <v-chip outlined label>
+                    <!--<v-chip outlined label>
                       {{ user.orientation.acronym }}
-                    </v-chip>
+                    </v-chip>-->
                     <v-chip-group>
                       <v-chip v-for="preferred in user.preferences" :key="preferred.id" outlined label
                         :color="getUserPreferenceColor(preferred.project_id, user)">
@@ -149,10 +144,12 @@ export default {
       this.removeAssignment({ user_id: event.added.element.id });
     },
     getProjectDomainColor(domain, project) {
-      if (domain || project)
+      if( project.getAssignedUsers(domain.id).length > 0)
         return 'green'
+      else
+        return 'red'
     },
-    getProjectOrientationColor(orientation, project) {
+    /*getProjectOrientationColor(orientation, project) {
       if (project.getAssignedUsers(orientation).length) return "green";
       else if (
         this.selectedStudentIndex != null &&
@@ -160,7 +157,7 @@ export default {
       )
         return "blue";
       else return orientation.pivot.importance >= 3 ? "red" : "gray";
-    },
+    },*/
     getUserPreferenceColor(projectId, user) {
       let res = user.assignments.find(a => a.project_id == projectId)
       //console.log(res)

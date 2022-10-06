@@ -62,7 +62,9 @@ export default {
       this.getAllProjects.forEach((project) => {
         project.assigned_users.forEach((user) => {
           let r = project.preferred_users.filter(p => p.id == user.id)
-          obj[r[0].pivot.priority] += 1
+          if (r != undefined && r.length > 0) {            
+            obj[r[0].pivot.priority] += 1
+          }
         })
       })
       return obj
