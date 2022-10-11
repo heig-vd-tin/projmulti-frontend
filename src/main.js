@@ -19,26 +19,40 @@ let initOptions = {
   clientId: `${process.env.VUE_APP_CLOAK_CLIENT_ID}`,
 }
 let keycloak = new Keycloak(initOptions)
-keycloak.init({ onLoad: 'login-required' }).then((auth) => {
-  if (!auth) {
-    window.location.reload()
-  }
-  else {
-    //console.log(keycloak.token)
-    axios.defaults.headers.common['Authorization'] = `Bearer ${keycloak.token}`
-    Vue.config.productionTip = false
-    Vue.use(Notification)
-    new Vue({
-      vuetify,
-      router,
-      store,
-      render: h => h(App, { props: { keycloak: keycloak } })
-    }).$mount('#app')
-  }
 
-  setInterval(() => {
-    keycloak.updateToken(300).then((valid) => {
-      if (valid) axios.defaults.headers.common['Authorization'] = `Bearer ${keycloak.token}`
-    })
-  }, 60000)
-})
+// tmz : Disable keycloak for now
+Vue.config.productionTip = false
+Vue.use(Notification)
+
+new Vue({
+  vuetify,
+  router,
+  store,
+  render: h => h(App, { props: { keycloak: keycloak } })
+}).$mount('#app')
+
+/*
+  keycloak.init({ onLoad: 'login-required' }).then((auth) => {
+    if (!auth) {
+      window.location.reload()
+    }
+    else {
+      //console.log(keycloak.token)
+      axios.defaults.headers.common['Authorization'] = `Bearer ${keycloak.token}`
+      Vue.config.productionTip = false
+      Vue.use(Notification)
+      new Vue({
+        vuetify,
+        router,
+        store,
+        render: h => h(App, { props: { keycloak: keycloak } })
+      }).$mount('#app')
+    }
+
+    setInterval(() => {
+      keycloak.updateToken(300).then((valid) => {
+        if (valid) axios.defaults.headers.common['Authorization'] = `Bearer ${keycloak.token}`
+      })
+    }, 60000)
+  })
+  */

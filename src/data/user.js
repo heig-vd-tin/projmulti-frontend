@@ -14,10 +14,12 @@ export default class User {
         this.orientation_id = userData.orientation_id
         this.orientation = userData.orientation
         this.preferences = userData.preferences ?? []
+        this.assignments = userData.assignments ?? []
     }
 
     get isAdmin() { return User.ADMIN === this.role }
     get isProfessor() { return User.PROFESSOR === this.role }
     get isStudent() { return User.STUDENT === this.role }
-    get isTeacher() { return User.TEACHERS.includes(this.role) }
+    //get isTeacher() { return User.TEACHERS.includes(this.role) }
+    get isTeacher() { return User.PROFESSOR === this.role || User.ADMIN === this.role }
 }

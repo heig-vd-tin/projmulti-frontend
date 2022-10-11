@@ -10,23 +10,34 @@
     >
     </v-text-field>
 
+    <v-text-field
+      label="Résumé court"
+      v-model="short_description"
+      :counter="shortDescMaxLength"
+      :maxlength="shortDescMaxLength"
+      :rules="[rules.shortDesc]"
+      :loading="loading"
+    >
+    </v-text-field>
+
     <v-select
-      label="Orientations"
-      v-model="selectedOrientations"
-      :items="selectOrientations"
+      label="Domains"
+      v-model="selectedDomains"
+      :items="selectDomains"
       multiple
-      :rules="[rules.orientations]"
+      :rules="[rules.domains]"
       :loading="loading"
       return-object
       item-text="name"
     >
     </v-select>
 
+    <!--
     <v-radio-group
-      v-for="(orientation, index) in selectedOrientations"
+      v-for="(domain, index) in selectedDomains"
       :key="index"
-      v-model="orientation.pivot.importance"
-      :label="`Importance de l'orientation ${orientation.acronym} :`"
+      v-model="domain.pivot.importance"
+      :label="`Importance du domain ${domain.name} :`"
       row
       mandatory
       :loading="loading"
@@ -35,6 +46,8 @@
       <v-radio :value="2" label="important" color="importance2"></v-radio>
       <v-radio :value="3" label="indispensable" color="importance3"></v-radio>
     </v-radio-group>
+    -->
+
 
     <!--  v-combobox ?  -->
     <v-autocomplete
@@ -100,6 +113,7 @@
 import { mapGetters, mapActions } from "vuex";
 import { VueEditor } from "vue2-editor";
 const TITLE_MAX_LENGTH = 100;
+const SHORT_DESC_MAX_LENGTH = 200;
 const TAGS_MAX = 3;
 
 export default {
@@ -115,17 +129,20 @@ export default {
   },
   data: () => ({
     titleMaxLength: TITLE_MAX_LENGTH,
+    shortDescMaxLength: SHORT_DESC_MAX_LENGTH,
     tagsMax: TAGS_MAX,
     loading: false,
     valid: false,
     title: "",
     description: "",
-    selectedOrientations: [],
+    short_description: "",
+    selectedDomains: [],
     selectedTags: [],
     rules: {
       title: (value) => !!value || "Titre obligatoire!",
-      orientations: (value) =>
-        value.length >= 1 || "Veuillez sélectionner au moins 1 orientation!",
+      shortDesc: (value) => !!value || "Résumé obligatoire!",
+      domains: (value) =>
+        value.length >= 1 || "Veuillez sélectionner au moins 1 domain!",
       tags: (value) => value.length <= TAGS_MAX || `Maximum ${TAGS_MAX} tags!`,
     },
   }),
@@ -142,6 +159,7 @@ export default {
             type: "success",
           });
           this.$emit("success");
+          this.$router.push('/all-projects')
         })
         .catch(() => {
           this.$notify({
@@ -167,6 +185,7 @@ export default {
           });
           this.reset();
           this.$emit("success");
+          this.$router.push('/all-projects')
         })
         .catch(() => {
           this.$notify({
@@ -183,10 +202,11 @@ export default {
     reset() {
       this.$refs.form.reset();
       this.description = "";
+      this.short_description = "";
     },
   },
   computed: {
-    ...mapGetters(["getOrientations", "getTags"]),
+    ...mapGetters(["getDomains", "getTags"]),
     editing() {
       return !!this.project;
     },
@@ -195,19 +215,18 @@ export default {
         id: this.editing ? this.project.id : -1,
         title: this.title,
         description: this.description,
+        short_description: this.short_description,
         tags: this.selectedTags.map((item) => item.id),
-        orientations: this.selectedOrientations.map((item) => ({
+        domains: this.selectedDomains.map((item) => ({
           id: item.id,
           importance: item.pivot.importance,
         })),
       };
     },
-    selectOrientations() {
-      return this.getOrientations.flatMap((item, index, array) => {
+    selectDomains() {
+      return this.getDomains.flatMap((item) => {
         item.pivot = { importance: 1 };
-        if (index == 0 || array[index - 1].faculty_name !== item.faculty_name)
-          return [{ header: item.faculty_name }, item];
-        else return item;
+        return item;
       });
     },
   },
@@ -215,7 +234,8 @@ export default {
     if (this.editing) {
       this.title = this.project.title;
       this.description = this.project.description;
-      this.selectedOrientations = this.project.orientations;
+      this.short_description = this.project.short_description;
+      this.selectedDomains = this.project.domains;
       this.selectedTags = this.project.tags;
     }
   },

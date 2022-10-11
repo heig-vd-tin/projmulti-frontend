@@ -3,11 +3,19 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "serve": "vue-cli-service serve",
+    "serve": "vue-cli-service serve --port 8081",
     "build": "vue-cli-service build",
+    "watch": "vue-cli-service build --watch",
+    "build-dist": "vue-cli-service build --dest ../backend/public --no-clean",
+    "watch-dist": "vue-cli-service build --dest ../backend/public --watch --no-clean",
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "^6.2.0",
+    "@fortawesome/free-brands-svg-icons": "^6.2.0",
+    "@fortawesome/free-regular-svg-icons": "^6.2.0",
+    "@fortawesome/free-solid-svg-icons": "^6.2.0",
+    "@fortawesome/vue-fontawesome": "^2.0.8",
     "axios": "^0.27.2",
     "core-js": "^3.8.3",
     "keycloak-js": "^19.0.1",
@@ -22,6 +30,7 @@
   "devDependencies": {
     "@babel/core": "^7.12.16",
     "@babel/eslint-parser": "^7.12.16",
+    "@mdi/font": "^7.0.96",
     "@vue/cli-plugin-babel": "~5.0.0",
     "@vue/cli-plugin-eslint": "~5.0.0",
     "@vue/cli-plugin-router": "~5.0.0",

@@ -3,9 +3,9 @@
     <v-row>
       <v-col>
         <v-select
-          label="Filtrer par orientations"
-          v-model="selectedOrientations"
-          :items="selectOrientations"
+          label="Filtrer par domains"
+          v-model="selectedDomains"
+          :items="selectDomains"
           item-text="name"
           multiple
           clearable
@@ -55,62 +55,42 @@
           class="row"
           group="projects"
         >
-          <v-col
-            v-for="(project, index) in filteredProjects"
-            :key="index"
-            cols="auto"
-            md="4"
-          >
-            <v-card
-              style="margin-bottom: 50px"
-              elevation="2"
-              :disabled="loading"
-            >
-              <v-card-title style="justify-content: center">
-                {{ project.title }} #{{ project.id }}
-              </v-card-title>
-              <v-card-text v-html="project.description"></v-card-text>
-              <v-card-text>
-                Tags :
-                <v-chip-group column>
-                  <v-chip v-for="tag in project.tags" :key="tag.id">
-                    {{ tag.name }}
-                  </v-chip>
-                </v-chip-group>
-              </v-card-text>
-              <v-card-text>
-                Orientations :
-                <v-chip-group column>
-                  <v-chip
-                    v-for="orientation in project.orientations"
-                    :key="orientation.id"
-                    :color="`importance${orientation.pivot.importance}`"
-                  >
-                    {{ orientation.acronym }}
-                  </v-chip>
-                </v-chip-group>
-              </v-card-text>
-            </v-card>
-          </v-col>
-        </draggable>
+    <v-row>
+      <v-col v-for="(project, index) in filteredProjects" :key="index" cols="auto" md="4" >
+        <project-view-component @click="dialog = true; selectedProject = project" :project="project" :light=true />
       </v-col>
     </v-row>
+        </draggable>
+
+      </v-col>
+    </v-row>
+
+      <v-dialog v-model="dialog" v-if="selectedProject !== null" max-width="60%">
+      <v-card>
+        <project-view-component :project="selectedProject" :light=false />
+      </v-card>
+    </v-dialog>
+
   </v-container>
 </template>
 <script>
 import { mapGetters, mapActions } from "vuex";
 import draggable from "vuedraggable";
+import ProjectViewComponent from "../ProjectViewComponent.vue";
 
 export default {
   name: "AllProjects",
   components: {
     draggable,
+    "project-view-component": ProjectViewComponent
   },
   data: () => ({
     loading: false,
-    selectedOrientations: [],
+    selectedDomains: [],
     selectedTags: [],
+    selectedProject: null,
     maxProjects: 5,
+    dialog: false
   }),
   methods: {
     ...mapActions(["addProjectPreference"]),
@@ -141,14 +121,14 @@ export default {
     ...mapGetters([
       "getAllProjects",
       "getMyProjects",
-      "getOrientations",
+      "getDomains",
       "getTags",
       "getUser",
     ]),
-    selectOrientations() {
-      return this.getOrientations.flatMap((item, index, array) => {
-        if (index == 0 || array[index - 1].faculty_name !== item.faculty_name)
-          return [{ header: item.faculty_name }, item];
+    selectDomains() {
+      return this.getDomains.flatMap((item, index, array) => {
+        if (index == 0 || array[index - 1].name !== item.name)
+          return [{ header: item.name }, item];
         else return item;
       });
     },
@@ -158,9 +138,9 @@ export default {
           return !this.getMyProjects.some((item) => item.id == project.id);
         })
         .filter((project) => {
-          if (!this.selectedOrientations.length) return true;
-          return project.orientations.some((orientation) =>
-            this.selectedOrientations.includes(orientation.name)
+          if (!this.selectedDomains.length) return true;
+          return project.domains.some((domain) =>
+            this.selectedDomains.includes(domain.name)
           );
         })
         .filter((project) => {

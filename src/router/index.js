@@ -30,11 +30,29 @@ const routes = [
     beforeEnter: (to, from, next) => next(store.getters.getUser.isTeacher)
   },
   {
+    path: "/edit-project/:project_id",
+    name: "EditProject",
+    component: () => import("@/views/EditProject"),
+    beforeEnter: (to, from, next) => next(store.getters.getUser.isTeacher)
+  },
+  {
     path: "/global",
     name: "Global",
     component: () => import("@/views/Global"),
     beforeEnter: (to, from, next) => next(store.getters.getUser.isAdmin)
   },
+  {
+    path: "/select",
+    name: "Select",
+    component: () => import("@/views/Select"),
+    beforeEnter: (to, from, next) => next(store.getters.getUser.isAdmin)
+  },
+  {
+    path: "/infos",
+    name: "Infos",
+    component: () => import("@/views/Infos"),
+    beforeEnter: (to, from, next) => next(store.getters.getUser.isAdmin)
+  }
 ]
 
 const router = new VueRouter({

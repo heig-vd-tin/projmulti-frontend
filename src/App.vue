@@ -8,8 +8,21 @@
     <div v-if="!loading">
       <notifications :max="2" />
       <v-app-bar app clipped-left>
+
         <v-app-bar-nav-icon @click="drawer = !drawer"></v-app-bar-nav-icon>
+
         <v-spacer></v-spacer>
+        <v-btn v-show="getUser.isAdmin" to="/global">
+          Assign
+        </v-btn>
+        <v-btn v-show="getUser.isAdmin" to="/select">
+          Select projects
+        </v-btn>
+        <v-btn v-show="getUser.isAdmin" to="/all-projects">
+          Projects list
+        </v-btn>
+        <v-spacer></v-spacer>
+
         <v-toolbar-title>
           {{ getUser.firstname }} {{ getUser.lastname }}
         </v-toolbar-title>
@@ -24,13 +37,10 @@
           </v-list>
         </v-menu>
       </v-app-bar>
+
       <v-navigation-drawer app clipped v-model="drawer">
         <v-list dense nav>
-          <v-list-item
-            v-for="(item, index) in sidebar"
-            :key="index"
-            :to="item.route"
-          >
+          <v-list-item v-for="(item, index) in sidebar" :key="index" @click.stop="OnMenuClick(item)">
             <v-list-item-icon>
               <v-icon>{{ item.icon }}</v-icon>
             </v-list-item-icon>
@@ -40,25 +50,24 @@
           </v-list-item>
         </v-list>
       </v-navigation-drawer>
+
       <v-main style="height: 100vh">
-        <router-view
-          :key="$route.path"
-          style="max-height: 100%; height: 100%"
-        />
+        <router-view :key="$route.path" style="max-height: 100%; height: 100%" />
       </v-main>
     </div>
   </v-app>
 </template>
 
 <script>
-import { mapGetters, mapActions } from "vuex";
-import getSidebar from "@/data/sidebar.js";
+import { mapGetters, mapActions } from "vuex"
+import getSidebar from "@/data/sidebar.js"
+import axios from "axios"
 
 export default {
   name: "App",
   props: ["keycloak"],
   data: () => ({
-    drawer: true,
+    drawer: false,
     loading: true,
   }),
   methods: {
@@ -70,14 +79,42 @@ export default {
       "retrieveAllUsers",
       "retrieveAllStudents",
       "retrieveOrientations",
+      "retrieveDomains",
       "retrieveTags",
     ]),
+    OnMenuClick(item) {
+      this.drawer = false
+
+      switch (item.action) {
+        case "route":
+          this.$router.push(item.route)
+          break
+        case "findMatches":
+          axios
+            .get('/assignment/calcul-match')
+            .then(response => (console.log(response)))
+          break
+        case "autoSelect":
+          axios
+            .get('/assignment/auto-select')
+            .then(response => (console.log(response)))
+          break
+        case "autoAffect":
+          axios
+            .get('/assignment/auto-affect')
+            .then(response => (console.log(response)))
+          break
+      }
+    },
   },
   computed: {
-    ...mapGetters(["getUser"]),
+    ...mapGetters(["getUser", "getAllProjects"]),
     sidebar() {
       return getSidebar(this.getUser.role);
     },
+    projects() {
+      return this.getAllProjects;
+    }
   },
   created() {
     // this.$router.push("/");
@@ -86,6 +123,7 @@ export default {
     let promises = [
       this.retrieveAllProjects(),
       this.retrieveOrientations(),
+      this.retrieveDomains(),
       this.retrieveTags(),
     ];
     this.loading = true;
