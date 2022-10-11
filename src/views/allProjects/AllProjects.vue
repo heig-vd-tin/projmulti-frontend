@@ -43,7 +43,7 @@
 
     <v-dialog v-model="dialog" v-if="selectedProject !== null" max-width="60%">
       <v-card>
-        <project-view-component @close="dialog=false" :project="selectedProject" :light=false />
+        <project-view-component @close="dialog=false" :project="selectedProject" :light=false :canEdit=true />
       </v-card>
     </v-dialog>
   </v-container>
