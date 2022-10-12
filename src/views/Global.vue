@@ -26,7 +26,7 @@
 
               <v-list-item-content>
                 <v-list-item-title v-text="`PROJ#${project.id}`"></v-list-item-title>
-                <v-list-item-subtitle>{{project.title}} / {{project.reference}} / {{project.owner_id}}
+                <v-list-item-subtitle>{{project.title}} / {{project.owner.firstname}} {{project.owner.lastname}}
                 </v-list-item-subtitle>
 
                 <v-chip-group class="chip_domain">
