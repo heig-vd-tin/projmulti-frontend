@@ -21,6 +21,18 @@ let initOptions = {
 }
 let keycloak = new Keycloak(initOptions)
 
+if( process.env.NODE_ENV == 'development' ){
+  axios.defaults.baseURL = 'http://localhost:8080/api'
+  Vue.config.productionTip = false
+  Vue.use(Notification)
+  new Vue({
+    vuetify,
+    router,
+    store,
+    render: h => h(App, { props: { keycloak: keycloak } })
+  }).$mount('#app')
+}
+else{
   keycloak.init({ onLoad: 'login-required' }).then((auth) => {
     if (!auth) {
       window.location.reload()
@@ -37,10 +49,11 @@ let keycloak = new Keycloak(initOptions)
         render: h => h(App, { props: { keycloak: keycloak } })
       }).$mount('#app')
     }
-
+  
     setInterval(() => {
       keycloak.updateToken(300).then((valid) => {
         if (valid) axios.defaults.headers.common['Authorization'] = `Bearer ${keycloak.token}`
       })
     }, 60000)
   })
+}
