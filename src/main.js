@@ -22,8 +22,7 @@ let initOptions = {
 let keycloak = new Keycloak(initOptions)
 
 if( process.env.NODE_ENV == 'development' ){
-  //axios.defaults.baseURL = 'http://localhost:8080/api'
-  axios.defaults.baseURL = '/api'
+  axios.defaults.baseURL = process.env.VUE_APP_AXIOS_BASE_URL
   Vue.config.productionTip = false
   Vue.use(Notification)
   new Vue({
