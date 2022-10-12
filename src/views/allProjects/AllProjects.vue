@@ -131,7 +131,7 @@ export default {
 
           if (this.isStudent) {
             //console.log(this.getMyProjects)
-            return !this.filterMyProject || this.getMyProjects.some((item) => item.id == project.id);
+            return project.selected && (!this.filterMyProject || this.getMyProjects.some((item) => item.id == project.id));
           }
         });
     }
