@@ -98,12 +98,12 @@
       v-if="editing"
       color="error"
       class="mr-4"
-      @click="$emit('cancel')"
+      @click="quit"
       :loading="loading"
     >
       Annuler
     </v-btn>
-    <v-btn v-else color="error" class="mr-4" @click="reset" :loading="loading">
+    <v-btn v-else color="error" class="mr-4" @click="quit" :loading="loading">
       Effacer
     </v-btn>
   </v-form>
@@ -198,6 +198,9 @@ export default {
         .finally(() => {
           this.loading = false;
         });
+    },
+    quit(){
+      this.$router.push('/all-projects')
     },
     reset() {
       this.$refs.form.reset();
