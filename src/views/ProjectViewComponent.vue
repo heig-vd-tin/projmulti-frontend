@@ -188,7 +188,7 @@ export default {
       return getDomainColor(domain)
     },
     getColorSelected: function () {
-      if (this.project.selected)
+      if (!this.getUser.isStudent && this.project.selected)
         return 'light-green accent-1'
       else
         return 'white'
