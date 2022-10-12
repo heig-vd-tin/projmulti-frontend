@@ -7,7 +7,8 @@ import axios from 'axios'
 import Notification from 'vue-notification'
 import Keycloak from 'keycloak-js'
 
-axios.defaults.baseURL = 'http://localhost:9000/api'
+//axios.defaults.baseURL = 'https//tin-projmulti.einet.ch/api'
+axios.defaults.baseURL = '/api'
 axios.interceptors.response.use((response) => response, (error) => {
   if (error.response.status === 403) window.location.reload()
   return Promise.reject(error.message)
