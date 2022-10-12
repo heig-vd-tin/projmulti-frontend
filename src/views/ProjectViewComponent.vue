@@ -4,7 +4,8 @@
     <v-card-title style="justify-content: center">
       {{ project.title }} #{{ project.id }}
     </v-card-title>
-    <v-card-text :hidden=!isAdmin>Owner id : {{project.owner_id}}</v-card-text>
+    <!-- <v-card-text :hidden=!isAdmin>Resp : {{project.owner.lastname}} {{project.owner.firstname}}</v-card-text> -->
+    <v-card-text>Resp : {{project.owner.lastname}} {{project.owner.firstname}}</v-card-text>
     <v-card-subtitle class="font-weight-medium text-decoration-underline" :hidden=light>Short description:
     </v-card-subtitle>
     <v-card-text v-html="project.short_description"></v-card-text>

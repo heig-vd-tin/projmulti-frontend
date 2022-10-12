@@ -10,6 +10,7 @@ export default class Project{
         this.owner_id = projectData.owner_id
         this.selected = projectData.selected
         //Situationnal fields
+        this.owner = projectData.owner ?? []
         this.orientations = projectData.orientations ?? []
         this.domains = projectData.domains ?? []
         this.tags = projectData.tags ?? []
