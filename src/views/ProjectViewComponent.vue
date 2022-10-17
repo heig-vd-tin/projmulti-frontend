@@ -1,11 +1,11 @@
 <template>
   <v-card class="d-flex flex-column" @click="eventClick" style="margin-bottom: 30px" elevation="2"
     :color="getColorSelected()">
-    <v-card-title style="justify-content: center">
+    <v-card-title style="justify-content: center" class="mb-0 pb-0">
       {{ project.title }} #{{ project.id }}
     </v-card-title>
     <!-- <v-card-text :hidden=!isAdmin>Resp : {{project.owner.lastname}} {{project.owner.firstname}}</v-card-text> -->
-    <v-card-text>Resp : {{project.owner.lastname}} {{project.owner.firstname}}</v-card-text>
+    <v-card-text class="text-center font-italic p-0 m-0">{{project.owner.lastname}} {{project.owner.firstname}}</v-card-text>
     <v-card-subtitle class="font-weight-medium text-decoration-underline" :hidden=light>Short description:
     </v-card-subtitle>
     <v-card-text v-html="project.short_description"></v-card-text>
