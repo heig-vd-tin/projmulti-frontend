@@ -1,5 +1,6 @@
 <template>
   <v-form v-model="valid" ref="form" :disabled="loading">
+    <div class="text-h4 text-center my-4">{{pageTitle}}</div>
     <v-text-field
       label="Titre"
       v-model="title"
@@ -21,7 +22,7 @@
     </v-text-field>
 
     <v-select
-      label="Domains"
+      label="Domaines"
       v-model="selectedDomains"
       :items="selectDomains"
       multiple
@@ -104,7 +105,7 @@
       Annuler
     </v-btn>
     <v-btn v-else color="error" class="mr-4" @click="quit" :loading="loading">
-      Effacer
+      Annuler
     </v-btn>
   </v-form>
 </template>
@@ -212,6 +213,9 @@ export default {
     ...mapGetters(["getDomains", "getTags"]),
     editing() {
       return !!this.project;
+    },
+    pageTitle() {
+      return this.editing ? "Edition du projet" : "Création d'un projet";
     },
     formObject() {
       return {
