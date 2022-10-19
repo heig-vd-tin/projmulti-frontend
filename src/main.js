@@ -41,6 +41,7 @@ else{
       //console.log(keycloak.token)
       axios.defaults.headers.common['Authorization'] = `Bearer ${keycloak.token}`
       Vue.config.productionTip = false
+      axios.get("/user/me").then(() => {
       Vue.use(Notification)
       new Vue({
         vuetify,
@@ -48,6 +49,7 @@ else{
         store,
         render: h => h(App, { props: { keycloak: keycloak } })
       }).$mount('#app')
+      })
     }
   
     setInterval(() => {

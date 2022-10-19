@@ -2,7 +2,7 @@
   <v-card class="d-flex flex-column" @click="eventClick" style="margin-bottom: 30px" elevation="2"
     :color="getColorSelected()">
     <v-card-title style="justify-content: center" class="mb-0 pb-0">
-      {{ project.title }} #{{ project.id }}
+      {{ project.title }} 
     </v-card-title>
     <!-- <v-card-text :hidden=!isAdmin>Resp : {{project.owner.lastname}} {{project.owner.firstname}}</v-card-text> -->
     <v-card-text class="text-center font-italic p-0 m-0">{{project.owner.lastname}} {{project.owner.firstname}}</v-card-text>
