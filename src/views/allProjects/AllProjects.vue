@@ -5,8 +5,10 @@
         <v-select label="Filtrer par domains" v-model="selectedDomains" :items="selectDomains" item-text="name" multiple
           clearable>
           <template v-slot:selection="{ item }">
-            <v-chip>
-              <span>{{ item.acronym }}</span>
+            <v-chip outlined :color="getColor(item)">
+              <v-icon v-on="on" center>
+                  {{ item.icon }}
+                </v-icon>
             </v-chip>
           </template>
         </v-select>
