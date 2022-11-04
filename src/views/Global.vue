@@ -38,13 +38,13 @@
                 </v-chip-group>
 
                 <v-list-item-group class="students_list align-content-start flex-wrap">
-                  <draggable width="100%" :list="project.assigned_users" group="people"
-                    @change="assigned($event, project)" class="dropzone">
+                  <draggable width="100%" :list="project.assigned_users" :group="{name: 'people', pull: 'clone', put: true}"
+                    @change="assigned($event, project)" class="dropzone" :clone="cloneFromProject">
                     <v-list-item v-for="user in project.assigned_users" :key="user.id" class="students_list_items">
                       <v-list-item-content>
-                        <v-chip outlined label>
+                        <v-chip outlined label :color="getStudentColor(user)">
 
-                          <div class="mx-3">
+                          <div class="mx-2">
                             STU#{{ user.id }} : {{ user.orientation.acronym }} : {{ project.getUserPreference(user)}}
                           </div>
 
@@ -64,7 +64,7 @@
         <!--v-text-field v-model="search" autofocus label="Recherche..." /-->
         <v-list nav style="height: 100%; overflow-y: auto" class="dropzone">
           <v-list-item-group v-model="selectedStudentIndex" color="blue" @change="studentSelected($event)">
-            <draggable :list="students" group="people" @change="unassigned">
+            <draggable :list="students" :group="{name: 'people', pull: 'clone', put: true}" @change="unassigned" :clone="cloneFromStudent">
               <v-list-item v-for="(user, index) in students" :key="index">
                 <v-list-item-content>
                   <v-list-item-title> STU#{{ user.id }}  -  {{ user.orientation.acronym }}</v-list-item-title>
@@ -107,17 +107,32 @@ export default {
     students: [],
   }),
   methods: {
-    ...mapActions(["addAssignment", "removeAssignment"]),
+    ...mapActions(["addAssignment", "removeAssignment", "retrieveAllProjects", "retrieveAllStudents"]),
+
+    cloneFromProject(e) {
+      return this.getAllStudents.filter(std => std.id == e.id)[0]
+    },
+
+    // tmz bad patch for drag and drop
+    cloneFromStudent(e) {
+      e.pivot = {
+        project_id: 1,
+        user_id: 1,
+        domain_id: 1
+      }
+      return e
+    },
+
     // eslint-disable-next-line
     removeStudent(event, user, project) {
-
       //console.log(project.id, user.id)
       this.removeAssignment({ user_id: user.id });
     },
-    assigned(event, project) {
+
+    async assigned(event, project) {
       if (!event.added) return;
       project.loading = true;
-      this.addAssignment({
+      await this.addAssignment({
         project_id: project.id,
         user_id: event.added.element.id,
       })
@@ -129,19 +144,24 @@ export default {
           });
         })
         .finally(() => (project.loading = false));
+        this.initArrays()
     },
     switchFilterAssignChange() {
       this.selectedProjectIndex = null
       this.selectedStudentIndex = null
-      this.initArrays()
+      this.initArrays()      
     },
-    initArrays() {
+    async initArrays() {
+      await this.retrieveAllProjects()
+      await this.retrieveAllStudents()
       this.projects = this.getAllProjects.filter(p => p.selected).slice();
       this.students = this.filtredStudents.slice();
+      this.$forceUpdate()
     },
-    unassigned(event) {
+    async unassigned(event) {
       if (!event.added) return;
-      this.removeAssignment({ user_id: event.added.element.id });
+      await this.removeAssignment({ user_id: event.added.element.id });
+      this.initArrays()
     },
     getProjectDomainColor(domain, project) {
       if( project.getAssignedUsers(domain.id).length > 0)
@@ -149,6 +169,14 @@ export default {
       else
         return 'red'
     },
+
+    getStudentColor(user){
+      if(user.pivot.domain_id == null)
+        return 'blue'
+      else
+        return ''
+    },
+
     /*getProjectOrientationColor(orientation, project) {
       if (project.getAssignedUsers(orientation).length) return "green";
       else if (
