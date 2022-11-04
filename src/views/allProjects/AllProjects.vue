@@ -5,8 +5,10 @@
         <v-select label="Filtrer par domains" v-model="selectedDomains" :items="selectDomains" item-text="name" multiple
           clearable>
           <template v-slot:selection="{ item }">
-            <v-chip>
-              <span>{{ item.acronym }}</span>
+            <v-chip outlined :color="getColor(item)">
+              <v-icon center>
+                {{ item.icon }}
+              </v-icon>
             </v-chip>
           </template>
         </v-select>
@@ -38,7 +40,9 @@
 
     </v-row>
     <div id="col_project">
-        <project-view-component :canEdit="true" class="card_project" v-for="(project, index) in filteredProjects" :key="index" @removepref="onRemovePref(project.id)" @click="dialog = true; selectedProject = project" :project="project" :light=true />
+      <project-view-component :canEdit="true" class="card_project" v-for="(project, index) in filteredProjects"
+        :key="index" @removepref="onRemovePref(project.id)" @click="dialog = true; selectedProject = project"
+        :project="project" :light=true />
     </div>
 
     <v-dialog v-model="dialog" v-if="selectedProject !== null" max-width="60%">
