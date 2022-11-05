@@ -62,8 +62,12 @@
 import { mapGetters, mapActions } from "vuex"
 import getSidebar from "@/data/sidebar.js"
 import axios from "axios"
+import { Toolbar, Link, Image, Count, HtmlEditor, QuickToolbar } from "@syncfusion/ej2-vue-richtexteditor";
 
 export default {
+  provide: {
+            richtexteditor:[Toolbar, Link, Image, Count, HtmlEditor, QuickToolbar]
+        },
   name: "App",
   props: ["keycloak"],
   data: () => ({
@@ -144,3 +148,14 @@ export default {
   },
 };
 </script>
+
+<style>
+@import "../node_modules/@syncfusion/ej2-base/styles/material.css";
+@import "../node_modules/@syncfusion/ej2-inputs/styles/material.css";
+@import "../node_modules/@syncfusion/ej2-lists/styles/material.css";
+@import "../node_modules/@syncfusion/ej2-popups/styles/material.css";
+@import "../node_modules/@syncfusion/ej2-buttons/styles/material.css";
+@import "../node_modules/@syncfusion/ej2-navigations/styles/material.css";
+@import "../node_modules/@syncfusion/ej2-splitbuttons/styles/material.css";
+@import "../node_modules/@syncfusion/ej2-vue-richtexteditor/styles/material.css";
+</style>

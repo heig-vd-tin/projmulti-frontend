@@ -6,6 +6,7 @@ import store from './store'
 import axios from 'axios'
 import Notification from 'vue-notification'
 import Keycloak from 'keycloak-js'
+import { RichTextEditorPlugin } from '@syncfusion/ej2-vue-richtexteditor';
 
 //axios.defaults.baseURL = 'https//tin-projmulti.einet.ch/api'
 axios.defaults.baseURL = '/api'
@@ -25,6 +26,7 @@ if( process.env.NODE_ENV == 'development' ){
   axios.defaults.baseURL = process.env.VUE_APP_AXIOS_BASE_URL
   Vue.config.productionTip = false
   Vue.use(Notification)
+  Vue.use(RichTextEditorPlugin)
   new Vue({
     vuetify,
     router,

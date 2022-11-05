@@ -74,6 +74,13 @@
     ></VueEditor>
     <br />
 
+    <div id="defaultRTE">
+    <ejs-richtexteditor ref="defaultRTE" :height="340" v-model="description">
+      <p>The Rich Text Editor component is WYSIWYG ("what you see is what you get") editor that provides the best user experience to create and update the content. Users can format their content using standard toolbar commands.</p>
+                    <p><b>Key features:</b></p>
+    </ejs-richtexteditor>
+    </div>
+
     <v-btn
       v-if="editing"
       :disabled="!valid"
@@ -111,6 +118,7 @@
 </template>
 
 <script>
+import { RichTextEditorPlugin, Toolbar, Link, Image, HtmlEditor } from "@syncfusion/ej2-vue-richtexteditor";
 import { mapGetters, mapActions } from "vuex";
 import { VueEditor } from "vue2-editor";
 const TITLE_MAX_LENGTH = 100;
@@ -121,6 +129,8 @@ export default {
   name: "ProjectForm",
   components: {
     VueEditor,
+    // eslint-disable-next-line
+    RichTextEditorPlugin,
   },
   props: {
     project: {
@@ -246,5 +256,8 @@ export default {
       this.selectedTags = this.project.tags;
     }
   },
+  provide:{
+    richtexteditor:[Toolbar, Link, Image, HtmlEditor]
+}
 };
 </script>
