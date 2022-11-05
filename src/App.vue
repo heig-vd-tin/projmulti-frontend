@@ -9,7 +9,7 @@
       <notifications :max="2" />
       <v-app-bar app clipped-left>
 
-        <v-app-bar-nav-icon @click="drawer = !drawer"></v-app-bar-nav-icon>
+        <v-app-bar-nav-icon v-show="getUser.isAdmin" @click="drawer = !drawer"></v-app-bar-nav-icon>
 
         <v-spacer></v-spacer>
         <v-btn v-show="getUser.isAdmin" to="/global">
@@ -38,7 +38,7 @@
         </v-menu>
       </v-app-bar>
 
-      <v-navigation-drawer app clipped v-model="drawer">
+      <v-navigation-drawer app clipped stateless v-model="drawer">
         <v-list dense nav>
           <v-list-item v-for="(item, index) in sidebar" :key="index" @click.stop="OnMenuClick(item)">
             <v-list-item-icon>
