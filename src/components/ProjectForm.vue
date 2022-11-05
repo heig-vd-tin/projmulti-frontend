@@ -51,7 +51,7 @@
 
 
     <!--  v-combobox ?  -->
-    <v-autocomplete
+    <!-- <v-autocomplete
       label="Tags"
       v-model="selectedTags"
       :items="getTags"
@@ -64,7 +64,7 @@
       :rules="[rules.tags]"
       :loading="loading"
     >
-    </v-autocomplete>
+    </v-autocomplete> -->
 
     <br />
     <VueEditor

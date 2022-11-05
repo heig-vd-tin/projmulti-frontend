@@ -13,7 +13,7 @@
           </template>
         </v-select>
       </v-col>
-      <v-col>
+      <!-- <v-col>
         <v-select label="Filtrer par tags" v-model="selectedTags" :items="getTags" item-text="name" multiple clearable>
           <template v-slot:selection="{ item }">
             <v-chip>
@@ -21,7 +21,7 @@
             </v-chip>
           </template>
         </v-select>
-      </v-col>
+      </v-col> -->
       <v-col>
         <v-switch v-model="filterMyProject" label="My project"></v-switch>
       </v-col>
