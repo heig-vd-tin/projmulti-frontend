@@ -69,6 +69,7 @@
     <br />
     <VueEditor
       v-model="description"
+      :editorOptions="editorSettings"
       placeholder="Entrez une description..."
       :disabled="loading"
     ></VueEditor>
@@ -111,11 +112,14 @@
 </template>
 
 <script>
-import { mapGetters, mapActions } from "vuex";
-import { VueEditor } from "vue2-editor";
-const TITLE_MAX_LENGTH = 100;
-const SHORT_DESC_MAX_LENGTH = 200;
-const TAGS_MAX = 3;
+import { VueEditor, Quill } from "vue2-editor"
+import { mapGetters, mapActions } from "vuex"
+import ImageResize from 'quill-image-resize-vue';
+const TITLE_MAX_LENGTH = 100
+const SHORT_DESC_MAX_LENGTH = 200
+const TAGS_MAX = 3
+
+Quill.register('modules/imageResize', ImageResize);
 
 export default {
   name: "ProjectForm",
@@ -129,6 +133,11 @@ export default {
     },
   },
   data: () => ({
+    editorSettings: {
+      modules: {
+        imageResize: {}
+      }
+    },
     titleMaxLength: TITLE_MAX_LENGTH,
     shortDescMaxLength: SHORT_DESC_MAX_LENGTH,
     tagsMax: TAGS_MAX,
