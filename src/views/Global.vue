@@ -75,7 +75,7 @@
                     <v-chip-group>
                       <v-chip v-for="preferred in user.preferences" :key="preferred.id" outlined label
                         :color="getUserPreferenceColor(preferred.project_id, user)">
-                        PROJ#{{ getProjectFromId(preferred.project_id).id }}
+                        PROJ#{{ getProjectFromId(preferred.project_id).id }} / {{ getProjectFromId(preferred.project_id).assigned_users.length }}
                       </v-chip>
                     </v-chip-group>
                   </v-list-item-subtitle>
