@@ -1,5 +1,5 @@
 <template>
-  <v-card class="d-flex flex-column" @click="eventClick" style="margin-bottom: 30px" elevation="2"
+  <v-card id="topcard" ref="topcard" class="d-flex flex-column" @click="eventClick" style="margin-bottom: 30px" elevation="2"
     :color="getColorSelected()">
     <v-card-title style="justify-content: center" class="mb-0 pb-0">
       {{ project.title }} 
@@ -10,7 +10,7 @@
     </v-card-subtitle>
     <v-card-text v-html="project.short_description"></v-card-text>
     <v-card-subtitle class="font-weight-medium text-decoration-underline" :hidden=light>Description:</v-card-subtitle>
-    <v-card-text :hidden=light v-html="project.description"></v-card-text>
+    <v-card-text :hidden=light v-html="descResize"></v-card-text>
     <v-card-subtitle class="font-weight-medium text-decoration-underline" :hidden=light>Tags:</v-card-subtitle>
     <v-card-text :hidden=light>
       <v-chip-group column>
@@ -141,6 +141,7 @@ export default {
   name: "ProjectViewComponent",
   data: () => ({
     fab: false,
+    descResize: ""
   }),
   props: {
     project: {
@@ -160,11 +161,16 @@ export default {
       default: false
     }
   },
+  mounted() {
+    this.resizeImage()
+  },
+  updated() {
+    this.resizeImage()
+  },
   methods: {
     ...mapActions(["addProjectPreference", "selectProject", "unselectProject"]),
 
     eventClick: function (event) {
-      //console.log(event.target.tagName);
       if (event.target.tagName == "DIV") {
         event.preventDefault()
         this.$emit("click", event)
@@ -237,6 +243,28 @@ export default {
           this.$emit("close")
         });
     },
+    resizeImage(){
+      let tmp = this.project.description
+
+      let winWidth = this.$refs.topcard.$el.clientWidth
+
+      let imgs = [...this.project.description.matchAll(/width="(\d+)"/g)]
+      imgs.forEach( i => {
+        if(parseInt(i[1]) > (winWidth - 20)){
+          console.log("Image resize")
+          tmp = tmp.replace("width=\""+i[1], "width=\"95%")
+        }
+      })
+
+      let tabImg = [...this.project.description.matchAll(/<img(.*?)>/g)]
+      tabImg.forEach( i => {
+        if(!i[1].includes('width')){
+          tmp = tmp.replace(i[1], i[1] + " style=\"max-width:95%\"")
+        }
+      })
+
+      this.descResize = tmp
+    }
   },
   computed: {
     ...mapGetters(["getUser", "getMyProjects", "getMatchedUsers"]),
