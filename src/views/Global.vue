@@ -43,7 +43,7 @@
                 </v-chip-group>
 
                 <v-list-item-group class="students_list align-content-start flex-wrap">
-                  <draggable width="100%" :list="project.assigned_users" :group="{name: 'people', pull: 'clone', put: true}"
+                  <draggable :disabled=project.isLocked width="100%" :list="project.assigned_users" :group="{name: 'people', pull: 'clone', put: true}"
                     @change="assigned($event, project)" class="dropzone" :clone="cloneFromProject">
                     <v-list-item v-for="user in project.assigned_users" :key="user.id" class="students_list_items">
                       <v-list-item-content>
