@@ -12,7 +12,10 @@
         </v-select>-->
       </v-col>
       <v-col>
-        <v-switch v-model="filterNoAssigned" @change="switchFilterAssignChange()" label="NoAssigned"></v-switch>
+        <div class="d-flex align-center">
+        <v-switch class="px-4" v-model="filterNoAssigned" @change="switchFilterAssignChange()" label="NoAssigned"></v-switch>
+        <v-switch v-model="showName" label="Show name"></v-switch>
+        </div>
       </v-col>
     </v-row>
     <v-row style="height: 90%">
@@ -45,12 +48,17 @@
                 <v-list-item-group class="students_list align-content-start flex-wrap">
                   <draggable :disabled=project.isLocked width="100%" :list="project.assigned_users" :group="{name: 'people', pull: 'clone', put: true}"
                     @change="assigned($event, project)" class="dropzone" :clone="cloneFromProject">
-                    <v-list-item v-for="user in project.assigned_users" :key="user.id" class="students_list_items">
-                      <v-list-item-content>
+                    <v-list-item v-for="user in project.assigned_users" :key="user.id" class="py-0 my-0 students_list_items">
+                      <v-list-item-content class="py-0 my-0">
                         <v-chip outlined label :color="getStudentColor(user)">
 
                           <div class="mx-2">
-                            STU#{{ user.id }} : {{ user.orientation.acronym }} : {{ project.getUserPreference(user)}}
+                            <v-tooltip bottom>
+                              <template v-slot:activator="{ on }">
+                                <span v-on="on">STU#{{ user.id }} : {{ user.orientation.acronym }} : {{ project.getUserPreference(user)}}</span>
+                              </template>     
+                              {{user.firstname}} {{user.lastname}}
+                            </v-tooltip>                            
                           </div>
 
                         </v-chip>
@@ -72,7 +80,7 @@
             <draggable :list="students" :group="{name: 'people', pull: 'clone', put: true}" @change="unassigned" :clone="cloneFromStudent">
               <v-list-item v-for="(user, index) in students" :key="index">
                 <v-list-item-content>
-                  <v-list-item-title> STU#{{ user.id }}  -  {{ user.orientation.acronym }}</v-list-item-title>
+                  <v-list-item-title> STU#{{ user.id }}  -  {{ user.orientation.acronym }}<span v-if="showName">  -  {{user.firstname}} {{user.lastname}}</span></v-list-item-title>
                   <v-list-item-subtitle>
                     <!--<v-chip outlined label>
                       {{ user.orientation.acronym }}
@@ -108,6 +116,7 @@ export default {
     selectedProjectIndex: null,
     selectedStudentIndex: null,
     filterNoAssigned: false,
+    showName: false,
     projects: [],
     students: [],
   }),
