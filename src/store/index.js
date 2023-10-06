@@ -111,6 +111,12 @@ export default new Vuex.Store({
     selectProject(context, payload) {
       return axios.post("/project/select", payload).then(response => context.commit("updateAllProjects", response.data))
     },
+    lockProject(context, payload) {
+      console.log("lock....")
+      console.log(payload)
+      console.log(context)
+      return axios.post("/project/lock", payload).then(response => context.commit("updateAllProjects", response.data))
+    },
     addProjectPreference(context, payload) {
       return axios.post("/project/add-preference", payload).then(response => context.commit("setPreferredProjects", response.data))
     },

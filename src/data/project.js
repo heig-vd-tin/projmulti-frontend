@@ -9,6 +9,7 @@ export default class Project{
         this.short_description = projectData.short_description
         this.owner_id = projectData.owner_id
         this.selected = projectData.selected
+        this.isLocked = projectData.state == 1
         //Situationnal fields
         this.owner = projectData.owner ?? []
         this.orientations = projectData.orientations ?? []

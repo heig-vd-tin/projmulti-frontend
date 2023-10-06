@@ -25,9 +25,14 @@
             <v-list-item v-for="(project, index) in projects" :key="index" :disabled="project.loading">
 
               <v-list-item-content>
-                <v-list-item-title v-text="`PROJ#${project.id}`"></v-list-item-title>
-                <v-list-item-subtitle>{{project.title}} / {{project.owner.firstname}} {{project.owner.lastname}}
-                </v-list-item-subtitle>
+                <div class="d-flex justify-space-between align-center">
+                  <div>
+                    <v-list-item-title v-text="`PROJ#${project.id}`"></v-list-item-title>
+                    <v-list-item-subtitle>{{project.title}} / {{project.owner.firstname}} {{project.owner.lastname}}
+                    </v-list-item-subtitle>
+                  </div>
+                  <v-switch v-model="project.isLocked" @change="switchProjectLockChange(project)" label="Locked"></v-switch>
+                </div>
 
                 <v-chip-group class="chip_domain">
                   <v-chip v-for="domain in project.domains" :key="domain.id" outlined label
@@ -107,7 +112,7 @@ export default {
     students: [],
   }),
   methods: {
-    ...mapActions(["addAssignment", "removeAssignment", "retrieveAllProjects", "retrieveAllStudents"]),
+    ...mapActions(["addAssignment", "removeAssignment", "retrieveAllProjects", "retrieveAllStudents", "lockProject"]),
 
     cloneFromProject(e) {
       return this.getAllStudents.filter(std => std.id == e.id)[0]
@@ -146,6 +151,11 @@ export default {
         .finally(() => (project.loading = false));
         this.initArrays()
     },
+    switchProjectLockChange(prj){
+      console.log(prj.id)
+      console.log(prj.isLocked)
+      this.lockProject({id: prj.id, lock: prj.isLocked})
+    },
     switchFilterAssignChange() {
       this.selectedProjectIndex = null
       this.selectedStudentIndex = null
@@ -169,7 +179,6 @@ export default {
       else
         return 'red'
     },
-
     getStudentColor(user){
       if(user.pivot.domain_id == null)
         return 'blue'
