@@ -116,7 +116,7 @@ import { VueEditor, Quill } from "vue2-editor"
 import { mapGetters, mapActions } from "vuex"
 import ImageResize from 'quill-image-resize-vue';
 const TITLE_MAX_LENGTH = 100
-const SHORT_DESC_MAX_LENGTH = 200
+const SHORT_DESC_MAX_LENGTH = 100
 const TAGS_MAX = 3
 
 Quill.register('modules/imageResize', ImageResize);
