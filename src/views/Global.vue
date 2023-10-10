@@ -24,6 +24,7 @@
             v-model="showName"
             label="Show name"
           ></v-switch>
+          <v-btn class="px-2 mx-2" @click="dialog = true"> Help </v-btn>
           <v-btn class="px-2 mx-2" @click="saveAssign"> Save assign </v-btn>
           <v-btn class="px-2 mx-2" @click="loadAssign"> Load assign </v-btn>
           <input
@@ -174,6 +175,11 @@
         </v-list>
       </v-col>
     </v-row>
+
+    <!-- Popup Help -->
+    <v-dialog v-model="dialog" max-width="90%">
+      <v-img src="../assets/assign_help.png" />
+    </v-dialog>
   </v-container>
 </template>
 <script>
@@ -188,6 +194,7 @@ export default {
   },
   data: () => ({
     search: "",
+    dialog: false,
     selectedOrientations: [],
     selectedProjectIndex: null,
     selectedStudentIndex: null,
