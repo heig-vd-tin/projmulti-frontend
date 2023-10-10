@@ -19,19 +19,20 @@
             @change="switchFilterAssignChange()"
             label="NoAssigned"
           ></v-switch>
-          <v-switch class="mx-4" v-model="showName" label="Show name"></v-switch>
-          <v-btn class="px-2 mx-2" @click="saveAssign">
-            Save assign
-          </v-btn>
-          <v-btn class="px-2 mx-2" @click="loadAssign">
-            Load assign
-          </v-btn>
+          <v-switch
+            class="mx-4"
+            v-model="showName"
+            label="Show name"
+          ></v-switch>
+          <v-btn class="px-2 mx-2" @click="saveAssign"> Save assign </v-btn>
+          <v-btn class="px-2 mx-2" @click="loadAssign"> Load assign </v-btn>
           <input
             type="file"
             ref="fileInput"
             @change="readFile"
             style="display: none"
           />
+          <v-btn class="px-2 mx-2" @click="exportAssign"> Export assign </v-btn>
         </div>
       </v-col>
     </v-row>
@@ -178,7 +179,7 @@
 <script>
 import { mapActions, mapGetters } from "vuex";
 import draggable from "vuedraggable";
-import axios from "axios"
+import axios from "axios";
 
 export default {
   name: "GlobalView",
@@ -208,36 +209,66 @@ export default {
       return this.getAllStudents.filter((std) => std.id == e.id)[0];
     },
 
-    saveAssign(){
-      axios
-            .get('/assignment/get-all')
-            .then(response => {
-              const link = document.createElement("a");
-      const dataToSave = JSON.stringify( response.data )
+    saveAssign() {
+      axios.get("/assignment/get-all").then((response) => {
+        const link = document.createElement("a");
+        const dataToSave = JSON.stringify(response.data);
 
-      let filename = "assignment_"
-      const now = new Date();
-      filename += now.getFullYear() + '_' + now.getMonth() + '_' + now.getDate();
-      
-      const hour = now.getHours();
-      const min = now.getMinutes();
-      filename += `-${hour < 10 ? '0' : ''}${hour}h${min < 10 ? '0' : ''}${min}`;
+        let filename = "assignment_";
+        const now = new Date();
+        filename +=
+          now.getFullYear() + "_" + now.getMonth() + "_" + now.getDate();
 
+        const hour = now.getHours();
+        const min = now.getMinutes();
+        filename += `-${hour < 10 ? "0" : ""}${hour}h${
+          min < 10 ? "0" : ""
+        }${min}`;
 
-      const fileName = window.prompt("Veuillez entrer un nom de fichier :", filename);
-      if (fileName) {
-        const blob = new Blob([dataToSave], { type: "text/plain" })
-        link.href = URL.createObjectURL(blob)
-        link.download = fileName + ".prjmult";
+        const fileName = window.prompt(
+          "Veuillez entrer un nom de fichier :",
+          filename
+        );
+        if (fileName) {
+          const blob = new Blob([dataToSave], { type: "text/plain" });
+          link.href = URL.createObjectURL(blob);
+          link.download = fileName + ".prjmult";
+          link.click();
+          URL.revokeObjectURL(link.href);
+        }
+      });
+    },
+    exportAssign() {
+      axios.get("/assignment/get-export").then((response) => {
+        const link = document.createElement("a");
+        const arr = response.data
+        let str = "project_id,project_title,project_owner,student_id,student_fullname,orientation,priority\n"
+        arr.forEach((e) => {
+          str += e.id + "," + e.title + "," + e.prof_fullname + "," + e.stu_id + "," + e.stu_fullname + "," + e.orientation + "," + e.priority + "\n"
+        })
+
+        let filename = "export_";
+        const now = new Date();
+        filename +=
+          now.getFullYear() + "_" + now.getMonth() + "_" + now.getDate();
+
+        const hour = now.getHours();
+        const min = now.getMinutes();
+        filename += `-${hour < 10 ? "0" : ""}${hour}h${
+          min < 10 ? "0" : ""
+        }${min}`;
+
+        const blob = new Blob([str], { type: "text/plain" });
+        link.href = URL.createObjectURL(blob);
+        link.download = filename + ".csv";
         link.click();
         URL.revokeObjectURL(link.href);
-      }
-      })      
+      });
     },
-    loadAssign(){
+    loadAssign() {
       this.$refs.fileInput.click();
     },
-    readFile(event){
+    readFile(event) {
       const selectedFile = event.target.files[0];
       if (selectedFile) {
         const reader = new FileReader();
@@ -245,22 +276,20 @@ export default {
         reader.onload = () => {
           const fileContent = reader.result;
 
-          var obj = JSON.parse(fileContent)
+          var obj = JSON.parse(fileContent);
 
-          const send = async() => {
+          const send = async () => {
             try {
-              await axios.post("/assignment/load-data", {data: obj} )
-              this.initArrays()
-              
+              await axios.post("/assignment/load-data", { data: obj });
+              this.initArrays();
             } catch (err) {
-              console.log("Error")
+              console.log("Error");
             }
-          }
+          };
           send();
         };
         reader.readAsText(selectedFile);
       }
-
     },
 
     // tmz bad patch for drag and drop

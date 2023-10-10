@@ -58,14 +58,14 @@
             </v-btn>
           </template>
 
-          <v-btn v-for="p in [1,2,3,4,5]" @click.stop="onClickPrefBtn(p, $event)" :key="p" fab dark small
+          <v-btn v-for="p in [5,4,3,2,1]" @click.stop="onClickPrefBtn(p, $event)" :key="p" fab dark small
             :color="priorityColorFree(p)">
 
                   <v-tooltip bottom>
                     <template v-slot:activator="{ on }">
                       <span v-on="on" class="font-weight-bold text-h5"><span class="font-weight-bold text-h5">{{p}}</span></span>
                     </template>
-                    <span>5 : Le meilleur choix<br>1 :  Le moin bon choix</span>
+                    <span>1 : Le meilleur choix<br>5 :  Le moin bon choix</span>
                   </v-tooltip>          
           </v-btn>
         </v-speed-dial>
