@@ -12,13 +12,13 @@
         <v-app-bar-nav-icon v-show="getUser.isAdmin" @click="drawer = !drawer"></v-app-bar-nav-icon>
 
         <v-spacer></v-spacer>
-        <v-btn v-show="getUser.isAdmin" to="/global">
+        <v-btn class="px-2 mx-2" v-show="getUser.isAdmin" to="/global">
           Assign
         </v-btn>
-        <v-btn v-show="getUser.isAdmin" to="/select">
+        <v-btn class="px-2 mx-2" v-show="getUser.isAdmin" to="/select">
           Select projects
         </v-btn>
-        <v-btn v-show="getUser.isAdmin" to="/all-projects">
+        <v-btn class="px-2 mx-2" v-show="getUser.isAdmin" to="/all-projects">
           Projects list
         </v-btn>
         <v-spacer></v-spacer>
@@ -82,6 +82,7 @@ export default {
       "retrieveDomains",
       "retrieveTags",
     ]),
+
     OnMenuClick(item) {
       this.drawer = false
 

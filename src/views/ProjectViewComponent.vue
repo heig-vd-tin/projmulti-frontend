@@ -20,22 +20,56 @@
       </v-chip-group>
     </v-card-text>
     <v-spacer></v-spacer>
-    <div id="group_domain">
-      <v-card-subtitle class="font-weight-medium text-decoration-underline" :hidden=light>Domains:</v-card-subtitle>
-      <v-card-text :class="classDomain">
-        <v-chip-group column>
-          <v-chip v-for="domain in project.domains" :key="domain.id" outlined :color="getColor(domain)">
-            <v-tooltip bottom :color="getColor(domain)">
-              <template v-slot:activator="{ on }">
-                <v-icon v-on="on" center>
-                  {{ domain.icon }}
-                </v-icon>
-              </template>
-              <span>{{ domain.name }}</span>
-            </v-tooltip>
-          </v-chip>
-        </v-chip-group>
-      </v-card-text>
+
+    <div :class="classDomain">
+      <div class="footer_items">
+        <v-card-subtitle class="my-0 py-0 font-weight-medium text-decoration-underline" :hidden=light>Domains:</v-card-subtitle>
+        <v-card-text class="py-0" >
+          <v-chip-group column>
+            <v-chip v-for="domain in project.domains" :key="domain.id" outlined :color="getColor(domain)">
+              <v-tooltip bottom :color="getColor(domain)">
+                <template v-slot:activator="{ on }">
+                  <v-icon v-on="on" center>
+                    {{ domain.icon }}
+                  </v-icon>
+                </template>
+                <span>{{ domain.name }}</span>
+              </v-tooltip>
+            </v-chip>
+          </v-chip-group>
+        </v-card-text>
+      </div>
+
+      <v-btn color="blue" v-show="!light" @click="eventClose">
+        close
+      </v-btn>
+
+      <!--Student priority-->
+      <div :style="styleFooterRight" class="mr-4 text-right d-flex justify-end footer_items">
+        <v-speed-dial :hidden=showChooseButton v-model="fab" direction="top">
+          <template v-slot:activator>
+            <v-btn v-model="fab" color="blue darken-3" dark small fab>
+              <v-icon v-if="fab">
+                mdi-close
+              </v-icon>
+              <v-icon v-else>
+                mdi-format-list-bulleted-square
+              </v-icon>
+            </v-btn>
+          </template>
+
+          <v-btn v-for="p in [1,2,3,4,5]" @click.stop="onClickPrefBtn(p, $event)" :key="p" fab dark small
+            :color="priorityColorFree(p)">
+
+                  <v-tooltip bottom>
+                    <template v-slot:activator="{ on }">
+                      <span v-on="on" class="font-weight-bold text-h5"><span class="font-weight-bold text-h5">{{p}}</span></span>
+                    </template>
+                    <span>5 : Le meilleur choix<br>1 :  Le moin bon choix</span>
+                  </v-tooltip>          
+          </v-btn>
+        </v-speed-dial>
+      </div>
     </div>
 
     <v-btn class="pos-abs-br" v-show="owner & canEdit" fab dark x-small color="cyan" :to="'/edit-project/' + project.id">
@@ -110,24 +144,7 @@
       </v-tooltip>
     </v-btn>
 
-    <!--Student priority-->
-    <v-speed-dial :hidden=showChooseButton absolute v-model="fab" direction="top">
-      <template v-slot:activator>
-        <v-btn v-model="fab" color="blue darken-3" dark small fab>
-          <v-icon v-if="fab">
-            mdi-close
-          </v-icon>
-          <v-icon v-else>
-            mdi-format-list-bulleted-square
-          </v-icon>
-        </v-btn>
-      </template>
 
-      <v-btn v-for="p in [1,2,3,4,5]" @click.stop="onClickPrefBtn(p, $event)" :key="p" fab dark small
-        :color="priorityColorFree(p)">
-        <span class="font-weight-bold text-h5">{{p}}</span>
-      </v-btn>
-    </v-speed-dial>
 
   </v-card>
 </template>
@@ -175,6 +192,9 @@ export default {
         event.preventDefault()
         this.$emit("click", event)
       }
+    },
+    eventClose: function (event) {
+        this.$emit("close", event)
     },
     adminSelectClick: function () {
 
@@ -269,7 +289,10 @@ export default {
   computed: {
     ...mapGetters(["getUser", "getMyProjects", "getMatchedUsers"]),
     classDomain() {
-      return this.light ? "py-1" : "py-4"
+      return this.light ? "project_footer my-0 py-1" : "project_footer my-0 py-4"
+    },
+    styleFooterRight() {
+      return this.light ? "max-width: 60px" : "max-width: 1000px"
     },
     owner() {
       return this.getUser.isTeacher && (this.getUser.id == this.project.owner_id)
@@ -297,13 +320,19 @@ export default {
 </script>
 
 <style>
-#group_domain {}
 
-.v-speed-dial {
-  bottom: 10px;
-  right: 10px;
-  position: absolute;
-  margin: 0;
+.v-speed-dial__list{
+  align-items: end;
+}
+
+.project_footer{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.footer_items{
+  flex:1;
 }
 
 .pos-abs-br {
