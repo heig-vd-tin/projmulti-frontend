@@ -88,7 +88,7 @@ export default new Vuex.Store({
       return axios.get("/user/me").then(response => context.commit("setUser", response.data))
     },
     retrieveAllProjects(context) {
-      return axios.get("/project/all").then(response => context.commit("setAllProjects", response.data))
+      return axios.get("/project/alld").then(response => context.commit("setAllProjects", response.data))
     },
     retrievePreferredProjects(context) {
       return axios.get("/project/preferred").then(response => context.commit("setPreferredProjects", response.data))

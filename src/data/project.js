@@ -5,7 +5,7 @@ export default class Project{
         this.id = projectData.id
         this.title = projectData.title
         this.reference = projectData.reference
-        this.description = projectData.description
+        this.description = projectData.description ?? ""
         this.short_description = projectData.short_description
         this.owner_id = projectData.owner_id
         this.selected = projectData.selected

@@ -41,7 +41,7 @@
     </v-row>
     <div id="col_project">
       <project-view-component :canEdit="true" class="card_project" v-for="(project, index) in filteredProjects"
-        :key="index" @removepref="onRemovePref(project.id)" @click="dialog = true; selectedProject = project"
+        :key="index" @removepref="onRemovePref(project.id)" @click="onSelectedProjects(project)"
         :project="project" :light=true />
     </div>
 
@@ -56,6 +56,7 @@
 import { mapGetters, mapActions } from "vuex";
 import { getDomainColor } from "@/data/helpers.js";
 import ProjectViewComponent from "../ProjectViewComponent.vue";
+import axios from "axios";
 
 export default {
   name: "AllProjects",
@@ -90,7 +91,21 @@ export default {
         .finally(() => {
           //this.project.loading = false
         })
-    }
+    },
+    onSelectedProjects(projects) {
+      axios
+        .get("project/" + projects.id)
+        .then((response) => {
+
+          this.selectedProject = projects;
+          this.selectedProject.description = response.data[0].description;
+          this.dialog = true;
+          console.log("end lad")
+        })
+        .catch((error) => {
+          console.log(error);
+        });      
+    },
   },
   mounted() {
   },
