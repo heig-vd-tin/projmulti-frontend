@@ -94,7 +94,7 @@ export default {
     },
     onSelectedProjects(projects) {
       axios
-        .get("project/" + projects.id)
+        .get("project/getdesc/" + projects.id)
         .then((response) => {
 
           this.selectedProject = projects;
