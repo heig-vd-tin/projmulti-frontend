@@ -183,6 +183,7 @@
   </v-container>
 </template>
 <script>
+import { downloadCsv, timestamp } from "@/data/csv";
 import { mapActions, mapGetters } from "vuex";
 import draggable from "vuedraggable";
 import axios from "axios";
@@ -224,7 +225,7 @@ export default {
         let filename = "assignment_";
         const now = new Date();
         filename +=
-          now.getFullYear() + "_" + now.getMonth() + "_" + now.getDate();
+          now.getFullYear() + "_" + (now.getMonth() + 1) + "_" + now.getDate();
 
         const hour = now.getHours();
         const min = now.getMinutes();
@@ -247,30 +248,15 @@ export default {
     },
     exportAssign() {
       axios.get("/assignment/get-export").then((response) => {
-        const link = document.createElement("a");
-        const arr = response.data
-        let str = "project_id,project_title,project_owner,student_id,student_fullname,orientation,priority\n"
-        arr.forEach((e) => {
-          str += e.id + "," + e.title + "," + e.prof_fullname + "," + e.stu_id + "," + e.stu_fullname + "," + e.orientation + "," + e.priority + "\n"
-        })
-
-        let filename = "export_";
-        const now = new Date();
-        filename +=
-          now.getFullYear() + "_" + now.getMonth() + "_" + now.getDate();
-
-        const hour = now.getHours();
-        const min = now.getMinutes();
-        filename += `-${hour < 10 ? "0" : ""}${hour}h${
-          min < 10 ? "0" : ""
-        }${min}`;
-
-        const blob = new Blob([str], { type: "text/plain" });
-        link.href = URL.createObjectURL(blob);
-        link.download = filename + ".csv";
-        link.click();
-        URL.revokeObjectURL(link.href);
-      });
+        const rows = response.data.map((e) => [
+          e.id, e.title, e.prof_fullname, e.stu_id, e.stu_fullname, e.stu_email, e.orientation, e.priority,
+        ]);
+        downloadCsv(
+          `export_${timestamp()}.csv`,
+          ["project_id", "project_title", "project_owner", "student_id", "student_fullname", "student_email", "orientation", "priority"],
+          rows
+        );
+      }).catch((error) => this.$notify({ title: "Export impossible", text: error.userMessage, type: "error" }));
     },
     loadAssign() {
       this.$refs.fileInput.click();

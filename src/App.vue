@@ -6,7 +6,7 @@
       </v-progress-circular>
     </v-overlay>
     <div v-if="!loading">
-      <notifications :max="2" />
+      <notifications :max="3" />
       <v-app-bar app clipped-left>
 
         <v-app-bar-nav-icon v-show="getUser.isAdmin" @click="drawer = !drawer"></v-app-bar-nav-icon>
@@ -21,7 +21,13 @@
         <v-btn class="px-2 mx-2" v-show="getUser.isAdmin" to="/all-projects">
           Projects list
         </v-btn>
+        <v-btn class="px-2 mx-2" v-show="getUser.isAdmin" to="/settings">
+          <v-icon left>mdi-cog-outline</v-icon> Réglages
+        </v-btn>
         <v-spacer></v-spacer>
+        <v-chip v-if="getSettings.current_year" class="mr-3" small outlined :title="phaseLabel">
+          Cours {{ getSettings.current_year }} · {{ phaseShortLabel }}
+        </v-chip>
 
         <v-toolbar-title>
           {{ getUser.firstname }} {{ getUser.lastname }}
@@ -52,7 +58,27 @@
       </v-navigation-drawer>
 
       <v-main style="height: 100vh">
-        <router-view :key="$route.path" style="max-height: 100%; height: 100%" />
+        <!-- Étudiant hors de la période de choix : rien d'autre n'est chargé. -->
+        <v-container v-if="closedForUser" class="fill-height" fluid>
+          <v-row justify="center">
+            <v-col cols="12" sm="8" md="6">
+              <v-card class="pa-6 text-center" outlined>
+                <v-icon size="56" color="grey">mdi-calendar-clock</v-icon>
+                <div class="text-h5 my-4">La plateforme n'est pas encore ouverte</div>
+                <div class="text-body-1">
+                  Le choix des projets n'est pas ouvert pour le moment. Vous recevrez un message
+                  lorsque vous pourrez choisir vos projets.
+                </div>
+              </v-card>
+            </v-col>
+          </v-row>
+        </v-container>
+        <template v-else>
+          <v-alert v-if="getUser.isProfessor && getSettings.phase !== 'projects'" type="info" dense text class="ma-2 mb-0">
+            La saisie des projets est fermée : vous pouvez consulter et exporter vos projets, mais plus les modifier.
+          </v-alert>
+          <router-view :key="$route.path" style="max-height: 100%; height: 100%" />
+        </template>
       </v-main>
     </div>
   </v-app>
@@ -81,6 +107,8 @@ export default {
       "retrieveOrientations",
       "retrieveDomains",
       "retrieveTags",
+      "retrieveSettings",
+      "ensureUser",
     ]),
 
     OnMenuClick(item) {
@@ -109,7 +137,16 @@ export default {
     },
   },
   computed: {
-    ...mapGetters(["getUser", "getAllProjects"]),
+    ...mapGetters(["getUser", "getAllProjects", "getSettings"]),
+    closedForUser() {
+      return this.getUser.isStudent && this.getSettings.phase !== 'preferences'
+    },
+    phaseShortLabel() {
+      return { projects: 'saisie des projets', preferences: 'choix des étudiants', closed: 'fermé' }[this.getSettings.phase] || ''
+    },
+    phaseLabel() {
+      return { projects: 'Les profs saisissent leurs projets', preferences: 'Les étudiants choisissent leurs projets', closed: 'Plateforme fermée (répartition)' }[this.getSettings.phase] || ''
+    },
     sidebar() {
       return getSidebar(this.getUser.role);
     },
@@ -121,27 +158,35 @@ export default {
     // this.$router.push("/");
   },
   async mounted() {
-    let promises = [
-      this.retrieveAllProjects(),
-      this.retrieveOrientations(),
-      this.retrieveDomains(),
-      this.retrieveTags(),
-    ];
     this.loading = true;
-    await this.retrieveUser();
-    let user = this.getUser;
-    if (user.isAdmin)
-      promises = promises.concat([
-        this.retrieveOwnedProjects(),
-        this.retrieveAllUsers(),
-        this.retrieveAllStudents(),
-      ]);
-    else if (user.isProfessor)
-      promises = promises.concat([this.retrieveOwnedProjects()]);
-    else if (user.isStudent)
-      promises = promises.concat([this.retrievePreferredProjects()]);
-    await Promise.all(promises);
-    this.loading = false;
+    try {
+      await this.ensureUser();
+      await this.retrieveSettings();
+      if (this.closedForUser) return;
+
+      let promises = [
+        this.retrieveAllProjects(),
+        this.retrieveOrientations(),
+        this.retrieveDomains(),
+        this.retrieveTags(),
+      ];
+      let user = this.getUser;
+      if (user.isAdmin)
+        promises = promises.concat([
+          this.retrieveOwnedProjects(),
+          this.retrieveAllUsers(),
+          this.retrieveAllStudents(),
+        ]);
+      else if (user.isProfessor)
+        promises = promises.concat([this.retrieveOwnedProjects()]);
+      else if (user.isStudent)
+        promises = promises.concat([this.retrievePreferredProjects()]);
+      await Promise.all(promises);
+    } catch (error) {
+      this.$notify({ title: "Erreur", text: error.userMessage || "Chargement impossible", type: "error" });
+    } finally {
+      this.loading = false;
+    }
   },
 };
 </script>

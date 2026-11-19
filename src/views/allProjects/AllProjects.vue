@@ -22,15 +22,17 @@
           </template>
         </v-select>
       </v-col> -->
+      <v-col v-if="isTeacher" cols="12" sm="2">
+        <v-select label="Cours" :value="getSelectedYear" :items="yearItems" @change="onYearChange" :loading="loading"></v-select>
+      </v-col>
       <v-col>
-        <v-switch v-model="filterMyProject" label="My project"></v-switch>
+        <v-switch v-model="filterMyProject" :label="isStudent ? 'Mes choix' : 'Mes projets'"></v-switch>
       </v-col>
 
       <v-col>
-        <!-- tmz : add project -->
-        <div v-show="isTeacher">
-          Add project
-          <v-btn class="mx-2" small v-show=true fab dark color="cyan" to="/new-project">
+        <div v-show="isTeacher && canEditProjects && isCurrentYearSelected">
+          Ajouter un projet
+          <v-btn class="mx-2" small fab dark color="cyan" to="/new-project">
             <v-icon dark>
               mdi-plus
             </v-icon>
@@ -39,6 +41,13 @@
       </v-col>
 
     </v-row>
+    <v-alert v-if="isTeacher && !isCurrentYearSelected" type="info" text dense>
+      Projets du cours {{ getSelectedYear }} (lecture seule). Pour reprendre un de vos projets cette année,
+      ouvrez-le et cliquez sur « Reprendre pour {{ getSettings.current_year }} ».
+    </v-alert>
+    <div v-if="!loading && filteredProjects.length === 0" class="text-center grey--text my-10">
+      Aucun projet pour le moment.
+    </div>
     <div id="col_project">
       <project-view-component :canEdit="true" class="card_project" v-for="(project, index) in filteredProjects"
         :key="index" @removepref="onRemovePref(project.id)" @click="onSelectedProjects(project)"
@@ -74,17 +83,23 @@ export default {
     filterMyProject: false
   }),
   methods: {
-    ...mapActions(["removeProjectPreference"]),
+    ...mapActions(["removeProjectPreference", "changeSelectedYear"]),
+    onYearChange(year) {
+      this.loading = true
+      this.changeSelectedYear(year)
+        .catch((error) => this.$notify({ title: "Erreur", text: error.userMessage, type: "error" }))
+        .finally(() => { this.loading = false })
+    },
     getColor: function (domain) {
       return getDomainColor(domain);
     },
     onRemovePref(prj_id) {
       //this.project.loading = true;
       this.removeProjectPreference({ projects: [prj_id] })
-        .catch(() => {
+        .catch((error) => {
           this.$notify({
-            title: "Erreur",
-            text: "La préférence n'a pas pu être effacée",
+            title: "La préférence n'a pas pu être effacée",
+            text: error.userMessage,
             type: "error",
           })
         })
@@ -115,7 +130,14 @@ export default {
       "getDomains",
       "getTags",
       "getUser",
+      "getSettings",
+      "getSelectedYear",
+      "isCurrentYearSelected",
+      "canEditProjects",
     ]),
+    yearItems() {
+      return this.getSettings.years.map((y) => ({ text: `${y}`, value: y }))
+    },
     selectDomains() {
       return this.getDomains.flatMap((item, index, array) => {
         if (index == 0 || array[index - 1].name !== item.name)

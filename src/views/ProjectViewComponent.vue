@@ -40,9 +40,17 @@
         </v-card-text>
       </div>
 
-      <v-btn color="blue" v-show="!light" @click="eventClose">
-        close
-      </v-btn>
+      <div v-if="!light" class="d-flex flex-wrap justify-center" style="gap: 8px">
+        <v-btn outlined :loading="exporting" @click.stop="exportPdf">
+          <v-icon left>mdi-file-pdf-box</v-icon> Exporter en PDF
+        </v-btn>
+        <v-btn v-if="canDuplicate" outlined color="cyan darken-2" :loading="duplicating" @click.stop="duplicate">
+          <v-icon left>mdi-content-copy</v-icon> Reprendre pour {{ getSettings.current_year }}
+        </v-btn>
+        <v-btn color="blue" dark @click="eventClose">
+          Fermer
+        </v-btn>
+      </div>
 
       <!--Student priority-->
       <div :style="styleFooterRight" class="mr-4 text-right d-flex justify-end footer_items">
@@ -72,14 +80,14 @@
       </div>
     </div>
 
-    <v-btn class="pos-abs-br" v-show="owner & canEdit" fab dark x-small color="cyan" :to="'/edit-project/' + project.id">
+    <v-btn class="pos-abs-br" v-show="canEditThis && canEdit" fab dark x-small color="cyan" :to="'/edit-project/' + project.id">
       <v-tooltip bottom>
         <template v-slot:activator="{ on }">
           <v-icon v-on="on" dark>
             mdi-pencil
           </v-icon>
         </template>
-        <span>Edit project</span>
+        <span>Modifier le projet</span>
       </v-tooltip>
     </v-btn>
 
@@ -153,12 +161,16 @@
 <script>
 import { mapGetters, mapActions } from "vuex";
 import { getDomainColor } from "@/data/helpers.js";
+import { downloadBlob } from "@/data/csv";
+import axios from "axios";
 
 export default {
   name: "ProjectViewComponent",
   data: () => ({
     fab: false,
-    descResize: ""
+    descResize: "",
+    exporting: false,
+    duplicating: false,
   }),
   props: {
     project: {
@@ -185,7 +197,24 @@ export default {
     this.resizeImage()
   },
   methods: {
-    ...mapActions(["addProjectPreference", "selectProject", "unselectProject"]),
+    ...mapActions(["addProjectPreference", "selectProject", "unselectProject", "duplicateProject"]),
+    exportPdf() {
+      this.exporting = true
+      axios.get(`/project/${this.project.id}/pdf`, { responseType: "blob" })
+        .then((response) => downloadBlob(response.data, `${this.project.title}.pdf`))
+        .catch((error) => this.$notify({ title: "Export PDF impossible", text: error.userMessage, type: "error" }))
+        .finally(() => { this.exporting = false })
+    },
+    duplicate() {
+      this.duplicating = true
+      this.duplicateProject(this.project.id)
+        .then((copy) => {
+          this.$notify({ title: "Projet repris", text: `« ${copy.title} » a été ajouté au cours ${copy.year}. Vous pouvez le modifier.`, type: "success" })
+          this.$router.push('/edit-project/' + copy.id)
+        })
+        .catch((error) => this.$notify({ title: "Impossible de reprendre le projet", text: error.userMessage, type: "error" }))
+        .finally(() => { this.duplicating = false })
+    },
 
     eventClick: function (event) {
       if (event.target.tagName == "DIV") {
@@ -251,10 +280,10 @@ export default {
           return { id: item.id, priority: item.priority };
         }),
       })
-        .catch(() => {
+        .catch((error) => {
           this.$notify({
-            title: "Erreur",
-            text: "La préférence n'a pas pu être ajoutée",
+            title: "La préférence n'a pas pu être ajoutée",
+            text: error.userMessage,
             type: "error",
           });
         })
@@ -287,7 +316,16 @@ export default {
     }
   },
   computed: {
-    ...mapGetters(["getUser", "getMyProjects", "getMatchedUsers"]),
+    ...mapGetters(["getUser", "getMyProjects", "getMatchedUsers", "getSettings", "canEditProjects"]),
+    isCurrentYear() {
+      return !this.project.year || this.project.year === this.getSettings.current_year
+    },
+    canEditThis() {
+      return this.owner && this.canEditProjects && this.isCurrentYear
+    },
+    canDuplicate() {
+      return this.owner && this.canEditProjects && !this.isCurrentYear
+    },
     classDomain() {
       return this.light ? "project_footer my-0 py-1" : "project_footer my-0 py-4"
     },

@@ -75,9 +75,13 @@
     ></VueEditor>
     <br />
 
+    <v-alert v-if="formErrors.length" type="warning" text dense class="mt-2">
+      <div class="font-weight-medium">Le projet n'est pas encore enregistré :</div>
+      <ul><li v-for="(e, i) in formErrors" :key="i">{{ e }}</li></ul>
+    </v-alert>
+
     <v-btn
       v-if="editing"
-      :disabled="!valid"
       color="success"
       class="mr-4"
       @click="edit"
@@ -87,7 +91,6 @@
     </v-btn>
     <v-btn
       v-else
-      :disabled="!valid"
       color="success"
       class="mr-4"
       @click="create"
@@ -118,6 +121,8 @@ import ImageResize from 'quill-image-resize-vue';
 const TITLE_MAX_LENGTH = 100
 const SHORT_DESC_MAX_LENGTH = 100
 const TAGS_MAX = 3
+// Le serveur accepte 64 Mo par requête ; au-delà de 25 Mo de description, la page devient très lente.
+const MAX_DESCRIPTION_MB = 25
 
 Quill.register('modules/imageResize', ImageResize);
 
@@ -143,38 +148,57 @@ export default {
     tagsMax: TAGS_MAX,
     loading: false,
     valid: false,
+    formErrors: [],
     title: "",
     description: "",
     short_description: "",
     selectedDomains: [],
     selectedTags: [],
     rules: {
-      title: (value) => !!value || "Titre obligatoire!",
-      shortDesc: (value) => !!value || "Résumé obligatoire!",
+      title: (value) => (!!value && !!value.trim()) || "Le titre est obligatoire.",
+      shortDesc: (value) => (!!value && !!value.trim()) || "Le résumé court est obligatoire.",
       domains: (value) =>
-        value.length >= 1 || "Veuillez sélectionner au moins 1 domain!",
+        (value && value.length >= 1) || "Sélectionnez au moins un domaine.",
       tags: (value) => value.length <= TAGS_MAX || `Maximum ${TAGS_MAX} tags!`,
     },
   }),
   methods: {
     ...mapActions(["createProject", "editProject"]),
-    edit() {
-      if (!this.$refs.form.validate()) return;
+    // Vérifie le formulaire et explique ce qui manque au lieu de griser le bouton.
+    checkForm() {
+      this.formErrors = [];
+      if (!this.title || !this.title.trim()) this.formErrors.push("Le titre est obligatoire.");
+      if (!this.short_description || !this.short_description.trim()) this.formErrors.push("Le résumé court est obligatoire.");
+      if (!this.selectedDomains || this.selectedDomains.length === 0) this.formErrors.push("Sélectionnez au moins un domaine.");
+      const sizeMb = new Blob([this.description || ""]).size / (1024 * 1024);
+      if (sizeMb > MAX_DESCRIPTION_MB)
+        this.formErrors.push(`La description pèse ${sizeMb.toFixed(1)} Mo (maximum ${MAX_DESCRIPTION_MB} Mo) : réduisez la taille ou le nombre des images.`);
+      this.$refs.form.validate();
+      if (this.formErrors.length) {
+        this.$notify({ title: "Formulaire incomplet", text: this.formErrors.join(" "), type: "warn" });
+        return false;
+      }
+      return true;
+    },
+    submit(action, successText) {
+      if (!this.checkForm()) return;
       this.loading = true;
-      this.editProject(this.formObject)
+      action(this.formObject)
         .then(() => {
           this.$notify({
             title: "Formulaire envoyé",
-            text: "Le projet a été modifié avec succès",
+            text: successText,
             type: "success",
           });
+          if (!this.editing) this.reset();
           this.$emit("success");
           this.$router.push('/all-projects')
         })
-        .catch(() => {
+        .catch((error) => {
+          this.formErrors = [error.userMessage];
           this.$notify({
-            title: "Erreur",
-            text: "Le formulaire n'a pas pu être envoyé",
+            title: "Le projet n'a pas été enregistré",
+            text: error.userMessage,
             type: "error",
           });
           this.$emit("error");
@@ -183,31 +207,11 @@ export default {
           this.loading = false;
         });
     },
+    edit() {
+      this.submit(this.editProject, "Le projet a été modifié avec succès");
+    },
     create() {
-      if (!this.$refs.form.validate()) return;
-      this.loading = true;
-      this.createProject(this.formObject)
-        .then(() => {
-          this.$notify({
-            title: "Formulaire envoyé",
-            text: "Le projet a été enregistré avec succès",
-            type: "success",
-          });
-          this.reset();
-          this.$emit("success");
-          this.$router.push('/all-projects')
-        })
-        .catch(() => {
-          this.$notify({
-            title: "Erreur",
-            text: "Le formulaire n'a pas pu être envoyé",
-            type: "error",
-          });
-          this.$emit("error");
-        })
-        .finally(() => {
-          this.loading = false;
-        });
+      this.submit(this.createProject, "Le projet a été enregistré avec succès");
     },
     quit(){
       this.$router.push('/all-projects')

@@ -27,31 +27,37 @@ const routes = [
     path: "/new-project",
     name: "NewProject",
     component: () => import("@/views/NewProject"),
-    beforeEnter: (to, from, next) => next(store.getters.getUser.isTeacher)
+    beforeEnter: (to, from, next) => store.dispatch('ensureUser').then(() => next(store.getters.getUser.isTeacher)).catch(() => next(false))
   },
   {
     path: "/edit-project/:project_id",
     name: "EditProject",
     component: () => import("@/views/EditProject"),
-    beforeEnter: (to, from, next) => next(store.getters.getUser.isTeacher)
+    beforeEnter: (to, from, next) => store.dispatch('ensureUser').then(() => next(store.getters.getUser.isTeacher)).catch(() => next(false))
   },
   {
     path: "/global",
     name: "Global",
     component: () => import("@/views/Global"),
-    beforeEnter: (to, from, next) => next(store.getters.getUser.isAdmin)
+    beforeEnter: (to, from, next) => store.dispatch('ensureUser').then(() => next(store.getters.getUser.isAdmin)).catch(() => next(false))
   },
   {
     path: "/select",
     name: "Select",
     component: () => import("@/views/Select"),
-    beforeEnter: (to, from, next) => next(store.getters.getUser.isAdmin)
+    beforeEnter: (to, from, next) => store.dispatch('ensureUser').then(() => next(store.getters.getUser.isAdmin)).catch(() => next(false))
+  },
+  {
+    path: "/settings",
+    name: "Settings",
+    component: () => import("@/views/Settings"),
+    beforeEnter: (to, from, next) => store.dispatch('ensureUser').then(() => next(store.getters.getUser.isAdmin)).catch(() => next(false))
   },
   {
     path: "/infos",
     name: "Infos",
     component: () => import("@/views/Infos"),
-    beforeEnter: (to, from, next) => next(store.getters.getUser.isAdmin)
+    beforeEnter: (to, from, next) => store.dispatch('ensureUser').then(() => next(store.getters.getUser.isAdmin)).catch(() => next(false))
   }
 ]
 

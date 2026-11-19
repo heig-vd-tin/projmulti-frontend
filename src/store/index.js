@@ -6,6 +6,9 @@ import Project from "@/data/project"
 
 Vue.use(Vuex)
 
+// Chargement unique de l'utilisateur, attendu par App.vue et par les gardes du routeur.
+let userPromise = null
+
 export default new Vuex.Store({
   state: {
     user: new User({}),
@@ -17,6 +20,10 @@ export default new Vuex.Store({
     orientations: [],
     domains: [],
     tags: [],
+    // Réglages choisis par l'admin : phase ouverte et année du cours en préparation.
+    settings: { phase: 'closed', current_year: null, years: [] },
+    // Année affichée dans la liste des projets (profs et admin peuvent consulter les années passées).
+    selectedYear: null,
   },
   getters: {
     getUser: state => state.user,
@@ -28,6 +35,11 @@ export default new Vuex.Store({
     getOrientations: state => state.orientations,
     getDomains: state => state.domains,
     getTags: state => state.tags,
+    getSettings: state => state.settings,
+    getSelectedYear: state => state.selectedYear || state.settings.current_year,
+    isCurrentYearSelected: (state, getters) => getters.getSelectedYear === state.settings.current_year,
+    // Le prof peut créer / modifier ses projets seulement pendant la phase « projects ».
+    canEditProjects: state => state.user.isAdmin || (state.user.isTeacher && state.settings.phase === 'projects'),
   },
   mutations: {
     setUser(state, payload) { state.user = new User(payload) },
@@ -82,13 +94,45 @@ export default new Vuex.Store({
     setOrientations(state, payload) { state.orientations = payload },
     setDomains(state, payload) { state.domains = payload },
     setTags(state, payload) { state.tags = payload },
+    setSettings(state, payload) { state.settings = payload },
+    setSelectedYear(state, payload) { state.selectedYear = payload },
   },
   actions: {
     retrieveUser(context) {
       return axios.get("/user/me").then(response => context.commit("setUser", response.data))
     },
+    ensureUser(context) {
+      if (!userPromise) userPromise = context.dispatch("retrieveUser").catch((e) => { userPromise = null; throw e })
+      return userPromise
+    },
+    retrieveSettings(context) {
+      return axios.get("/settings").then(response => context.commit("setSettings", response.data))
+    },
+    updateSettings(context, payload) {
+      return axios.put("/settings", payload).then(response => context.commit("setSettings", response.data))
+    },
+    startNewYear(context, payload) {
+      return axios.post("/settings/new-year", payload).then(response => {
+        context.commit("setSettings", response.data)
+        context.commit("setSelectedYear", null)
+      })
+    },
     retrieveAllProjects(context) {
-      return axios.get("/project/alld").then(response => context.commit("setAllProjects", response.data))
+      const year = context.getters.getSelectedYear
+      return axios.get("/project/alld", { params: year ? { year } : {} })
+        .then(response => context.commit("setAllProjects", response.data))
+    },
+    changeSelectedYear(context, year) {
+      context.commit("setSelectedYear", year)
+      return context.dispatch("retrieveAllProjects")
+    },
+    duplicateProject(context, projectId) {
+      return axios.post(`/project/${projectId}/duplicate`).then(response => {
+        context.commit("pushMyProjects", response.data)
+        // Le projet repris appartient à l'année en cours : on y revient.
+        context.commit("setSelectedYear", null)
+        return context.dispatch("retrieveAllProjects").then(() => response.data)
+      })
     },
     retrievePreferredProjects(context) {
       return axios.get("/project/preferred").then(response => context.commit("setPreferredProjects", response.data))
