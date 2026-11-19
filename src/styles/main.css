@@ -1,54 +1,115 @@
-/* Police embarquée (pas de CDN) */
+/* Police embarquée (pas de CDN) et jetons de design communs */
 :root {
   --app-font: 'Inter Variable', Inter, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --app-radius: 12px;
+  --radius-control: 8px;
+  --radius-card: 12px;
   --app-bar-height: 64px;
+  --page-max: 1440px;
+  --page-gutter: 24px;
+}
+/* Couleurs de texte et d'état (contraste AA mesuré sur les fonds clairs et sombres) */
+.v-theme--light {
+  --text-secondary: #6a6d73;
+  --text-hint: #8a8d93;
+  --sel: #3a3f46;
+  --focus-ring: #2563eb;
+  --link: #1d4ed8;
+  --neutral-chip-bg: #f0f2f5;
+  --neutral-chip-fg: #55657a;
+  --warn-bg: #f8f0e2;
+  --info-bg: #eaf0f7;
+  --error-bg: #fbeceb;
+  --success-bg: #e8f3ec;
+}
+.v-theme--dark {
+  --text-secondary: #a3a8b0;
+  --text-hint: #7e838c;
+  --sel: #d5d9e0;
+  --focus-ring: #7aa2f7;
+  --link: #93b4f5;
+  --neutral-chip-bg: #262b33;
+  --neutral-chip-fg: #aab6c6;
+  --warn-bg: #2e2618;
+  --info-bg: #1c2733;
+  --error-bg: #331d1c;
+  --success-bg: #1a2b21;
 }
 
 html { overflow-y: auto; }
+html, body, .v-overlay-container { font-family: var(--app-font); }
 
-.v-application,
-.v-application [class*='text-h'],
-.v-application [class*='text-body'],
-.v-application [class*='text-subtitle'],
-.v-application .text-caption,
-.v-application .text-overline,
-.v-application .text-button {
+:is(.v-application, .v-overlay-container),
+:is(.v-application, .v-overlay-container) [class*='text-h'],
+:is(.v-application, .v-overlay-container) [class*='text-body'],
+:is(.v-application, .v-overlay-container) [class*='text-subtitle'],
+:is(.v-application, .v-overlay-container) .text-caption,
+:is(.v-application, .v-overlay-container) .text-overline,
+:is(.v-application, .v-overlay-container) .text-button,
+.v-overlay__content {
   font-family: var(--app-font) !important;
 }
 
-.v-application { font-feature-settings: 'cv11', 'ss01'; }
-/* Inter n'a pas besoin de l'espacement des lettres prévu pour Roboto */
-.v-application .text-body-1, .v-application .text-body-2, .v-application .text-caption,
-.v-application .text-subtitle-1, .v-application .text-subtitle-2, .v-application .v-btn,
-.v-application .v-chip, .v-application .v-field, .v-application .v-label, .v-application .v-list-item-title,
-.v-application .v-list-item-subtitle, .v-application .v-messages, .v-application .v-counter, .v-application .v-tab,
-.v-application .v-card-text, .v-application .v-card-title, .v-application .v-card-subtitle, .v-application .v-alert,
-.v-application .v-snackbar__content, .v-application .v-field__input, .v-application .v-tooltip > .v-overlay__content {
+:is(.v-application, .v-overlay-container) { font-feature-settings: 'cv11', 'ss01'; }
+/* Inter n'a pas besoin de l'espacement des lettres prévu pour Roboto (pages et fenêtres superposées) */
+:is(.v-application, .v-overlay-container) :is(.text-body-1, .text-body-2, .text-caption, .text-subtitle-1, .text-subtitle-2,
+  .v-btn, .v-chip, .v-field, .v-label, .v-list-item-title, .v-list-item-subtitle, .v-messages, .v-counter, .v-tab,
+  .v-card-text, .v-card-title, .v-card-subtitle, .v-alert, .v-snackbar__content, .v-field__input),
+.v-overlay__content {
   letter-spacing: 0 !important;
 }
+:is(.v-application, .v-overlay-container) :is(.text-h4, .text-h5, .text-h6) { letter-spacing: -0.01em !important; }
 
-
-.v-application .text-h4, .v-application .text-h5, .v-application .text-h6 { letter-spacing: -0.01em !important; }
-
-/* Focus clavier bien visible */
-.v-application :focus-visible {
-  outline: 2px solid rgb(var(--v-theme-primary));
+/* Focus clavier : anneau bleu, distinct de l'accent rouge et de l'état d'erreur */
+:is(.v-application, .v-overlay-container) :focus-visible {
+  outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
 }
-.v-application .v-field :focus-visible { outline: none; }
+:is(.v-application, .v-overlay-container) .v-field :focus-visible { outline: none; }
 /* L'éditeur affiche son propre anneau de focus (bordure du cadre). */
 .v-application .ql-editor:focus-visible { outline: none; }
 
-.page {
-  max-width: 1360px;
-  margin: 0 auto;
-  padding: 24px 24px 48px;
+/* Textes indicatifs, libellés et compteurs lisibles */
+.v-field__input input::placeholder, input.v-field__input::placeholder, textarea.v-field__input::placeholder,
+.v-field input::placeholder {
+  color: var(--text-hint) !important;
+  opacity: 1 !important;
 }
-.page--narrow { max-width: 980px; }
-.page--wide { max-width: none; }
+.v-field:not(.v-field--focused):not(.v-field--error) .v-label.v-field-label { color: var(--text-secondary); opacity: 1; }
+.v-counter, .v-messages:not(.text-error) { color: var(--text-secondary); opacity: 1 !important; }
+.v-messages__message { opacity: 1; }
+.v-card-subtitle { color: var(--text-secondary); opacity: 1 !important; }
+.v-selection-control .v-label { font-size: 0.92rem; opacity: 1; }
+
+/* Rayons : 8 px pour les contrôles, 12 px pour les cartes, pilule pour les puces */
+:is(.v-application, .v-overlay-container) .v-card { border-radius: var(--radius-card); }
+:is(.v-application, .v-overlay-container) .v-alert { border-radius: var(--radius-card); }
+.v-snackbar .v-snackbar__wrapper { border-radius: var(--radius-control); }
+
+/* Bouton principal désactivé : même style, atténué (il ne pèse pas plus que les actifs) */
+.v-btn.v-btn--disabled.v-btn--variant-flat {
+  background-color: rgb(var(--v-theme-primary)) !important;
+  color: rgb(var(--v-theme-on-primary)) !important;
+  opacity: 0.4;
+}
+.v-btn.v-btn--disabled.v-btn--variant-flat .v-btn__overlay { opacity: 0; }
+
+/* Encadrés : un seul fond par type, opaque (même rendu sur fond gris ou blanc) */
+.v-alert.v-alert--variant-tonal .v-alert__underlay { display: none; }
+.v-alert.v-alert--variant-tonal.text-warning { background: var(--warn-bg); }
+.v-alert.v-alert--variant-tonal.text-info { background: var(--info-bg); }
+.v-alert.v-alert--variant-tonal.text-error { background: var(--error-bg); }
+.v-alert.v-alert--variant-tonal.text-success { background: var(--success-bg); }
+
+/* Une seule gouttière : même conteneur et même marge sur toutes les pages, titre toujours aligné */
+.page {
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: 24px var(--page-gutter) 48px;
+}
+.page--narrow > * { max-width: 980px; }
 @media (max-width: 600px) {
-  .page { padding: 16px 16px 40px; }
+  :root { --page-gutter: 16px; }
+  .page { padding-top: 16px; padding-bottom: 40px; }
 }
 
 .page-header {
@@ -68,16 +129,23 @@ html { overflow-y: auto; }
 }
 .page-header .subtitle {
   margin-top: 4px;
-  color: rgba(var(--v-theme-on-background), var(--v-medium-emphasis-opacity));
+  color: var(--text-secondary);
 }
 
 .surface-card {
   background: rgb(var(--v-theme-surface));
   border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
-  border-radius: var(--app-radius);
+  border-radius: var(--radius-card);
 }
 
-.muted { color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity)); }
+.muted { color: var(--text-secondary); }
+a { color: var(--link); }
+.tag {
+  display: inline-flex; align-items: center; gap: 4px; height: 22px; padding: 0 9px; border-radius: 999px;
+  font-size: 0.74rem; font-weight: 600; white-space: nowrap;
+  background: var(--neutral-chip-bg); color: var(--text-secondary);
+}
+.tag--ok { background: var(--success-bg); color: rgb(var(--v-theme-success)); }
 .line-clamp-2, .line-clamp-3 { display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden; }
 .line-clamp-2 { -webkit-line-clamp: 2; line-clamp: 2; }
 .line-clamp-3 { -webkit-line-clamp: 3; line-clamp: 3; }
@@ -93,7 +161,7 @@ html { overflow-y: auto; }
 .rich-content { line-height: 1.65; overflow-wrap: anywhere; font-size: 0.975rem; }
 .rich-content > :first-child { margin-top: 0; }
 .rich-content p { margin: 0 0 0.6em; }
-.rich-content p:has(> br:only-child) { margin: 0; line-height: 0.9; }
+.rich-content p:empty { display: none; }
 .rich-content h1, .rich-content h2, .rich-content h3, .rich-content h4 {
   line-height: 1.3; margin: 1.2em 0 0.5em; letter-spacing: -0.01em; font-weight: 650;
 }
@@ -104,7 +172,7 @@ html { overflow-y: auto; }
 .rich-content li { margin: 0.15em 0; }
 .rich-content li[data-list='bullet'] { list-style-type: disc; }
 .rich-content img { max-width: 100%; height: auto; border-radius: 6px; }
-.rich-content a { color: rgb(var(--v-theme-primary)); }
+.rich-content a { color: var(--link); }
 .rich-content blockquote {
   border-left: 4px solid rgba(var(--v-border-color), 0.25);
   margin: 0.8em 0; padding: 0.2em 0 0.2em 1em; color: rgba(var(--v-theme-on-surface), 0.8);
@@ -116,9 +184,9 @@ html { overflow-y: auto; }
 .rich-content code { padding: 0.1em 0.35em; }
 .rich-content pre { padding: 0.8em 1em; overflow-x: auto; white-space: pre-wrap; }
 .rich-content pre code { padding: 0; background: none; }
-.rich-content .ql-align-center { text-align: center; }
-.rich-content .ql-align-right { text-align: right; }
-.rich-content .ql-align-justify { text-align: justify; }
+/* Affichage : texte toujours aligné à gauche (le HTML stocké n'est pas modifié) */
+.rich-content :is(p, li, h1, h2, h3, h4, blockquote) { text-align: left !important; }
+.rich-content h1 + *, .rich-content h2 + *, .rich-content h3 + * { margin-top: 0; }
 .rich-content .ql-size-small { font-size: 0.8em; }
 .rich-content .ql-size-large { font-size: 1.4em; }
 .rich-content .ql-size-huge { font-size: 2em; }
@@ -135,6 +203,12 @@ html { overflow-y: auto; }
 .rich-content ol > li.ql-indent-2 { list-style-type: lower-roman; }
 .rich-content iframe { max-width: 100%; border: 0; border-radius: 8px; }
 .rich-content::after { content: ''; display: block; clear: both; }
+@media (max-width: 600px) {
+  .rich-content img {
+    float: none !important; display: block !important; width: 100% !important; height: auto !important;
+    margin: 0.6em 0 !important;
+  }
+}
 
 /* Bandeau de page discret */
 .v-alert.page-banner { margin-bottom: 16px; }
@@ -143,9 +217,3 @@ html { overflow-y: auto; }
   *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
 }
 
-/* Boutons principaux désactivés : gris neutre plutôt qu'un rouge délavé. */
-.v-application .v-btn.v-btn--disabled.v-btn--variant-flat {
-  background-color: rgb(var(--v-theme-surface-light)) !important;
-  color: rgba(var(--v-theme-on-surface), 0.45) !important;
-  opacity: 1;
-}

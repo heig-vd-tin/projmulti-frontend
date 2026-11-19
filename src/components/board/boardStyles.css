@@ -1,14 +1,30 @@
-/* Éléments partagés du tableau de répartition (puces étudiant, rangs, orientations). */
+/* Éléments partagés du tableau de répartition : sigle d'orientation neutre, rampe des rangs. */
 .ori-badge {
-  flex: none; display: inline-grid; place-items: center; min-width: 34px; height: 20px; padding: 0 5px;
-  border-radius: 6px; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.02em;
+  flex: none; display: inline-grid; place-items: center; min-width: 34px; height: 20px; padding: 0 6px;
+  border-radius: 999px; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.02em;
+  background: var(--neutral-chip-bg); color: var(--neutral-chip-fg);
 }
 .rank-badge {
-  flex: none; display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 5px;
-  border-radius: 6px; font-size: 0.72rem; font-weight: 700;
+  flex: none; display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 6px;
+  border-radius: 999px; font-size: 0.72rem; font-weight: 700;
 }
-.rank--good { background: rgba(var(--v-theme-success), 0.12); color: rgb(var(--v-theme-success)); }
-.rank--mid { background: rgba(var(--v-theme-info), 0.11); color: rgb(var(--v-theme-info)); }
-.rank--warn { background: rgba(var(--v-theme-warning), 0.13); color: rgb(var(--v-theme-warning)); }
-.rank--out { background: rgba(var(--v-theme-error), 0.1); color: rgb(var(--v-theme-error)); }
-.rank--none { background: rgb(var(--v-theme-surface-light)); color: rgba(var(--v-theme-on-surface), 0.55); }
+/* Rampe d'une seule teinte : 1 vert foncé plein → 3 vert clair, 4-5 gris, hors choix rouge */
+.v-theme--light {
+  --rank1-bg: #1f6b43; --rank1-fg: #ffffff;
+  --rank2-bg: #a8d5b8; --rank2-fg: #14492c;
+  --rank3-bg: #dcefe2; --rank3-fg: #256645;
+  --rank45-bg: #eceef1; --rank45-fg: #5d6370;
+  --rankout-bg: #fbe4e2; --rankout-fg: #a3302b;
+}
+.v-theme--dark {
+  --rank1-bg: #8fd0ab; --rank1-fg: #0b2416;
+  --rank2-bg: #3f7a58; --rank2-fg: #e6f4ec;
+  --rank3-bg: #243f31; --rank3-fg: #a8dcbc;
+  --rank45-bg: #2b3038; --rank45-fg: #aeb4bf;
+  --rankout-bg: #4a2220; --rankout-fg: #f3a7a1;
+}
+.rank--r1 { background: var(--rank1-bg); color: var(--rank1-fg); }
+.rank--r2 { background: var(--rank2-bg); color: var(--rank2-fg); }
+.rank--r3 { background: var(--rank3-bg); color: var(--rank3-fg); }
+.rank--r45 { background: var(--rank45-bg); color: var(--rank45-fg); }
+.rank--out { background: var(--rankout-bg); color: var(--rankout-fg); }

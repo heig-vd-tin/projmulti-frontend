@@ -29,7 +29,7 @@
           <tr v-for="row in rows" :key="row.domain_id">
             <th scope="row" class="text-left">
               <span class="d-inline-flex align-center ga-2">
-                <v-icon :icon="domainIconOf(row.domain_id)" :color="domainColor(row.domain_id, dark)" size="18" />
+                <v-icon :icon="domainIcon(row.domain_id)" :color="domainColor(row.domain_id, dark)" size="18" />
                 {{ row.name }}
               </span>
             </th>
@@ -50,10 +50,9 @@
       </table>
     </div>
 
-    <div class="d-flex align-center flex-wrap ga-2 mt-4">
-      <span class="text-body-2 muted">Utilisé par le calcul de la répartition et par le tableau (couverture des domaines).</span>
-      <v-spacer />
-      <v-btn variant="text" :disabled="!dirty || saving" @click="reset">Annuler les modifications</v-btn>
+    <p class="text-body-2 muted mt-4 mb-0">Utilisé par le calcul de la répartition et par le tableau (couverture des domaines).</p>
+    <div class="d-flex justify-end flex-wrap ga-2 mt-4">
+      <v-btn v-if="dirty" variant="text" :disabled="saving" @click="reset">Annuler les modifications</v-btn>
       <v-btn color="primary" variant="flat" :disabled="!dirty" :loading="saving" data-testid="save-mapping" @click="save">
         Enregistrer la correspondance
       </v-btn>
@@ -67,7 +66,7 @@ import { useDark } from '@/composables/useDark'
 import { useAdminStore } from '@/stores/admin'
 import { useNotifyStore } from '@/stores/notify'
 import { useSessionStore } from '@/stores/session'
-import { ACTIVE_ORIENTATIONS, domainColor } from '@/utils/palette'
+import { ACTIVE_ORIENTATIONS, domainColor, domainIcon } from '@/utils/palette'
 
 const admin = useAdminStore()
 const session = useSessionStore()
@@ -85,10 +84,6 @@ const columns = computed(() =>
   session.orientations.slice().sort((a, b) => Number(isActive(b)) - Number(isActive(a)) || a.acronym.localeCompare(b.acronym)),
 )
 
-function domainIconOf(id) {
-  const d = session.domains.find((x) => x.id === id)
-  return d ? d.icon : 'mdi-shape-outline'
-}
 
 function fromStore() {
   rows.value = admin.mapping.map((r) => ({ domain_id: r.domain_id, name: r.name, base: [...r.base], enlarged: [...r.enlarged] }))
@@ -158,12 +153,12 @@ onMounted(async () => {
 .table-wrap { overflow-x: auto; }
 .mapping { border-collapse: separate; border-spacing: 0; width: 100%; min-width: 640px; }
 .mapping th, .mapping td { padding: 6px; text-align: center; border-bottom: 1px solid rgba(var(--v-border-color), var(--v-border-opacity)); }
-.mapping thead th { font-size: 0.8rem; font-weight: 700; letter-spacing: 0.03em; color: rgba(var(--v-theme-on-surface), 0.75); }
+.mapping thead th { font-size: 0.8rem; font-weight: 700; letter-spacing: 0.03em; color: var(--text-secondary); }
 .mapping tbody th { font-weight: 600; white-space: nowrap; padding-right: 16px; }
 .mapping tr:last-child th, .mapping tr:last-child td { border-bottom: none; }
 .col-dim { opacity: 0.45; }
 .cell-pill {
-  min-width: 64px; height: 30px; padding: 0 10px; border-radius: 8px;
+  min-width: 64px; height: 30px; padding: 0 10px; border-radius: var(--radius-control);
   font: inherit; font-size: 0.8rem; font-weight: 600; cursor: pointer;
   border: 1px solid transparent; transition: background 0.15s, border-color 0.15s;
   display: inline-flex; align-items: center; justify-content: center;
@@ -171,6 +166,6 @@ onMounted(async () => {
 .legend .cell-pill { min-width: 0; height: 24px; cursor: default; }
 .cell-pill--base { background: rgba(var(--v-theme-secondary), 0.12); color: rgb(var(--v-theme-on-surface)); border-color: rgba(var(--v-theme-secondary), 0.3); }
 .cell-pill--enlarged { background: transparent; color: rgb(var(--v-theme-info)); border: 1px dashed rgba(var(--v-theme-info), 0.6); }
-.cell-pill--none { background: transparent; color: rgba(var(--v-theme-on-surface), 0.35); border-color: rgba(var(--v-border-color), 0.1); }
+.cell-pill--none { background: transparent; color: var(--text-hint); border-color: rgba(var(--v-border-color), 0.12); }
 button.cell-pill:hover { border-color: rgba(var(--v-theme-on-surface), 0.35); }
 </style>

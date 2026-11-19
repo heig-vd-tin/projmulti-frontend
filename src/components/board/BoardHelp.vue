@@ -14,18 +14,20 @@
         </ul>
         <h3>Légende</h3>
         <div class="legend">
-          <span class="rank-badge rank--good">1</span><span>rang du projet dans les choix de l'étudiant (1-2)</span>
-          <span class="rank-badge rank--mid">3</span><span>3e choix</span>
-          <span class="rank-badge rank--warn">4</span><span>4e ou 5e choix</span>
+          <span class="rank-badge rank--r1">1</span><span>rang du projet dans les choix de l'étudiant : 1er choix</span>
+          <span class="rank-badge rank--r2">2</span><span>2e choix</span>
+          <span class="rank-badge rank--r3">3</span><span>3e choix</span>
+          <span class="rank-badge rank--r45">4</span><span>4e ou 5e choix</span>
           <span class="rank-badge rank--out">✕</span><span>affecté hors de ses choix</span>
+          <span class="ori-badge">MI</span><span>orientation de l'étudiant</span>
           <span class="size ok">5</span><span>nombre d'étudiants dans la taille visée (paramètres du calcul)</span>
           <span class="size low">3</span><span>groupe trop petit</span>
           <span class="size high">6</span><span>groupe trop grand</span>
-          <span class="dot ok"></span><span>domaine couvert par l'orientation d'un étudiant</span>
-          <span class="dot partial"></span><span>couvert seulement en élargissant</span>
-          <span class="dot missing"></span><span>domaine non couvert</span>
-          <span class="choice closed">2#12</span><span>dans la liste : choix d'un projet non sélectionné</span>
-          <span class="choice assigned">1#62</span><span>projet auquel l'étudiant est affecté</span>
+          <span class="mark ok"><v-icon icon="mdi-check-bold" size="9" /></span><span>domaine couvert par l'orientation d'un étudiant</span>
+          <span class="mark partial"><v-icon icon="mdi-approximately-equal" size="9" /></span><span>domaine couvert seulement en élargissant</span>
+          <span class="mark missing"><v-icon icon="mdi-exclamation-thick" size="9" /></span><span>domaine non couvert (icône dans un cadre en pointillés)</span>
+          <span class="choice closed">2 #12</span><span>dans la liste : choix d'un projet non sélectionné</span>
+          <span class="choice assigned">1 #62</span><span>projet auquel l'étudiant est affecté</span>
         </div>
         <h3>Calcul automatique</h3>
         <p>
@@ -34,7 +36,7 @@
           Les anciennes actions restent dans le menu « Ancien algorithme ».
         </p>
       </v-card-text>
-      <v-card-actions class="px-4 pb-3">
+      <v-card-actions class="px-6 pb-4">
         <v-spacer />
         <v-btn variant="flat" color="primary" @click="$emit('update:modelValue', false)">Compris</v-btn>
       </v-card-actions>
@@ -55,15 +57,15 @@ defineEmits(['update:modelValue'])
 .help ul { padding-left: 1.2em; line-height: 1.6; }
 .legend { display: grid; grid-template-columns: 48px 1fr; gap: 8px 10px; align-items: center; font-size: 0.9rem; }
 .legend > :nth-child(odd) { justify-self: center; }
-.size { min-width: 28px; height: 24px; border-radius: 7px; display: grid; place-items: center; font-weight: 700; font-size: 0.82rem; }
-.size.ok { background: rgba(var(--v-theme-success), 0.12); color: rgb(var(--v-theme-success)); }
-.size.low { background: rgba(var(--v-theme-warning), 0.13); color: rgb(var(--v-theme-warning)); }
-.size.high { background: rgba(var(--v-theme-error), 0.1); color: rgb(var(--v-theme-error)); }
-.dot { width: 11px; height: 11px; border-radius: 50%; }
-.dot.ok { background: rgb(var(--v-theme-success)); }
-.dot.partial { background: rgb(var(--v-theme-warning)); }
-.dot.missing { box-shadow: inset 0 0 0 1.5px rgb(var(--v-theme-error)); }
-.choice { font-size: 0.72rem; padding: 2px 6px; border-radius: 6px; }
-.choice.closed { border: 1px dashed rgba(var(--v-theme-error), 0.45); text-decoration: line-through; }
-.choice.assigned { background: rgba(var(--v-theme-success), 0.12); color: rgb(var(--v-theme-success)); }
+.size { min-width: 28px; height: 24px; border-radius: 999px; display: grid; place-items: center; font-weight: 700; font-size: 0.82rem; }
+.size.ok { background: var(--success-bg); color: rgb(var(--v-theme-success)); }
+.size.low { background: var(--warn-bg); color: rgb(var(--v-theme-warning)); }
+.size.high { background: var(--error-bg); color: rgb(var(--v-theme-error)); }
+.mark { width: 16px; height: 16px; border-radius: 50%; display: grid; place-items: center; color: #fff; }
+.mark.ok { background: rgb(var(--v-theme-success)); }
+.mark.partial { background: rgb(var(--v-theme-warning)); }
+.mark.missing { background: rgb(var(--v-theme-error)); }
+.choice { font-size: 0.72rem; padding: 2px 8px; border-radius: 999px; background: var(--neutral-chip-bg); }
+.choice.closed { background: transparent; border: 1px dashed rgba(var(--v-theme-error), 0.5); text-decoration: line-through; }
+.choice.assigned { border: 1.5px solid var(--sel); font-weight: 700; }
 </style>

@@ -1,5 +1,15 @@
 <template>
   <div class="page">
+    <!-- Téléphone, étudiant : avancement des choix en barre fine collante -->
+    <router-link v-if="session.user.isStudent && xs" to="/my-projects" class="choices-mini" aria-label="Mes choix">
+      <span class="mini-segs" aria-hidden="true">
+        <span v-for="(p, i) in prefs.slots" :key="i" class="mini-seg" :class="{ 'mini-seg--on': p }"></span>
+      </span>
+      <span class="font-weight-bold">{{ prefs.count }}/5 choix</span>
+      <v-spacer />
+      <span class="mini-link">Mes choix <v-icon icon="mdi-chevron-right" size="16" /></span>
+    </router-link>
+
     <header class="page-header">
       <div>
         <h1>{{ heading }}</h1>
@@ -18,8 +28,8 @@
       </div>
     </header>
 
-    <!-- Étudiant : avancement des choix -->
-    <div v-if="session.user.isStudent" class="choices-summary surface-card mb-5">
+    <!-- Étudiant (bureau) : avancement des choix -->
+    <div v-if="session.user.isStudent && !xs" class="choices-summary surface-card mb-5">
       <div class="d-flex align-center ga-4 flex-wrap">
         <div class="slots" aria-hidden="true">
           <span v-for="(p, i) in prefs.slots" :key="i" class="slot-dot" :class="{ 'slot-dot--on': p }">{{ i + 1 }}</span>
@@ -32,7 +42,7 @@
             Ouvrez un projet pour l'ajouter à vos choix et lui donner une priorité (1 = meilleur choix).
           </div>
         </div>
-        <v-btn variant="tonal" color="primary" to="/my-projects" append-icon="mdi-arrow-right">Mes choix</v-btn>
+        <v-btn variant="outlined" to="/my-projects" append-icon="mdi-arrow-right">Classer mes choix</v-btn>
       </div>
     </div>
 
@@ -48,67 +58,87 @@
       ouvrez-le et cliquez sur « Reprendre pour {{ session.currentYear }} ».
     </v-alert>
 
-    <!-- Filtres -->
-    <div class="filters surface-card mb-5">
+    <!-- Aucun projet cette année : seulement le choix de l'année (archives), pas de filtres inutiles -->
+    <div v-if="!showFilters && session.user.isTeacher && session.years.length > 1" class="d-flex justify-end mb-4">
+      <v-select
+        :model-value="session.year"
+        :items="yearItems"
+        :item-props="(item) => ({ subtitle: item.subtitle })"
+        label="Cours"
+        density="compact"
+        hide-details
+        class="year-select year-select--alone"
+        @update:model-value="onYear"
+      />
+    </div>
+
+    <!-- Filtres (masqués tant qu'il n'y a aucun projet) -->
+    <div v-if="showFilters" class="filters surface-card mb-5">
       <div class="filters-row">
         <v-text-field
           v-model="query"
           class="search"
-          placeholder="Rechercher un projet, un responsable…"
+          :placeholder="xs ? 'Rechercher…' : 'Rechercher un projet, un responsable…'"
           prepend-inner-icon="mdi-magnify"
           density="compact"
           hide-details
           clearable
           aria-label="Rechercher un projet"
         />
-        <v-btn-toggle v-model="scope" mandatory density="compact" variant="outlined" divided class="scope-toggle" color="primary">
-          <v-btn value="all">Tous</v-btn>
-          <v-btn value="mine">{{ session.user.isStudent ? 'Mes choix' : 'Mes projets' }}</v-btn>
-          <v-btn v-if="session.user.isAdmin" value="selected">Sélectionnés</v-btn>
-        </v-btn-toggle>
-        <v-select
-          v-if="session.user.isTeacher"
-          :model-value="session.year"
-          :items="yearItems"
-          :item-props="(item) => ({ subtitle: item.subtitle })"
-          label="Cours"
-          density="compact"
-          hide-details
-          class="year-select"
-          :loading="projects.loading"
-          @update:model-value="onYear"
-        />
-        <v-select
-          v-model="sort"
-          :items="sortItems"
-          label="Trier par"
-          density="compact"
-          hide-details
-          class="sort-select"
-        />
-      </div>
-      <div class="domain-filter" role="group" aria-label="Filtrer par domaine">
-        <span class="text-body-2 muted mr-1">Domaines</span>
-        <button
-          v-for="d in session.domains"
-          :key="d.id"
-          type="button"
-          class="domain-toggle"
-          :class="{ 'domain-toggle--on': selectedDomains.includes(d.id) }"
-          :style="domainStyle(d)"
-          :aria-pressed="selectedDomains.includes(d.id)"
-          @click="toggleDomain(d.id)"
+        <v-btn
+          v-if="xs"
+          variant="outlined"
+          :prepend-icon="filtersOpen ? 'mdi-chevron-up' : 'mdi-tune-variant'"
+          :aria-expanded="filtersOpen"
+          data-testid="toggle-filters"
+          @click="filtersOpen = !filtersOpen"
         >
-          <v-icon :icon="d.icon" size="16" />{{ d.name }}
-        </button>
-        <v-btn v-if="filtersActive" variant="text" size="small" prepend-icon="mdi-filter-remove-outline" @click="resetFilters">
-          Effacer les filtres
+          Filtres{{ activeFilterCount ? ` (${activeFilterCount})` : '' }}
         </v-btn>
+        <template v-if="!xs || filtersOpen">
+          <v-btn-toggle v-model="scope" mandatory density="compact" variant="outlined" divided class="scope-toggle">
+            <v-btn value="all">Tous</v-btn>
+            <v-btn value="mine">{{ session.user.isStudent ? 'Dans mes choix' : 'Les miens' }}</v-btn>
+            <v-btn v-if="session.user.isAdmin" value="selected">Sélectionnés</v-btn>
+          </v-btn-toggle>
+          <v-select
+            v-if="session.user.isTeacher"
+            :model-value="session.year"
+            :items="yearItems"
+            :item-props="(item) => ({ subtitle: item.subtitle })"
+            label="Cours"
+            density="compact"
+            hide-details
+            class="year-select"
+            :loading="projects.loading"
+            @update:model-value="onYear"
+          />
+          <v-select v-model="sort" :items="sortItems" label="Trier par" density="compact" hide-details class="sort-select" />
+        </template>
+      </div>
+      <div v-if="!xs || filtersOpen" class="domain-filter-wrap">
+        <div class="domain-filter" role="group" aria-label="Filtrer par domaine">
+          <span class="text-body-2 muted mr-1 flex-none">Domaines</span>
+          <button
+            v-for="d in sortedDomains"
+            :key="d.id"
+            type="button"
+            class="domain-toggle"
+            :class="{ 'domain-toggle--on': selectedDomains.includes(d.id) }"
+            :aria-pressed="selectedDomains.includes(d.id)"
+            @click="toggleDomain(d.id)"
+          >
+            <v-icon :icon="selectedDomains.includes(d.id) ? 'mdi-check' : domainIcon(d)" :color="selectedDomains.includes(d.id) ? undefined : domainColor(d, dark)" size="16" />{{ d.name }}
+          </button>
+          <v-btn v-if="filtersActive" variant="text" size="small" prepend-icon="mdi-filter-remove-outline" class="flex-none" @click="resetFilters">
+            Effacer les filtres
+          </v-btn>
+        </div>
       </div>
     </div>
 
-    <div class="d-flex align-center mb-3 text-body-2 muted" aria-live="polite">
-      <template v-if="!loadingList && projects.all.length">{{ resultLabel }}</template>
+    <div v-if="!loadingList && projects.all.length" class="d-flex align-center mb-3 text-body-2 muted" aria-live="polite">
+      {{ resultLabel }}
     </div>
 
     <v-row v-if="loadingList" dense>
@@ -125,7 +155,7 @@
       :text="emptyText"
     >
       <template #actions>
-        <v-btn v-if="filtersActive" variant="tonal" @click="resetFilters">Effacer les filtres</v-btn>
+        <v-btn v-if="filtersActive" variant="outlined" @click="resetFilters">Effacer les filtres</v-btn>
         <v-btn
           v-else-if="session.user.isTeacher && session.canEditProjects && session.isCurrentYear"
           color="primary"
@@ -133,7 +163,7 @@
           prepend-icon="mdi-plus"
           to="/new-project"
         >
-          Proposer un projet
+          Nouveau projet
         </v-btn>
       </template>
     </EmptyState>
@@ -151,6 +181,7 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useDisplay } from 'vuetify'
 import EmptyState from '@/components/common/EmptyState.vue'
 import ProjectCard from '@/components/projects/ProjectCard.vue'
 import ProjectDetailDialog from '@/components/projects/ProjectDetailDialog.vue'
@@ -159,7 +190,7 @@ import { useNotifyStore } from '@/stores/notify'
 import { usePreferencesStore } from '@/stores/preferences'
 import { useProjectsStore } from '@/stores/projects'
 import { useSessionStore } from '@/stores/session'
-import { domainColor } from '@/utils/palette'
+import { domainColor, domainIcon, sortDomains } from '@/utils/palette'
 import { matchesQuery, plural } from '@/utils/text'
 
 const session = useSessionStore()
@@ -169,6 +200,8 @@ const notify = useNotifyStore()
 const route = useRoute()
 const router = useRouter()
 const dark = useDark()
+const { xs } = useDisplay()
+const filtersOpen = ref(false)
 
 const query = ref('')
 const scope = ref('all')
@@ -192,6 +225,9 @@ const subtitle = computed(() => {
 })
 
 const filtersActive = computed(() => !!query.value || selectedDomains.value.length > 0 || scope.value !== 'all')
+const activeFilterCount = computed(() => selectedDomains.value.length + (scope.value !== 'all' ? 1 : 0))
+const showFilters = computed(() => projects.all.length > 0 || filtersActive.value || loadingList.value)
+const sortedDomains = computed(() => sortDomains(session.domains))
 
 const filtered = computed(() => {
   const me = session.user
@@ -219,7 +255,7 @@ const resultLabel = computed(() => {
 
 const emptyText = computed(() => {
   if (filtersActive.value) return 'Modifiez la recherche ou retirez des filtres pour voir plus de projets.'
-  if (session.user.isTeacher && session.isCurrentYear) return session.canEditProjects ? 'Soyez le premier à proposer un projet pour ce cours.' : 'Les projets du cours apparaîtront ici.'
+  if (session.user.isTeacher && session.isCurrentYear) return session.canEditProjects ? 'Proposez le premier projet de ce cours.' : 'Les projets du cours apparaîtront ici.'
   return 'Les projets proposés apparaîtront ici.'
 })
 
@@ -247,11 +283,6 @@ function resetFilters() {
   scope.value = 'all'
 }
 
-function domainStyle(d) {
-  const c = domainColor(d, dark.value)
-  return { '--dc': c }
-}
-
 async function onYear(year) {
   try {
     await projects.changeYear(year)
@@ -265,37 +296,53 @@ async function onYear(year) {
 .choices-summary { padding: 16px 20px; }
 .slots { display: flex; gap: 6px; }
 .slot-dot {
-  width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center;
+  width: 30px; height: 30px; border-radius: var(--radius-control); display: grid; place-items: center;
   font-size: 0.8rem; font-weight: 700;
-  border: 1.5px dashed rgba(var(--v-border-color), 0.25); color: rgba(var(--v-theme-on-surface), 0.45);
+  border: 1.5px dashed rgba(var(--v-border-color), 0.3); color: var(--text-secondary);
 }
-.slot-dot--on { border: 1.5px solid rgba(var(--v-theme-primary), 0.35); background: rgba(var(--v-theme-primary), 0.1); color: rgb(var(--v-theme-primary)); }
+.slot-dot--on { border: none; background: var(--sel); color: rgb(var(--v-theme-surface)); }
+.choices-mini {
+  position: sticky; top: 64px; z-index: 4; display: flex; align-items: center; gap: 10px;
+  margin: -16px calc(-1 * var(--page-gutter)) 12px; padding: 8px var(--page-gutter);
+  background: rgba(var(--v-theme-surface), 0.96); backdrop-filter: blur(6px);
+  border-bottom: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+  color: inherit; text-decoration: none; font-size: 0.88rem;
+}
+.mini-segs { display: flex; gap: 3px; }
+.mini-seg { width: 16px; height: 6px; border-radius: 3px; background: rgba(var(--v-border-color), 0.16); }
+.mini-seg--on { background: var(--sel); }
+.mini-link { display: inline-flex; align-items: center; color: var(--link); font-weight: 600; }
 .filters { padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; }
 .filters-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
-.search { flex: 1 1 280px; min-width: 220px; }
+.search { flex: 1 1 280px; min-width: 200px; }
 .year-select { flex: 0 0 140px; }
+.year-select--alone { flex: none; width: 160px; }
 .sort-select { flex: 0 0 180px; }
 .scope-toggle { height: 40px !important; }
+.flex-none { flex: none; }
 .domain-filter { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 .domain-toggle {
   display: inline-flex; align-items: center; gap: 6px;
   height: 32px; padding: 0 12px; border-radius: 999px;
   font: inherit; font-size: 0.85rem; font-weight: 550; cursor: pointer;
-  color: rgba(var(--v-theme-on-surface), 0.8);
+  color: rgb(var(--v-theme-on-surface));
   background: transparent;
-  border: 1px solid rgba(var(--v-border-color), 0.16);
-  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  border: 1px solid rgba(var(--v-border-color), 0.18);
+  transition: background 0.15s, border-color 0.15s;
 }
-.domain-toggle .v-icon { color: var(--dc); }
-.domain-toggle:hover { border-color: var(--dc); }
-.domain-toggle--on {
-  color: var(--dc); border-color: color-mix(in srgb, var(--dc) 45%, transparent);
-  background: color-mix(in srgb, var(--dc) 11%, transparent);
-}
+.domain-toggle:hover { border-color: rgba(var(--v-border-color), 0.4); }
+/* Filtre actif : bord neutre foncé et coche (même code de sélection partout) */
+.domain-toggle--on { border: 1.5px solid var(--sel); background: rgba(var(--v-theme-selected), 0.07); padding: 0 11.5px; }
 @media (max-width: 600px) {
-  /* Domaines sur une ligne défilante pour garder la liste visible sur téléphone */
-  .domain-filter { flex-wrap: nowrap; overflow-x: auto; margin: 0 -16px; padding: 0 16px 4px; scrollbar-width: none; }
+  /* Domaines sur une ligne défilante, avec un fondu qui signale la suite */
+  .domain-filter-wrap { margin: 0 -16px; }
+  .domain-filter {
+    flex-wrap: nowrap; overflow-x: auto; padding: 0 16px 4px; scrollbar-width: none;
+    mask-image: linear-gradient(to right, #000 calc(100% - 64px), transparent);
+    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 64px), transparent);
+  }
   .domain-toggle { flex: none; }
+  .search { flex: 1 1 160px; min-width: 0; }
   .year-select, .sort-select { flex: 1 1 140px; }
   .scope-toggle { width: 100%; }
   .scope-toggle .v-btn { flex: 1; }

@@ -1,3 +1,5 @@
+import { sortDomains } from '@/utils/palette'
+
 export default class Project {
   constructor(data = {}) {
     this.id = data.id
@@ -10,13 +12,16 @@ export default class Project {
     this.year = data.year ?? null
     this.selected = !!data.selected
     this.state = data.state ?? 0
-    this.domains = data.domains ?? []
+    // Ordre canonique (par identifiant), le même partout
+    this.domains = sortDomains(data.domains)
     this.tags = data.tags ?? []
     this.preferred_users = data.preferred_users ?? []
     this.assigned_users = data.assigned_users ?? []
     this.matched_users = data.matched_users ?? []
     // Priorité de l'étudiant connecté (/project/preferred)
     this.priority = data.priority ?? null
+    // Projet d'origine d'une reprise (« Reprendre pour <année> »)
+    this.source_id = data.source_id ?? null
   }
 
   // Projet verrouillé : la répartition automatique garde exactement ses étudiants.

@@ -22,15 +22,16 @@
           :data-testid="`phase-${key}`"
           @click="phase = key"
         >
-          <div class="d-flex align-center ga-2 mb-2">
+          <div class="d-flex align-center ga-2 mb-2 pr-6">
             <v-icon :icon="info.icon" size="20" />
             <span class="font-weight-bold">{{ info.title }}</span>
-            <span v-if="session.phase === key" class="current-tag">actuelle</span>
           </div>
+          <span class="option-check" aria-hidden="true"><v-icon v-if="phase === key" icon="mdi-check" size="15" /></span>
           <div class="text-body-2 phase-desc">{{ info.description }}</div>
+          <span v-if="session.phase === key" class="tag mt-3 current-tag">phase actuelle</span>
         </button>
       </div>
-      <div class="d-flex justify-end mt-4">
+      <div class="card-actions">
         <v-btn color="primary" variant="flat" :disabled="phase === session.phase" :loading="savingPhase" data-testid="save-phase" @click="savePhase">
           Enregistrer la phase
         </v-btn>
@@ -47,12 +48,14 @@
 
     <section class="surface-card pa-5 pa-sm-6 mb-5" aria-labelledby="students-title">
       <h2 id="students-title" class="section-title">Étudiants inscrits</h2>
-      <div class="d-flex align-center flex-wrap ga-3">
-        <p class="section-hint mb-0 flex-grow-1">
+      <div>
+        <p class="section-hint">
           {{ plural(admin.students.length, 'étudiant') }} {{ admin.students.length > 1 ? 'se sont connectés' : 's\'est connecté' }}
           à la plateforme pour le cours {{ session.currentYear }} ({{ withChoices }} avec au moins un choix).
         </p>
-        <v-btn variant="tonal" prepend-icon="mdi-file-delimited-outline" data-testid="export-students" @click="exportStudents">
+      </div>
+      <div class="card-actions">
+        <v-btn variant="outlined" prepend-icon="mdi-file-delimited-outline" data-testid="export-students" @click="exportStudents">
           Exporter la liste (CSV)
         </v-btn>
       </div>
@@ -67,17 +70,17 @@
         <li>ouvre la saisie des projets du cours {{ nextYear }} aux enseignants.</li>
       </ul>
       <p class="text-body-2 muted mb-4">Une sauvegarde de la base est faite automatiquement deux fois par jour sur le serveur.</p>
-      <div class="d-flex align-center flex-wrap ga-3">
+      <div class="d-flex align-center flex-wrap ga-3 justify-end">
         <v-text-field
           v-model="confirmText"
-          label="Tapez NOUVELLE ANNEE pour confirmer"
+          label="Tapez NOUVELLE ANNÉE pour confirmer"
           density="compact"
           hide-details
           class="confirm-field"
           autocomplete="off"
           data-testid="confirm-new-year"
         />
-        <v-btn color="error" variant="flat" :disabled="confirmText !== 'NOUVELLE ANNEE'" :loading="starting" data-testid="start-new-year" @click="newYear">
+        <v-btn color="error" variant="flat" :disabled="!confirmOk" :loading="starting" data-testid="start-new-year" @click="newYear">
           Démarrer le cours {{ nextYear }}
         </v-btn>
       </div>
@@ -106,6 +109,8 @@ const confirmText = ref('')
 const starting = ref(false)
 
 const nextYear = computed(() => (session.currentYear || 0) + 1)
+// Le serveur accepte « NOUVELLE ANNÉE » (et l'ancienne forme sans accent).
+const confirmOk = computed(() => ['NOUVELLE ANNÉE', 'NOUVELLE ANNEE'].includes(confirmText.value.trim().toUpperCase()))
 const withChoices = computed(() => admin.students.filter((s) => s.preferences.length).length)
 
 watch(() => session.phase, (p) => { phase.value = p })
@@ -130,7 +135,7 @@ async function savePhase() {
 async function newYear() {
   starting.value = true
   try {
-    await session.startNewYear({ year: nextYear.value, confirm: confirmText.value })
+    await session.startNewYear({ year: nextYear.value, confirm: confirmText.value.trim().toUpperCase() })
     await Promise.all([projects.fetchAll(), projects.fetchOwned(), admin.fetchStudents(), admin.fetchUsers(), admin.fetchProjects()])
     confirmText.value = ''
     notify.success('La saisie des projets est ouverte aux enseignants.', `Cours ${session.currentYear} démarré`)
@@ -149,20 +154,26 @@ function exportStudents() {
 
 <style scoped>
 .section-title { font-size: 1.05rem; font-weight: 700; margin: 0 0 2px; }
-.section-hint { margin: 0 0 16px; color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity)); font-size: 0.92rem; }
+.section-hint { margin: 0 0 16px; color: var(--text-secondary); font-size: 0.92rem; }
+.card-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
 .phase-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
 .phase-option {
-  position: relative;
-  text-align: left; padding: 14px 16px; border-radius: 12px; cursor: pointer; font: inherit; color: inherit;
+  position: relative; display: flex; flex-direction: column; align-items: flex-start;
+  text-align: left; padding: 14px 16px; border-radius: var(--radius-card); cursor: pointer; font: inherit; color: inherit;
   background: rgb(var(--v-theme-surface));
-  border: 1px solid rgba(var(--v-border-color), 0.16);
+  border: 1px solid rgba(var(--v-border-color), 0.18);
   transition: border-color 0.15s, background 0.15s;
 }
-.phase-option:hover { border-color: rgba(var(--v-theme-primary), 0.5); }
-.phase-option--on { border-color: rgb(var(--v-theme-primary)); background: rgba(var(--v-theme-primary), 0.05); box-shadow: 0 0 0 1px rgb(var(--v-theme-primary)); }
-.phase-option--on .v-icon { color: rgb(var(--v-theme-primary)); }
-.phase-desc { color: rgba(var(--v-theme-on-surface), 0.72); }
-.current-tag { position: absolute; top: 10px; right: 10px; font-size: 0.72rem; font-weight: 600; padding: 1px 8px; border-radius: 999px; background: rgb(var(--v-theme-surface-light)); }
+.phase-option:hover { border-color: rgba(var(--v-border-color), 0.4); }
+/* Option choisie : bord neutre foncé de 2 px et coche (pas de rouge) */
+.phase-option--on { border: 2px solid var(--sel); padding: 13px 15px; background: rgba(var(--v-theme-selected), 0.04); }
+.option-check {
+  position: absolute; top: 12px; right: 12px; width: 20px; height: 20px; border-radius: 50%;
+  display: grid; place-items: center; border: 1.5px solid rgba(var(--v-border-color), 0.35);
+}
+.phase-option--on .option-check { background: var(--sel); border-color: var(--sel); color: rgb(var(--v-theme-surface)); }
+.phase-desc { color: var(--text-secondary); }
+.current-tag { align-self: flex-start; }
 .danger { border-color: rgba(var(--v-theme-error), 0.35) !important; }
 .year-list { padding-left: 1.3em; line-height: 1.7; }
 .confirm-field { flex: 1 1 260px; max-width: 360px; }

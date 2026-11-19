@@ -11,7 +11,7 @@
         <div class="min-w-0 flex-grow-1">
           <div v-if="base" class="eyebrow">
             Cours {{ base.year || session.currentYear }}
-            <span v-if="pastYear" class="eyebrow-tag">archive · lecture seule</span>
+            <span v-if="pastYear" class="tag ml-1">archive · lecture seule</span>
           </div>
           <h2 class="detail-title">
             <template v-if="base">{{ base.title }}</template>
@@ -20,7 +20,7 @@
           <div v-if="base && base.owner" class="owner">
             <v-avatar size="28" color="secondary" variant="tonal"><span class="text-caption font-weight-bold">{{ ownerInitials }}</span></v-avatar>
             <span class="font-weight-medium">{{ base.ownerName }}</span>
-            <a v-if="base.owner.email" :href="`mailto:${base.owner.email}`" class="muted text-body-2 owner-mail">{{ base.owner.email }}</a>
+            <a v-if="base.owner.email" :href="`mailto:${base.owner.email}`" class="text-body-2 owner-mail">{{ base.owner.email }}</a>
           </div>
         </div>
         <v-btn icon="mdi-close" variant="text" aria-label="Fermer le détail du projet" @click="close" />
@@ -32,11 +32,11 @@
           <div class="d-flex flex-wrap align-center ga-2 mb-4">
             <DomainBadges :domains="base.domains" mode="chips" />
             <template v-if="session.user.isAdmin">
-              <span class="status-tag" :class="{ 'status-tag--ok': base.selected }">
+              <span class="tag" :class="{ 'tag--ok': base.selected }">
                 <v-icon :icon="base.selected ? 'mdi-check-circle-outline' : 'mdi-circle-outline'" size="15" />
                 {{ base.selected ? 'Sélectionné' : 'Non sélectionné' }}
               </span>
-              <span v-if="base.isLocked" class="status-tag"><v-icon icon="mdi-lock-outline" size="15" />Verrouillé</span>
+              <span v-if="base.isLocked" class="tag"><v-icon icon="mdi-lock-outline" size="15" />Verrouillé</span>
             </template>
           </div>
           <p class="lead">{{ base.short_description }}</p>
@@ -70,8 +70,17 @@
           Exporter en PDF
         </v-btn>
         <v-btn
-          v-if="canDuplicate"
-          variant="tonal"
+          v-if="canDuplicate && existingCopy"
+          variant="outlined"
+          prepend-icon="mdi-check"
+          :to="copyLink"
+          data-testid="already-duplicated"
+        >
+          Déjà repris pour {{ session.currentYear }}
+        </v-btn>
+        <v-btn
+          v-else-if="canDuplicate"
+          variant="flat"
           color="primary"
           prepend-icon="mdi-content-copy"
           :loading="duplicating"
@@ -97,7 +106,7 @@ import { useAdminStore } from '@/stores/admin'
 import { useNotifyStore } from '@/stores/notify'
 import { useProjectsStore } from '@/stores/projects'
 import { useSessionStore } from '@/stores/session'
-import { isEmptyHtml, sanitizeHtml } from '@/utils/html'
+import { displayHtml, isEmptyHtml } from '@/utils/html'
 import { initials } from '@/utils/text'
 
 const props = defineProps({
@@ -131,8 +140,19 @@ const canManage = computed(() => session.user.isAdmin || (isOwner.value && sessi
 const canEdit = computed(() => base.value && canManage.value && isCurrent.value)
 const canDuplicate = computed(() => base.value && canManage.value && !isCurrent.value)
 const description = computed(() => (full.value ? full.value.description : null))
+// Copie déjà faite cette année (« Reprendre » déjà utilisé) : retrouvée par source_id.
+const existingCopy = computed(() => {
+  if (!base.value) return null
+  const pool = [...projects.owned, ...admin.projects, ...(session.isCurrentYear ? projects.all : [])]
+  return pool.find((p) => p.source_id === base.value.id && p.year === session.currentYear) || null
+})
+const copyLink = computed(() => existingCopy.value && copyTarget(existingCopy.value.id))
+
+function copyTarget(id) {
+  return session.canEditProjects ? `/edit-project/${id}` : { path: '/all-projects', query: { p: id } }
+}
 const hasDescription = computed(() => !isEmptyHtml(description.value))
-const safeHtml = computed(() => sanitizeHtml(description.value))
+const safeHtml = computed(() => displayHtml(description.value))
 
 watch(
   () => props.projectId,
@@ -158,6 +178,8 @@ function close() {
 }
 
 async function exportPdf() {
+  // Le téléchargement ne doit pas laisser le bouton dans l'état « focus » (fond gris).
+  if (document.activeElement instanceof HTMLElement) document.activeElement.blur()
   exporting.value = true
   try {
     await projects.exportPdf(base.value)
@@ -175,7 +197,15 @@ async function duplicate() {
     notify.success(`« ${copy.title} » a été ajouté au cours ${copy.year}. Vous pouvez le modifier.`, 'Projet repris')
     router.push(`/edit-project/${copy.id}`)
   } catch (e) {
-    notify.error(e, 'Impossible de reprendre le projet')
+    const copyId = e.status === 409 && e.response.data && e.response.data.project_id
+    if (copyId) {
+      // Déjà repris (par exemple dans un autre onglet) : on ouvre la copie existante.
+      notify.info(e.userMessage)
+      await projects.fetchOwned().catch(() => {})
+      router.push(copyTarget(copyId))
+    } else {
+      notify.error(e, 'Impossible de reprendre le projet')
+    }
   } finally {
     duplicating.value = false
   }
@@ -195,22 +225,16 @@ async function toggleSelected(value) {
 </script>
 
 <style scoped>
-.detail-card { border-radius: 16px !important; }
+.detail-card { border-radius: var(--radius-card) !important; }
 .detail-head { display: flex; align-items: flex-start; gap: 12px; padding: 20px 16px 16px 24px; }
-.eyebrow { font-size: 0.78rem; font-weight: 600; letter-spacing: 0.02em; color: rgba(var(--v-theme-on-surface), 0.6); margin-bottom: 4px; }
-.eyebrow-tag { margin-left: 6px; padding: 1px 8px; border-radius: 999px; background: rgb(var(--v-theme-surface-light)); }
+.eyebrow { display: flex; align-items: center; font-size: 0.78rem; font-weight: 600; letter-spacing: 0.02em; color: var(--text-secondary); margin-bottom: 4px; }
 .detail-title { font-size: 1.45rem; font-weight: 700; line-height: 1.25; letter-spacing: -0.015em; margin: 0 0 10px; }
 .owner { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
-.owner-mail { text-decoration: none; }
+.owner-mail { text-decoration: none; color: var(--link); }
 .owner-mail:hover { text-decoration: underline; }
 .detail-body { padding: 20px 24px 28px !important; }
 .lead { font-size: 1.05rem; line-height: 1.55; margin: 0; color: rgba(var(--v-theme-on-surface), 0.88); }
 .detail-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 12px 16px 12px 24px; }
-.status-tag {
-  display: inline-flex; align-items: center; gap: 5px; height: 28px; padding: 0 10px; border-radius: 8px;
-  font-size: 0.82rem; font-weight: 550; background: rgb(var(--v-theme-surface-light));
-}
-.status-tag--ok { background: rgba(var(--v-theme-success), 0.1); color: rgb(var(--v-theme-success)); }
 @media (max-width: 600px) {
   .detail-head { padding: 16px 8px 12px 16px; }
   .detail-body { padding: 16px !important; }

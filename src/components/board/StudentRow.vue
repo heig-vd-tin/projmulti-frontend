@@ -13,7 +13,7 @@
     @keydown.enter.prevent="$emit('open', student)"
   >
     <div class="d-flex align-center ga-2 min-w-0">
-      <span class="ori-badge" :style="oriStyle">{{ student.orientationAcronym || '?' }}</span>
+      <span class="ori-badge">{{ student.orientationAcronym || '?' }}</span>
       <span class="name text-truncate">{{ showName ? student.fullName : `#${student.id}` }}</span>
       <span v-if="showName" class="muted text-caption">#{{ student.id }}</span>
       <v-spacer />
@@ -38,9 +38,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import { useDark } from '@/composables/useDark'
 import { rankTone } from '@/utils/board'
-import { orientationColor } from '@/utils/palette'
 import { plural } from '@/utils/text'
 import './boardStyles.css'
 
@@ -53,14 +51,9 @@ const props = defineProps({
   highlightProject: { type: Number, default: null },
 })
 const emit = defineEmits(['open', 'drag-start', 'drag-end'])
-const dark = useDark()
 
 const assigned = computed(() => (props.student.assignedProjectId ? props.projectById.get(props.student.assignedProjectId) || { id: props.student.assignedProjectId, title: '' } : null))
 const candidateRank = computed(() => (props.highlightProject ? props.student.rankOf(props.highlightProject) : null))
-const oriStyle = computed(() => {
-  const c = orientationColor(props.student.orientationAcronym, dark.value)
-  return { color: c, background: `color-mix(in srgb, ${c} ${dark.value ? 18 : 12}%, transparent)` }
-})
 
 function memberCount(pid) {
   return props.memberCounts.get(pid) || 0
@@ -92,22 +85,23 @@ function onDragStart(event) {
 
 <style scoped>
 .stu-row {
-  display: flex; flex-direction: column; gap: 6px; padding: 9px 10px; border-radius: 10px;
+  display: flex; flex-direction: column; gap: 6px; padding: 9px 10px; border-radius: var(--radius-control);
   background: rgb(var(--v-theme-surface)); border: 1px solid rgba(var(--v-border-color), 0.1);
   cursor: grab; user-select: none; font-size: 0.86rem;
 }
 .stu-row:hover { border-color: rgba(var(--v-border-color), 0.28); }
-.stu-row--focus { border-color: rgb(var(--v-theme-primary)); box-shadow: 0 0 0 2px rgba(var(--v-theme-primary), 0.15); }
+.stu-row--focus { border: 2px solid var(--sel); padding: 8px 9px; }
 .stu-row--excluded { cursor: pointer; opacity: 0.75; }
 .name { font-weight: 600; }
-.assigned-tag { font-size: 0.72rem; font-weight: 600; padding: 1px 6px; border-radius: 6px; background: rgba(var(--v-theme-success), 0.1); color: rgb(var(--v-theme-success)); }
+.assigned-tag { font-size: 0.72rem; font-weight: 600; padding: 1px 8px; border-radius: 999px; background: var(--neutral-chip-bg); color: rgb(var(--v-theme-on-surface)); }
 .choices { display: flex; flex-wrap: wrap; gap: 4px; }
 .choice {
-  display: inline-flex; align-items: center; gap: 3px; height: 22px; padding: 0 6px; border-radius: 6px;
-  font-size: 0.72rem; background: rgb(var(--v-theme-surface-light)); border: 1px solid transparent;
+  display: inline-flex; align-items: center; gap: 3px; height: 22px; padding: 0 7px; border-radius: 999px;
+  font-size: 0.72rem; background: var(--neutral-chip-bg); border: 1px solid transparent;
 }
 .choice b { font-weight: 700; margin-right: 1px; }
-.choice--assigned { background: rgba(var(--v-theme-success), 0.12); color: rgb(var(--v-theme-success)); }
-.choice--closed { background: transparent; border: 1px dashed rgba(var(--v-theme-error), 0.45); color: rgba(var(--v-theme-on-surface), 0.6); text-decoration: line-through; text-decoration-color: rgba(var(--v-theme-error), 0.5); }
-.choice--hl { border-color: rgb(var(--v-theme-primary)); }
+/* Projet affecté : bord neutre foncé (code de sélection) ; projet non sélectionné : pointillés barrés */
+.choice--assigned { border: 1.5px solid var(--sel); font-weight: 700; }
+.choice--closed { background: transparent; border: 1px dashed rgba(var(--v-theme-error), 0.5); color: var(--text-secondary); text-decoration: line-through; text-decoration-color: rgba(var(--v-theme-error), 0.6); }
+.choice--hl { border: 1.5px solid var(--focus-ring); }
 </style>

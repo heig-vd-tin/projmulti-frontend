@@ -13,7 +13,7 @@ defineProps({ size: { type: Number, default: 36 } })
   flex: none;
   display: grid;
   place-items: center;
-  border-radius: 10px;
+  border-radius: var(--radius-control);
   background: rgb(var(--v-theme-primary));
   color: rgb(var(--v-theme-on-primary));
 }

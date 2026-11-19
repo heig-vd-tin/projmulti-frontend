@@ -1,9 +1,9 @@
-// Tonalité du rang obtenu (1 = meilleur choix) : tons doux, jamais la couleur seule (le chiffre reste affiché).
+// Rampe séquentielle d'une seule teinte pour le rang obtenu (1 = meilleur choix) :
+// 1 vert foncé plein, 2 vert moyen, 3 vert clair, 4 et 5 gris, hors choix rouge. Le chiffre reste affiché.
 export function rankTone(rank) {
   if (rank == null) return 'out'
-  if (rank <= 2) return 'good'
-  if (rank === 3) return 'mid'
-  return 'warn'
+  if (rank >= 1 && rank <= 3) return `r${rank}`
+  return 'r45'
 }
 
 export function rankText(rank) {

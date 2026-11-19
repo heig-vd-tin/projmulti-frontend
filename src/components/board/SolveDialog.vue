@@ -3,7 +3,7 @@
     <v-card class="pa-2" data-testid="solve-dialog">
       <v-card-item>
         <template #prepend>
-          <v-avatar color="primary" variant="tonal" rounded="lg"><v-icon icon="mdi-auto-fix" /></v-avatar>
+          <v-avatar color="selected" variant="tonal" rounded="lg"><v-icon icon="mdi-auto-fix" /></v-avatar>
         </template>
         <v-card-title class="text-h6 font-weight-bold">Calculer la répartition</v-card-title>
         <v-card-subtitle>Optimisation des choix de tous les étudiants (solveur exact)</v-card-subtitle>
@@ -12,7 +12,7 @@
       <v-card-text>
         <div class="params">
           <div v-for="f in fields" :key="f.key" class="param">
-            <label :for="`solve-${f.key}`" class="param-label">{{ f.label }}</label>
+            <label :for="`solve-${f.key}`" class="param-label">{{ f.label }} <span class="param-hint">{{ f.hint }}</span></label>
             <v-number-input
               :id="`solve-${f.key}`"
               v-model="form[f.key]"
@@ -50,7 +50,7 @@
         <v-alert v-if="error" type="error" variant="tonal" density="comfortable" class="mt-4" data-testid="solve-error">{{ error }}</v-alert>
       </v-card-text>
 
-      <v-card-actions class="px-4 pb-3">
+      <v-card-actions class="px-6 pb-4">
         <v-btn variant="text" @click="reset">Valeurs par défaut</v-btn>
         <v-spacer />
         <v-btn variant="text" :disabled="running" @click="$emit('update:modelValue', false)">Annuler</v-btn>
@@ -78,9 +78,9 @@ const emit = defineEmits(['update:modelValue', 'run', 'save'])
 
 const form = reactive({ ...props.params })
 const fields = [
-  { key: 'min_size', label: 'Taille minimale d\u2019un groupe' },
-  { key: 'max_size', label: 'Taille maximale d\u2019un groupe' },
-  { key: 'max_same_orientation', label: 'Maximum d\u2019étudiants d\u2019une même orientation' },
+  { key: 'min_size', label: 'Taille min.', hint: 'étudiants par groupe' },
+  { key: 'max_size', label: 'Taille max.', hint: 'étudiants par groupe' },
+  { key: 'max_same_orientation', label: 'Max. par orientation', hint: 'dans un même groupe' },
 ]
 watch(() => props.modelValue, (open) => { if (open) Object.assign(form, props.params) })
 
@@ -104,8 +104,9 @@ function submit() {
 <style scoped>
 .params { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; align-items: end; }
 .param { display: flex; flex-direction: column; gap: 6px; }
-.param-label { font-size: 0.84rem; font-weight: 600; color: rgba(var(--v-theme-on-surface), 0.8); line-height: 1.3; }
+.param-label { font-size: 0.86rem; font-weight: 650; line-height: 1.3; white-space: nowrap; }
+.param-hint { display: block; font-weight: 400; font-size: 0.78rem; color: var(--text-secondary); }
 .switches { display: flex; flex-direction: column; gap: 4px; }
-.rules { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; color: rgba(var(--v-theme-on-surface), 0.75); }
+.rules { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; color: var(--text-secondary); }
 .rules .v-icon { margin-right: 4px; vertical-align: -2px; }
 </style>

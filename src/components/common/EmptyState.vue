@@ -20,12 +20,12 @@ defineProps({
 .empty-state { text-align: center; padding: 56px 16px; }
 .empty-state--compact { padding: 24px 12px; }
 .empty-icon {
-  width: 64px; height: 64px; margin: 0 auto 16px; border-radius: 18px;
+  width: 64px; height: 64px; margin: 0 auto 16px; border-radius: var(--radius-card);
   display: grid; place-items: center;
-  background: rgb(var(--v-theme-surface-light));
-  color: rgba(var(--v-theme-on-surface), 0.55);
+  background: var(--neutral-chip-bg);
+  color: var(--text-secondary);
 }
-.empty-state--compact .empty-icon { width: 48px; height: 48px; border-radius: 14px; margin-bottom: 10px; }
+.empty-state--compact .empty-icon { width: 48px; height: 48px; margin-bottom: 10px; }
 .empty-title { font-weight: 650; font-size: 1.05rem; }
-.empty-text { margin: 6px auto 0; max-width: 460px; color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity)); }
+.empty-text { margin: 6px auto 0; max-width: 460px; color: var(--text-secondary); }
 </style>

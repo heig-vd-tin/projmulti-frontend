@@ -17,7 +17,7 @@
       <div class="min-w-0 flex-grow-1">
         <div class="d-flex align-center ga-2 min-w-0">
           <h3 class="bp-title text-truncate" :title="project.title">{{ project.title }}</h3>
-          <span v-if="focusRank" class="focus-tag" :title="`Choix n°${focusRank} de l'étudiant sélectionné`">choix {{ focusRank }}</span>
+          <span v-if="focusRank" class="rank-badge" :class="`rank--${rankTone(focusRank)}`" :title="`Choix n°${focusRank} de l'étudiant sélectionné`">choix {{ focusRank }}</span>
         </div>
         <div class="bp-sub text-truncate">#{{ project.id }} · {{ project.ownerName }}<template v-if="!project.selected"> · non sélectionné</template></div>
       </div>
@@ -26,10 +26,12 @@
 
     <div class="bp-tools">
       <div class="coverage" aria-label="Couverture des domaines">
-        <span v-for="c in coverage" :key="c.domain.id" class="cov" :class="`cov--${c.state}`" :title="c.title">
-          <v-icon :icon="c.domain.icon" size="14" :color="domainColor(c.domain, dark)" />
-          <span class="cov-dot" aria-hidden="true"></span>
-          <span class="sr-only">{{ c.title }}</span>
+        <span v-for="c in coverage" :key="c.domain.id" class="cov" :class="`cov--${c.state}`" role="img" :aria-label="c.title">
+          <v-icon :icon="domainIcon(c.domain)" size="15" :color="c.state === 'missing' ? undefined : domainColor(c.domain, dark)" />
+          <span v-if="c.state !== 'unknown'" class="cov-mark" aria-hidden="true">
+            <v-icon :icon="{ ok: 'mdi-check-bold', partial: 'mdi-approximately-equal', missing: 'mdi-exclamation-thick' }[c.state]" size="9" />
+          </span>
+          <v-tooltip activator="parent">{{ c.title }}</v-tooltip>
         </span>
       </div>
       <v-spacer />
@@ -38,7 +40,7 @@
         size="small"
         variant="text"
         :aria-label="`Voir les candidats de ${project.title}`"
-        :color="candidates ? 'primary' : undefined"
+        :color="candidates ? 'selected' : undefined"
         :data-testid="`candidates-${project.id}`"
         @click="$emit('candidates', project)"
       >
@@ -88,9 +90,10 @@
 <script setup>
 import { computed } from 'vue'
 import StudentChip from '@/components/board/StudentChip.vue'
+import '@/components/board/boardStyles.css'
 import { useDark } from '@/composables/useDark'
-import { domainCoverage } from '@/utils/board'
-import { domainColor } from '@/utils/palette'
+import { domainCoverage, rankTone } from '@/utils/board'
+import { domainColor, domainIcon, sortDomains } from '@/utils/palette'
 import { plural } from '@/utils/text'
 
 const props = defineProps({
@@ -119,7 +122,7 @@ const sizeTone = computed(() => {
 const sizeTitle = computed(() => `${plural(props.members.length, 'étudiant')} · taille visée ${props.params.min_size} à ${props.params.max_size}`)
 
 const coverage = computed(() =>
-  props.project.domains.map((d) => {
+  sortDomains(props.project.domains).map((d) => {
     const c = domainCoverage(d.id, props.members, props.mapping)
     const who = c.by.map((s) => s.orientationAcronym).join(', ')
     const title = {
@@ -155,43 +158,48 @@ function onLeave(event) {
 <style scoped>
 .bp {
   display: flex; flex-direction: column; gap: 8px; padding: 12px 12px 10px; min-width: 0;
-  background: rgb(var(--v-theme-surface)); border-radius: 14px;
+  background: rgb(var(--v-theme-surface)); border-radius: var(--radius-card);
   border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
   transition: border-color 0.12s, box-shadow 0.12s, opacity 0.15s;
 }
 .bp--unselected { background: transparent; border-style: dashed; }
-.bp--over { border-color: rgb(var(--v-theme-primary)); box-shadow: 0 0 0 3px rgba(var(--v-theme-primary), 0.14); }
-.bp--choice { border-color: rgba(var(--v-theme-primary), 0.55); }
+/* Zone de dépôt : bleu d'interaction ; choix de l'étudiant ouvert : bord neutre foncé */
+.bp--over { border-color: var(--focus-ring); box-shadow: 0 0 0 2px var(--focus-ring); }
+.bp--choice { border: 2px solid var(--sel); padding: 11px 11px 9px; }
 .bp--dim { opacity: 0.5; }
 .bp-head { display: flex; align-items: flex-start; gap: 8px; }
 .bp-title { font-size: 0.95rem; font-weight: 650; margin: 0; min-width: 0; }
-.bp-sub { font-size: 0.78rem; color: rgba(var(--v-theme-on-surface), 0.62); }
-.focus-tag { flex: none; font-size: 0.7rem; font-weight: 700; padding: 1px 7px; border-radius: 999px; background: rgba(var(--v-theme-primary), 0.1); color: rgb(var(--v-theme-primary)); }
+.bp-sub { font-size: 0.78rem; color: var(--text-secondary); }
 .size-badge {
-  flex: none; min-width: 30px; height: 26px; padding: 0 8px; border-radius: 8px;
+  flex: none; min-width: 30px; height: 26px; padding: 0 9px; border-radius: 999px;
   display: grid; place-items: center; font-weight: 700; font-size: 0.85rem;
 }
-.size--ok { background: rgba(var(--v-theme-success), 0.12); color: rgb(var(--v-theme-success)); }
-.size--low { background: rgba(var(--v-theme-warning), 0.13); color: rgb(var(--v-theme-warning)); }
-.size--high { background: rgba(var(--v-theme-error), 0.1); color: rgb(var(--v-theme-error)); }
-.size--empty { background: rgb(var(--v-theme-surface-light)); color: rgba(var(--v-theme-on-surface), 0.5); }
+.size--ok { background: var(--success-bg); color: rgb(var(--v-theme-success)); }
+.size--low { background: var(--warn-bg); color: rgb(var(--v-theme-warning)); }
+.size--high { background: var(--error-bg); color: rgb(var(--v-theme-error)); }
+.size--empty { background: var(--neutral-chip-bg); color: var(--text-secondary); }
 .bp-tools { display: flex; align-items: center; gap: 2px; margin: -2px -6px -2px 0; }
-.coverage { display: flex; flex-wrap: wrap; gap: 4px; }
+.coverage { display: flex; flex-wrap: wrap; gap: 6px; }
+/* Couverture d'un domaine : la forme porte l'information (plein + ✓, plein + ≈, pointillés + !) */
 .cov {
-  position: relative; display: inline-grid; place-items: center; width: 26px; height: 24px; border-radius: 7px;
-  background: rgb(var(--v-theme-surface-light));
+  position: relative; display: inline-grid; place-items: center; width: 30px; height: 26px; border-radius: var(--radius-control);
+  background: var(--neutral-chip-bg); border: 1.5px solid transparent;
 }
-.cov-dot { position: absolute; right: -2px; top: -2px; width: 9px; height: 9px; border-radius: 50%; border: 2px solid rgb(var(--v-theme-surface)); }
-.cov--ok .cov-dot { background: rgb(var(--v-theme-success)); }
-.cov--partial .cov-dot { background: rgb(var(--v-theme-warning)); }
-.cov--missing .cov-dot { background: rgb(var(--v-theme-surface)); box-shadow: inset 0 0 0 1.5px rgb(var(--v-theme-error)); }
-.cov--unknown .cov-dot { display: none; }
-.lock-on { color: rgba(var(--v-theme-on-surface), 0.85); }
+.cov--missing { background: transparent; border: 1.5px dashed rgba(var(--v-theme-error), 0.7); color: var(--text-secondary); }
+.cov-mark {
+  position: absolute; right: -5px; top: -5px; width: 14px; height: 14px; border-radius: 50%;
+  display: grid; place-items: center; border: 1.5px solid rgb(var(--v-theme-surface));
+  color: #fff;
+}
+.cov--ok .cov-mark { background: rgb(var(--v-theme-success)); }
+.cov--partial .cov-mark { background: rgb(var(--v-theme-warning)); }
+.cov--missing .cov-mark { background: rgb(var(--v-theme-error)); }
+.lock-on { color: rgb(var(--v-theme-on-surface)); }
 .bp-members {
-  display: flex; flex-wrap: wrap; gap: 6px; min-height: 44px; padding: 6px; border-radius: 10px;
+  display: flex; flex-wrap: wrap; gap: 6px; min-height: 44px; padding: 6px; border-radius: var(--radius-control);
   background: rgba(var(--v-theme-on-surface), 0.025);
 }
-.bp-members--empty { align-items: center; justify-content: center; border: 1px dashed rgba(var(--v-border-color), 0.2); background: transparent; }
-.empty-hint { font-size: 0.8rem; color: rgba(var(--v-theme-on-surface), 0.5); }
+.bp-members--empty { align-items: center; justify-content: center; border: 1px dashed rgba(var(--v-border-color), 0.24); background: transparent; }
+.empty-hint { font-size: 0.8rem; color: var(--text-secondary); }
 .bp-warn { display: flex; align-items: center; gap: 6px; font-size: 0.76rem; color: rgb(var(--v-theme-warning)); }
 </style>

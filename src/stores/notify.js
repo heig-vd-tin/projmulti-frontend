@@ -10,7 +10,9 @@ export const useNotifyStore = defineStore('notify', () => {
     // « type » n'est pas une prop de v-snackbar : seulement lu par le gabarit (icône).
     // Au plus un message en attente : le plus récent remplace les anciens non encore affichés.
     if (queue.value.length) queue.value.splice(0, queue.value.length)
-    queue.value.push({ timeout: 5000, ...item })
+    // Fenêtre ouverte : en haut au centre (ses actions sont en bas et à droite) ; sinon en bas à droite.
+    const dialogOpen = typeof document !== 'undefined' && !!document.querySelector('.v-dialog.v-overlay--active')
+    queue.value.push({ timeout: 5000, location: dialogOpen ? 'top' : 'bottom end', ...item })
   }
 
   function success(text, title) {

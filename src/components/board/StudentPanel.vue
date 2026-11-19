@@ -11,7 +11,7 @@
   >
     <template v-if="student">
       <div class="sp-head">
-        <span class="ori-badge ori-lg" :style="oriStyle">{{ student.orientationAcronym || '?' }}</span>
+        <span class="ori-badge ori-lg">{{ student.orientationAcronym || '?' }}</span>
         <div class="min-w-0 flex-grow-1">
           <h2 class="sp-name">{{ student.fullName }}</h2>
           <div class="text-body-2 muted text-truncate">
@@ -54,7 +54,7 @@
         <h3 class="sp-title">Ses choix</h3>
         <ol class="choices">
           <li v-for="c in choices" :key="c.rank" class="choice" :class="{ 'choice--assigned': c.assigned }" :data-testid="`panel-choice-${c.rank}`">
-            <span class="choice-rank">{{ c.rank }}</span>
+            <span class="choice-rank" :class="`rank--${rankTone(c.rank)}`">{{ c.rank }}</span>
             <template v-if="c.project">
               <div class="min-w-0 flex-grow-1">
                 <div class="choice-title text-truncate" :title="c.project.title">{{ c.project.title }}</div>
@@ -68,7 +68,7 @@
               <v-btn
                 v-else-if="!student.excluded"
                 size="small"
-                variant="tonal"
+                variant="outlined"
                 :loading="busy === `assign-${c.project.id}`"
                 :data-testid="`assign-choice-${c.rank}`"
                 @click="run(`assign-${c.project.id}`, () => onAssign(student, c.project))"
@@ -94,7 +94,7 @@
             clearable
             class="flex-grow-1"
           />
-          <v-btn variant="tonal" :disabled="!target" :loading="busy === 'assign-other'" @click="assignOther">Affecter</v-btn>
+          <v-btn variant="outlined" :disabled="!target" :loading="busy === 'assign-other'" @click="assignOther">Affecter</v-btn>
         </div>
       </section>
 
@@ -121,7 +121,7 @@
         </v-btn>
         <v-btn
           v-else
-          variant="tonal"
+          variant="outlined"
           prepend-icon="mdi-account-reactivate-outline"
           :loading="busy === 'exclude'"
           data-testid="student-include"
@@ -146,10 +146,8 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useDisplay } from 'vuetify'
-import { useDark } from '@/composables/useDark'
 import { useConfirmStore } from '@/stores/confirm'
 import { rankTone } from '@/utils/board'
-import { orientationColor } from '@/utils/palette'
 import { plural } from '@/utils/text'
 import './boardStyles.css'
 
@@ -166,7 +164,6 @@ const props = defineProps({
 })
 const emit = defineEmits(['close', 'update:onlyChoices'])
 const { xs } = useDisplay()
-const dark = useDark()
 const confirm = useConfirmStore()
 
 const busy = ref(null)
@@ -181,10 +178,6 @@ function onKey(e) {
 onMounted(() => window.addEventListener('keydown', onKey))
 onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
 
-const oriStyle = computed(() => {
-  const c = orientationColor(props.student && props.student.orientationAcronym, dark.value)
-  return { color: c, background: `color-mix(in srgb, ${c} ${dark.value ? 18 : 12}%, transparent)` }
-})
 const assignedProject = computed(() => {
   const pid = props.student && props.student.assignedProjectId
   return pid ? props.projectById.get(pid) || { id: pid, title: `Projet #${pid}`, ownerName: '' } : null
@@ -241,21 +234,21 @@ async function exclude() {
 .student-panel { border-left: 1px solid rgba(var(--v-border-color), var(--v-border-opacity)) !important; }
 .student-panel.v-navigation-drawer--active { box-shadow: -12px 0 32px -16px rgba(0, 0, 0, 0.25) !important; }
 .sp-head { display: flex; align-items: flex-start; gap: 12px; padding: 18px 8px 10px 18px; }
-.ori-lg { min-width: 44px; height: 30px; font-size: 0.8rem; border-radius: 8px; margin-top: 2px; }
+.ori-lg { min-width: 44px; height: 30px; font-size: 0.8rem; margin-top: 2px; }
 .sp-name { font-size: 1.15rem; font-weight: 700; margin: 0; line-height: 1.3; }
-.sp-mail { color: rgb(var(--v-theme-primary)); text-decoration: none; }
+.sp-mail { color: var(--link); text-decoration: none; }
 .sp-flags { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 18px; }
-.flag { display: inline-flex; align-items: center; gap: 4px; font-size: 0.78rem; font-weight: 600; padding: 3px 9px; border-radius: 8px; }
-.flag--excluded { background: rgba(var(--v-theme-error), 0.1); color: rgb(var(--v-theme-error)); }
-.flag--locked { background: rgb(var(--v-theme-surface-light)); }
+.flag { display: inline-flex; align-items: center; gap: 4px; font-size: 0.78rem; font-weight: 600; padding: 3px 10px; border-radius: 999px; }
+.flag--excluded { background: var(--error-bg); color: rgb(var(--v-theme-error)); }
+.flag--locked { background: var(--neutral-chip-bg); }
 .sp-section { padding: 14px 18px; border-top: 1px solid rgba(var(--v-border-color), var(--v-border-opacity)); margin-top: 10px; }
 .sp-section + .sp-section { margin-top: 0; }
-.sp-title { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: rgba(var(--v-theme-on-surface), 0.6); margin: 0 0 10px; }
-.current { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; background: rgb(var(--v-theme-surface-light)); }
+.sp-title { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-secondary); margin: 0 0 10px; }
+.current { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--radius-control); background: var(--neutral-chip-bg); }
 .choices { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; }
-.choice { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 10px; border: 1px solid rgba(var(--v-border-color), 0.1); }
-.choice--assigned { border-color: rgba(var(--v-theme-success), 0.45); background: rgba(var(--v-theme-success), 0.06); }
-.choice-rank { flex: none; width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center; font-weight: 700; font-size: 0.85rem; background: rgb(var(--v-theme-surface-light)); }
+.choice { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: var(--radius-control); border: 1px solid rgba(var(--v-border-color), 0.12); }
+.choice--assigned { border: 2px solid var(--sel); padding: 7px 9px; }
+.choice-rank { flex: none; width: 26px; height: 26px; border-radius: 999px; display: grid; place-items: center; font-weight: 700; font-size: 0.8rem; }
 .choice-title { font-weight: 600; font-size: 0.9rem; }
-.assigned { display: inline-flex; align-items: center; gap: 3px; font-size: 0.78rem; font-weight: 700; color: rgb(var(--v-theme-success)); }
+.assigned { display: inline-flex; align-items: center; gap: 3px; font-size: 0.78rem; font-weight: 700; }
 </style>

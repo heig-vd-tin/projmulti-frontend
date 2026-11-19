@@ -14,7 +14,7 @@
           <h1 class="text-h5 font-weight-bold mt-5 mb-3">Connexion impossible</h1>
           <p class="text-body-1 muted mb-6">{{ message }}</p>
           <div class="d-flex justify-center flex-wrap ga-2">
-            <v-btn variant="tonal" prepend-icon="mdi-refresh" @click="reload">Réessayer</v-btn>
+            <v-btn color="primary" variant="flat" prepend-icon="mdi-refresh" @click="reload">Réessayer</v-btn>
             <v-btn variant="outlined" prepend-icon="mdi-logout" @click="logout">Se déconnecter</v-btn>
           </div>
         </template>
@@ -56,9 +56,9 @@ function reload() {
 }
 .status-card { width: 100%; }
 .status-icon {
-  width: 72px; height: 72px; margin: 0 auto; border-radius: 20px;
+  width: 72px; height: 72px; margin: 0 auto; border-radius: var(--radius-card);
   display: grid; place-items: center;
-  background: rgba(var(--v-theme-neutral), 0.12); color: rgb(var(--v-theme-neutral));
+  background: var(--neutral-chip-bg); color: var(--text-secondary);
 }
-.status-icon--fatal { background: rgba(var(--v-theme-error), 0.12); color: rgb(var(--v-theme-error)); }
+.status-icon--fatal { background: var(--error-bg); color: rgb(var(--v-theme-error)); }
 </style>

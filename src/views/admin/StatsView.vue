@@ -77,7 +77,8 @@ import { useDark } from '@/composables/useDark'
 import { useAdminStore } from '@/stores/admin'
 import { useNotifyStore } from '@/stores/notify'
 import { useSessionStore } from '@/stores/session'
-import { domainColor } from '@/utils/palette'
+import { rankTone } from '@/utils/board'
+import { domainColor, domainIcon, sortDomains } from '@/utils/palette'
 
 const session = useSessionStore()
 const admin = useAdminStore()
@@ -104,7 +105,9 @@ const rankItems = computed(() => {
     const r = s.rankOf(s.assignedProjectId)
     counts[r || 'out'] += 1
   }
-  return [1, 2, 3, 4, 5].map((r) => ({ label: `Choix ${r}`, value: counts[r] })).concat([{ label: 'Hors choix', value: counts.out }])
+  return [1, 2, 3, 4, 5]
+    .map((r) => ({ label: `Choix ${r}`, value: counts[r], badge: String(r), badgeClass: `rank--${rankTone(r)}` }))
+    .concat([{ label: 'Hors choix', value: counts.out, badge: '✕', badgeClass: 'rank--out' }])
 })
 
 const meanRank = computed(() => {
@@ -120,12 +123,12 @@ const orientationItems = computed(() =>
 )
 
 const domainRows = computed(() =>
-  session.domains.map((d) => {
+  sortDomains(session.domains).map((d) => {
     const m = admin.mapping.find((r) => r.domain_id === d.id) || { base: [], enlarged: [] }
     return {
       id: d.id,
       name: d.name,
-      icon: d.icon,
+      icon: domainIcon(d),
       selected: admin.projects.filter((p) => p.selected && p.domains.some((x) => x.id === d.id)).length,
       all: admin.projects.filter((p) => p.domains.some((x) => x.id === d.id)).length,
       base: active.value.filter((s) => m.base.includes(s.orientation_id)).length,
@@ -151,16 +154,16 @@ onMounted(load)
 <style scoped>
 .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; }
 .tile { padding: 16px 18px; }
-.tile-label { font-size: 0.82rem; font-weight: 600; color: rgba(var(--v-theme-on-surface), 0.66); }
+.tile-label { font-size: 0.82rem; font-weight: 600; color: var(--text-secondary); }
 .tile-value { font-size: 1.9rem; font-weight: 700; letter-spacing: -0.02em; line-height: 1.2; margin-top: 4px; }
-.tile-of { font-size: 1rem; font-weight: 600; color: rgba(var(--v-theme-on-surface), 0.5); }
-.tile-hint { font-size: 0.78rem; color: rgba(var(--v-theme-on-surface), 0.6); margin-top: 2px; }
+.tile-of { font-size: 1rem; font-weight: 600; color: var(--text-secondary); }
+.tile-hint { font-size: 0.78rem; color: var(--text-secondary); margin-top: 2px; }
 .section-title { font-size: 1.05rem; font-weight: 700; margin: 0 0 2px; }
-.section-hint { margin: 0 0 16px; color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity)); font-size: 0.9rem; }
+.section-hint { margin: 0 0 16px; color: var(--text-secondary); font-size: 0.9rem; }
 .table-wrap { overflow-x: auto; }
 .stats-table { width: 100%; border-collapse: collapse; min-width: 620px; }
 .stats-table th, .stats-table td { padding: 10px 12px; border-bottom: 1px solid rgba(var(--v-border-color), var(--v-border-opacity)); text-align: right; }
-.stats-table thead th { font-size: 0.78rem; font-weight: 700; color: rgba(var(--v-theme-on-surface), 0.66); }
+.stats-table thead th { font-size: 0.78rem; font-weight: 700; color: var(--text-secondary); }
 .stats-table tbody th { font-weight: 600; }
 .stats-table tr:last-child th, .stats-table tr:last-child td { border-bottom: none; }
 </style>

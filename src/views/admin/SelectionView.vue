@@ -18,12 +18,12 @@
           <span v-if="withoutSelection" class="text-caption warn-tag">{{ withoutSelection }} sans projet sélectionné</span>
         </div>
         <v-list density="compact" nav class="py-1">
-          <v-list-item :active="ownerFilter === null" color="primary" title="Tous les enseignants" @click="ownerFilter = null" />
+          <v-list-item :active="ownerFilter === null" color="selected" title="Tous les enseignants" @click="ownerFilter = null" />
           <v-list-item
             v-for="t in teacherRows"
             :key="t.id"
             :active="ownerFilter === t.id"
-            color="primary"
+            color="selected"
             @click="ownerFilter = ownerFilter === t.id ? null : t.id"
           >
             <v-list-item-title class="text-body-2 font-weight-medium">{{ t.name }}</v-list-item-title>
@@ -44,7 +44,7 @@
         <EmptyState v-else-if="!visible.length" class="surface-card" title="Aucun projet" text="Aucun projet proposé pour ce cours ou cet enseignant." />
         <v-row v-else>
           <v-col v-for="p in visible" :key="p.id" cols="12" md="6" xl="4">
-            <article class="sel-card" :class="{ 'sel-card--on': p.selected }" data-testid="selection-card">
+            <article class="sel-card" :class="{ 'sel-card--off': !p.selected }" data-testid="selection-card">
               <div class="d-flex align-start ga-2">
                 <button type="button" class="sel-title text-left" @click="openId = p.id">{{ p.title }}</button>
                 <v-spacer />
@@ -53,13 +53,13 @@
               <div class="text-body-2 muted mb-2">{{ p.ownerName }} · #{{ p.id }}</div>
               <DomainBadges :domains="p.domains" size="small" />
               <div class="stats">
-                <div class="stat" title="Étudiants qui ont choisi ce projet en priorité 1 à 3 / au total">
-                  <span class="stat-value tabular">{{ p.preferredCount(3) }} <span class="muted">/ {{ p.preferredCount(5) }}</span></span>
-                  <span class="stat-label">choix (1-3 / total)</span>
+                <div class="stat">
+                  <span class="stat-value tabular">{{ p.preferredCount(5) }}</span>
+                  <span class="stat-label">étudiants l'ont choisi<br>dont {{ p.preferredCount(3) }} en choix 1 à 3</span>
                 </div>
-                <div class="stat" title="Choix dont l'orientation correspond à un domaine du projet (ancien algorithme : correspondances)">
-                  <span class="stat-value tabular">{{ p.matchedCount(3) }} <span class="muted">/ {{ p.matchedCount(5) }}</span></span>
-                  <span class="stat-label">correspondances</span>
+                <div class="stat" title="Calculé par « Calculer les correspondances » (ancien algorithme) : un choix compte une fois par domaine du projet que l'orientation de l'étudiant peut couvrir.">
+                  <span class="stat-value tabular">{{ p.matchedCount(5) }}</span>
+                  <span class="stat-label">choix compatibles avec les domaines<br>dont {{ p.matchedCount(3) }} en choix 1 à 3</span>
                 </div>
               </div>
               <div class="d-flex align-center">
@@ -71,7 +71,7 @@
                   @update:model-value="(v) => toggle(p, v)"
                 />
                 <v-spacer />
-                <v-btn variant="text" size="small" prepend-icon="mdi-eye-outline" @click="openId = p.id">Détail</v-btn>
+                <v-btn variant="text" prepend-icon="mdi-eye-outline" @click="openId = p.id">Détail</v-btn>
               </div>
             </article>
           </v-col>
@@ -156,21 +156,22 @@ async function toggle(p, value) {
 .teachers { position: sticky; top: 80px; max-height: calc(100vh - 100px); overflow-y: auto; }
 .teachers-head { display: flex; flex-direction: column; gap: 4px; padding: 14px 16px 6px; }
 .warn-tag { color: rgb(var(--v-theme-warning)); font-weight: 600; }
-.count { font-size: 0.78rem; font-weight: 700; padding: 1px 8px; border-radius: 999px; background: rgb(var(--v-theme-surface-light)); }
-.count--warn { background: rgba(var(--v-theme-warning), 0.12); color: rgb(var(--v-theme-warning)); }
-.count--none { opacity: 0.5; }
+.count { font-size: 0.78rem; font-weight: 700; padding: 1px 9px; border-radius: 999px; background: var(--neutral-chip-bg); }
+.count--warn { background: var(--warn-bg); color: rgb(var(--v-theme-warning)); }
+.count--none { background: transparent; color: var(--text-secondary); font-weight: 500; }
 .sel-card {
   height: 100%; display: flex; flex-direction: column; gap: 4px; padding: 16px 18px 8px;
-  background: rgb(var(--v-theme-surface)); border-radius: 14px;
+  background: rgb(var(--v-theme-surface)); border-radius: var(--radius-card);
   border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
 }
-.sel-card--on { border-color: rgba(var(--v-theme-primary), 0.4); }
+/* Non sélectionné : cadre en pointillés, sans fond (l'exception se voit, pas la règle) */
+.sel-card--off { background: transparent; border-style: dashed; }
 .sel-title { font: inherit; font-weight: 650; font-size: 1rem; color: inherit; background: none; border: none; padding: 0; cursor: pointer; }
 .sel-title:hover { text-decoration: underline; }
 .stats { display: flex; gap: 24px; margin: 12px 0 4px; }
 .stat { display: flex; flex-direction: column; }
 .stat-value { font-size: 1.15rem; font-weight: 700; }
-.stat-label { font-size: 0.75rem; color: rgba(var(--v-theme-on-surface), 0.6); }
+.stat-label { font-size: 0.78rem; line-height: 1.35; color: var(--text-secondary); }
 @media (max-width: 960px) {
   .layout { grid-template-columns: 1fr; }
   .teachers { position: static; max-height: 320px; }

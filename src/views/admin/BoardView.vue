@@ -1,5 +1,5 @@
 <template>
-  <div class="page page--wide board-page">
+  <div class="page board-page">
     <header class="page-header mb-4">
       <div>
         <h1>Répartition des étudiants</h1>
@@ -21,29 +21,53 @@
           </v-list>
         </v-menu>
 
-        <v-menu location="bottom end">
-          <template #activator="{ props: p }">
-            <v-btn v-bind="p" variant="outlined" prepend-icon="mdi-history" append-icon="mdi-chevron-down">Ancien algorithme</v-btn>
-          </template>
-          <v-list density="compact" nav min-width="300">
-            <v-list-item v-for="(a, key) in LEGACY_ACTIONS" :key="key" :prepend-icon="a.icon" :title="a.title" @click="runLegacy(key)" />
-          </v-list>
-        </v-menu>
 
         <v-menu location="bottom end" :close-on-content-click="false">
           <template #activator="{ props: p }">
             <v-btn v-bind="p" variant="outlined" prepend-icon="mdi-tune-variant" append-icon="mdi-chevron-down">Affichage</v-btn>
           </template>
-          <v-card min-width="300" class="pa-3" border>
+          <v-card min-width="320" class="pa-4" border>
             <v-switch v-model="showName" label="Afficher les noms" data-testid="toggle-names" />
             <v-switch v-model="showAllProjects" label="Afficher les projets non sélectionnés" class="mt-2" />
             <v-select v-model="projectSort" :items="projectSortItems" label="Ordre des projets" density="compact" hide-details class="mt-4" />
+            <div class="legend-title">Couverture des domaines</div>
+            <div class="cov-legend">
+              <span class="cov-sample cov-sample--ok"><v-icon icon="mdi-check-bold" size="9" /></span><span>couvert par l'orientation d'un étudiant</span>
+              <span class="cov-sample cov-sample--partial"><v-icon icon="mdi-approximately-equal" size="9" /></span><span>couvert seulement en élargissant</span>
+              <span class="cov-sample cov-sample--missing"><v-icon icon="mdi-exclamation-thick" size="9" /></span><span>non couvert (cadre en pointillés)</span>
+            </div>
+            <div class="legend-title">Rang obtenu</div>
+            <div class="d-flex flex-wrap ga-1 align-center text-caption">
+              <span class="rank-badge rank--r1">1</span><span class="rank-badge rank--r2">2</span><span class="rank-badge rank--r3">3</span>
+              <span class="rank-badge rank--r45">4</span><span class="rank-badge rank--r45">5</span><span class="rank-badge rank--out">✕</span>
+              <span class="muted ml-1">1 = meilleur choix, ✕ = hors choix</span>
+            </div>
           </v-card>
         </v-menu>
 
-        <v-btn icon variant="text" aria-label="Aide du tableau de répartition" @click="helpDialog = true">
-          <v-icon icon="mdi-help-circle-outline" />
-          <v-tooltip activator="parent">Aide et légende</v-tooltip>
+        <v-menu location="bottom end">
+          <template #activator="{ props: p }">
+            <v-btn v-bind="p" icon variant="text" aria-label="Plus d'actions" data-testid="more-menu">
+              <v-icon icon="mdi-dots-horizontal" />
+            </v-btn>
+          </template>
+          <v-list density="compact" nav min-width="320">
+            <v-list-item prepend-icon="mdi-help-circle-outline" title="Aide et légende" @click="helpDialog = true" />
+            <v-divider class="my-1" />
+            <v-list-subheader>Ancien algorithme</v-list-subheader>
+            <v-list-item v-for="(a, key) in LEGACY_ACTIONS" :key="key" :prepend-icon="a.icon" :title="a.title" @click="runLegacy(key)" />
+          </v-list>
+        </v-menu>
+
+        <v-btn
+          v-if="!wide"
+          :variant="poolVisible ? 'flat' : 'outlined'"
+          :color="poolVisible ? 'selected' : undefined"
+          prepend-icon="mdi-account-multiple-outline"
+          data-testid="toggle-pool"
+          @click="poolOpen = !poolOpen"
+        >
+          Étudiants ({{ unassigned.length }})
         </v-btn>
         <input ref="fileInput" type="file" accept=".prjmult,application/json,text/plain" class="d-none" data-testid="load-file" @change="readFile" />
       </div>
@@ -58,6 +82,7 @@
       <div class="live-item"><span class="live-value tabular">{{ meanRank }}</span><span class="live-label">rang moyen</span></div>
       <div class="live-item"><span class="live-value tabular" :class="{ 'text-warning': badSizes }">{{ badSizes }}</span><span class="live-label">groupes hors taille</span></div>
       <div class="live-ranks" aria-label="Rangs obtenus">
+        <span class="live-label mr-1">Rangs :</span>
         <span v-for="r in rankCounts" :key="r.key" class="rank-cell" :title="r.label">
           <span class="rank-badge" :class="`rank--${r.tone}`">{{ r.short }}</span><span class="tabular">{{ r.value }}</span>
         </span>
@@ -78,7 +103,7 @@
       <div v-for="n in 8" :key="n" class="surface-card pa-2"><v-skeleton-loader type="list-item-two-line, chip, chip" class="bg-transparent" /></div>
     </div>
 
-    <div v-else class="board">
+    <div v-else class="board" :class="{ 'board--split': poolVisible && !compact }">
       <div class="board-main min-w-0">
         <div v-if="focusStudent && onlyChoices" class="focus-bar mb-3">
           <v-icon icon="mdi-filter-outline" size="18" />
@@ -120,8 +145,9 @@
       </div>
 
       <aside
+        v-show="poolVisible"
         class="pool surface-card"
-        :class="{ 'pool--over': dropTarget === 'pool' }"
+        :class="{ 'pool--over': dropTarget === 'pool', 'pool--overlay': compact, 'pool--narrow': !wide && !compact }"
         aria-label="Étudiants"
         data-testid="pool"
         @dragover.prevent="onDragOver('pool')"
@@ -129,7 +155,12 @@
         @drop.prevent="dropOnPool"
       >
         <div class="pool-head">
-          <v-tabs v-model="poolTab" density="compact" color="primary" grow>
+          <div v-if="!wide" class="d-flex align-center mb-1">
+            <span class="font-weight-bold text-body-2">Étudiants</span>
+            <v-spacer />
+            <v-btn icon="mdi-close" size="small" variant="text" aria-label="Masquer la liste des étudiants" @click="poolOpen = false" />
+          </div>
+          <v-tabs v-model="poolTab" density="compact" grow>
             <v-tab value="unassigned" data-testid="tab-unassigned">Non affectés <span class="tab-count">{{ unassigned.length }}</span></v-tab>
             <v-tab value="all" data-testid="tab-all">Tous <span class="tab-count">{{ activeStudents.length }}</span></v-tab>
             <v-tab value="excluded" data-testid="tab-excluded">Exclus <span class="tab-count">{{ excluded.length }}</span></v-tab>
@@ -137,7 +168,7 @@
           <v-text-field
             v-model="search"
             class="mt-2"
-            placeholder="Rechercher (nom, n°, orientation)"
+            placeholder="Rechercher un étudiant"
             prepend-inner-icon="mdi-magnify"
             density="compact"
             hide-details
@@ -207,7 +238,7 @@
           <p class="text-body-2 muted mb-3">Fichier .prjmult à garder sur votre ordinateur ; il pourra être rechargé (menu Fichier).</p>
           <v-text-field v-model="filename" label="Nom du fichier" suffix=".prjmult" autofocus @keyup.enter="confirmSave" />
         </v-card-text>
-        <v-card-actions class="px-4 pb-3">
+        <v-card-actions class="px-6 pb-4">
           <v-spacer />
           <v-btn variant="text" @click="saveDialog = false">Annuler</v-btn>
           <v-btn color="primary" variant="flat" :disabled="!filename.trim()" :loading="savingFile" data-testid="save-file" @click="confirmSave">Télécharger</v-btn>
@@ -221,6 +252,7 @@
 
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
+import { useDisplay } from 'vuetify'
 import BoardHelp from '@/components/board/BoardHelp.vue'
 import BoardProject from '@/components/board/BoardProject.vue'
 import SolveDialog from '@/components/board/SolveDialog.vue'
@@ -243,6 +275,12 @@ const admin = useAdminStore()
 const notify = useNotifyStore()
 const confirm = useConfirmStore()
 
+const { width } = useDisplay()
+// ≥ 1100 px : liste toujours à côté ; tablette : tiroir latéral escamotable ; téléphone : tiroir par-dessus.
+const wide = computed(() => width.value >= 1100)
+const compact = computed(() => width.value < 760)
+const poolOpen = ref(width.value >= 760)
+const poolVisible = computed(() => wide.value || poolOpen.value)
 const showName = ref(loadPref('board.showName', false))
 const showAllProjects = ref(loadPref('board.showAll', false))
 const projectSort = ref(loadPref('board.sort', 'id'))
@@ -560,29 +598,38 @@ async function runLegacy(key) {
 </script>
 
 <style scoped>
-.board-page { padding-top: 20px; }
+.board-page { padding-top: 24px; }
 .live { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 28px; padding: 12px 18px; }
 .live-item { display: flex; flex-direction: column; }
 .live-value { font-size: 1.25rem; font-weight: 700; line-height: 1.2; }
-.live-of { font-size: 0.85rem; color: rgba(var(--v-theme-on-surface), 0.55); }
-.live-label { font-size: 0.74rem; color: rgba(var(--v-theme-on-surface), 0.62); }
-.live-ranks { display: flex; gap: 10px; flex-wrap: wrap; margin-left: auto; }
+.live-of { font-size: 0.85rem; color: var(--text-secondary); }
+.live-label { font-size: 0.76rem; color: var(--text-secondary); }
+.live-ranks { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-left: auto; }
 .rank-cell { display: inline-flex; align-items: center; gap: 4px; font-size: 0.88rem; font-weight: 650; }
-.board { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 16px; align-items: start; }
+.board { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; align-items: start; }
+.board--split { grid-template-columns: minmax(0, 1fr) 380px; }
+.board--split:has(.pool--narrow) { grid-template-columns: minmax(0, 1fr) 320px; }
 .board-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 12px; }
-.focus-bar { display: flex; align-items: center; gap: 6px; font-size: 0.9rem; padding: 6px 12px; border-radius: 10px; background: rgba(var(--v-theme-primary), 0.06); }
+.focus-bar { display: flex; align-items: center; gap: 6px; font-size: 0.9rem; padding: 6px 12px; border-radius: var(--radius-control); background: var(--neutral-chip-bg); }
 .pool {
-  position: sticky; top: 76px; display: flex; flex-direction: column;
-  max-height: calc(100vh - 92px); overflow: hidden; transition: border-color 0.12s, box-shadow 0.12s;
+  position: sticky; top: 80px; display: flex; flex-direction: column;
+  max-height: calc(100vh - 96px); overflow: hidden; transition: border-color 0.12s, box-shadow 0.12s;
 }
-.pool--over { border-color: rgb(var(--v-theme-primary)) !important; box-shadow: 0 0 0 3px rgba(var(--v-theme-primary), 0.14); }
+.pool--overlay {
+  position: fixed; top: 72px; right: 8px; bottom: 8px; z-index: 6; width: min(360px, calc(100vw - 16px)); max-height: none;
+  box-shadow: -12px 0 32px -12px rgba(0, 0, 0, 0.3);
+}
+.pool--over { border-color: var(--focus-ring) !important; box-shadow: 0 0 0 2px var(--focus-ring); }
 .pool-head { padding: 6px 10px 10px; border-bottom: 1px solid rgba(var(--v-border-color), var(--v-border-opacity)); }
-.tab-count { margin-left: 6px; font-size: 0.72rem; font-weight: 700; padding: 0 6px; border-radius: 999px; background: rgb(var(--v-theme-surface-light)); }
-.cand-bar { display: flex; align-items: center; gap: 4px; margin-top: 8px; padding: 4px 4px 4px 10px; border-radius: 8px; font-size: 0.84rem; background: rgba(var(--v-theme-primary), 0.07); }
+.pool--narrow :deep(.v-tab), .pool--overlay :deep(.v-tab) { padding: 0 6px; min-width: 0; font-size: 0.84rem; }
+.tab-count { margin-left: 6px; font-size: 0.72rem; font-weight: 700; padding: 0 7px; border-radius: 999px; background: var(--neutral-chip-bg); }
+.cand-bar { display: flex; align-items: center; gap: 4px; margin-top: 8px; padding: 4px 4px 4px 10px; border-radius: var(--radius-control); font-size: 0.84rem; background: var(--neutral-chip-bg); }
 .pool-list { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
-.drop-hint { display: flex; align-items: center; gap: 6px; justify-content: center; padding: 10px; border-radius: 10px; border: 1px dashed rgba(var(--v-theme-primary), 0.5); color: rgb(var(--v-theme-primary)); font-size: 0.85rem; }
-@media (max-width: 1100px) {
-  .board { grid-template-columns: 1fr; }
-  .pool { position: static; max-height: 70vh; }
-}
+.drop-hint { display: flex; align-items: center; gap: 6px; justify-content: center; padding: 10px; border-radius: var(--radius-control); border: 1px dashed var(--focus-ring); color: var(--focus-ring); font-size: 0.85rem; }
+.legend-title { font-size: 0.76rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-secondary); margin: 18px 0 8px; }
+.cov-legend { display: grid; grid-template-columns: 22px 1fr; gap: 8px 8px; align-items: center; font-size: 0.84rem; }
+.cov-sample { width: 16px; height: 16px; border-radius: 50%; display: grid; place-items: center; color: #fff; }
+.cov-sample--ok { background: rgb(var(--v-theme-success)); }
+.cov-sample--partial { background: rgb(var(--v-theme-warning)); }
+.cov-sample--missing { background: rgb(var(--v-theme-error)); }
 </style>

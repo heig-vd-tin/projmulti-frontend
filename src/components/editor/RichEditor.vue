@@ -195,9 +195,16 @@ const overlayStyle = computed(() => overlay.value && {
   top: `${overlay.value.top}px`, left: `${overlay.value.left}px`,
   width: `${overlay.value.width}px`, height: `${overlay.value.height}px`,
 })
-const toolbarStyle = computed(() => overlay.value && {
-  top: `${Math.max(overlay.value.top - 44, 44)}px`,
-  left: `${Math.max(overlay.value.left, 8)}px`,
+// Barre de l'image posée sur l'image elle-même (coin haut gauche) pour ne pas cacher le texte ;
+// sous l'image si celle-ci est trop petite.
+const toolbarStyle = computed(() => {
+  if (!overlay.value) return null
+  const o = overlay.value
+  const inside = o.width >= 330 && o.height >= 90
+  return {
+    top: `${inside ? o.top + 8 : o.top + o.height + 8}px`,
+    left: `${Math.max(o.left + (inside ? 8 : 0), 8)}px`,
+  }
 })
 
 function formatImage(formats) {
@@ -331,29 +338,30 @@ defineExpose({
 </script>
 
 <style>
-.rich-editor { border: 1px solid rgba(var(--v-border-color), 0.22); border-radius: 12px; background: rgb(var(--v-theme-surface)); }
-.rich-editor:focus-within { border-color: rgba(var(--v-theme-primary), 0.55); box-shadow: 0 0 0 3px rgba(var(--v-theme-primary), 0.1); }
+.rich-editor { border: 1px solid rgba(var(--v-border-color), 0.24); border-radius: var(--radius-control); background: rgb(var(--v-theme-surface)); }
+/* Focus en bleu (2 px), distinct de l'état d'erreur en rouge */
+.rich-editor:focus-within { border-color: var(--focus-ring); box-shadow: 0 0 0 1px var(--focus-ring); }
 .rich-editor--error { border-color: rgb(var(--v-theme-error)); }
 .rich-editor .editor-host { position: relative; }
 .rich-editor .ql-toolbar.ql-snow {
   position: sticky; top: 64px; z-index: 2;
   border: none; border-bottom: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
-  background: rgb(var(--v-theme-surface)); border-radius: 12px 12px 0 0; padding: 8px 10px;
+  background: rgb(var(--v-theme-surface)); border-radius: var(--radius-control) var(--radius-control) 0 0; padding: 8px 10px;
   font-family: var(--app-font);
 }
 .rich-editor .ql-container.ql-snow { border: none; font-family: var(--app-font); font-size: 0.975rem; }
 .rich-editor .ql-editor { min-height: 320px; line-height: 1.65; padding: 16px 20px; color: rgb(var(--v-theme-on-surface)); }
-.rich-editor .ql-editor.ql-blank::before { color: rgba(var(--v-theme-on-surface), 0.45); font-style: normal; left: 20px; }
+.rich-editor .ql-editor.ql-blank::before { color: var(--text-hint); font-style: normal; left: 20px; }
 .rich-editor .ql-editor img { max-width: 100%; height: auto; cursor: pointer; }
 .rich-editor .ql-editor h1 { font-size: 1.5rem; } .rich-editor .ql-editor h2 { font-size: 1.25rem; } .rich-editor .ql-editor h3 { font-size: 1.1rem; }
 .rich-editor .ql-snow .ql-stroke { stroke: rgba(var(--v-theme-on-surface), 0.75); }
 .rich-editor .ql-snow .ql-fill { fill: rgba(var(--v-theme-on-surface), 0.75); }
 .rich-editor .ql-snow .ql-picker { color: rgba(var(--v-theme-on-surface), 0.8); }
 .rich-editor .ql-snow .ql-picker-options { background: rgb(var(--v-theme-surface)); border-radius: 8px; }
-.rich-editor .ql-snow.ql-toolbar button:hover .ql-stroke, .rich-editor .ql-snow.ql-toolbar button.ql-active .ql-stroke { stroke: rgb(var(--v-theme-primary)); }
-.rich-editor .ql-snow.ql-toolbar button:hover .ql-fill, .rich-editor .ql-snow.ql-toolbar button.ql-active .ql-fill { fill: rgb(var(--v-theme-primary)); }
+.rich-editor .ql-snow.ql-toolbar button:hover .ql-stroke, .rich-editor .ql-snow.ql-toolbar button.ql-active .ql-stroke { stroke: var(--focus-ring); }
+.rich-editor .ql-snow.ql-toolbar button:hover .ql-fill, .rich-editor .ql-snow.ql-toolbar button.ql-active .ql-fill { fill: var(--focus-ring); }
 .rich-editor .ql-snow.ql-toolbar button:hover, .rich-editor .ql-snow.ql-toolbar button.ql-active,
-.rich-editor .ql-snow .ql-picker-label:hover, .rich-editor .ql-snow .ql-picker-label.ql-active { color: rgb(var(--v-theme-primary)); }
+.rich-editor .ql-snow .ql-picker-label:hover, .rich-editor .ql-snow .ql-picker-label.ql-active { color: var(--focus-ring); }
 .rich-editor .ql-snow .ql-tooltip { z-index: 5; border-radius: 8px; background: rgb(var(--v-theme-surface)); color: rgb(var(--v-theme-on-surface)); box-shadow: 0 6px 20px rgba(0,0,0,.15); border-color: rgba(var(--v-border-color), 0.2); }
 .rich-editor .ql-snow .ql-tooltip input[type=text] { background: rgb(var(--v-theme-surface)); color: inherit; border-radius: 6px; }
 /* Textes de l'info-bulle des liens en français */
@@ -371,10 +379,10 @@ defineExpose({
 .rich-editor .ql-snow .ql-picker.ql-header .ql-picker-label[data-value='3']::before,
 .rich-editor .ql-snow .ql-picker.ql-header .ql-picker-item[data-value='3']::before { content: 'Titre 3'; }
 .rich-editor--disabled .ql-toolbar { opacity: 0.5; pointer-events: none; }
-.rich-editor .img-overlay { position: absolute; border: 2px solid rgb(var(--v-theme-primary)); border-radius: 4px; pointer-events: none; z-index: 3; }
+.rich-editor .img-overlay { position: absolute; border: 2px solid var(--focus-ring); border-radius: 4px; pointer-events: none; z-index: 3; }
 .rich-editor .img-handle {
   position: absolute; right: -7px; bottom: -7px; width: 14px; height: 14px; border-radius: 4px;
-  background: rgb(var(--v-theme-primary)); border: 2px solid rgb(var(--v-theme-surface)); cursor: nwse-resize; pointer-events: auto; touch-action: none;
+  background: var(--focus-ring); border: 2px solid rgb(var(--v-theme-surface)); cursor: nwse-resize; pointer-events: auto; touch-action: none;
 }
 .rich-editor .img-size {
   position: absolute; right: 6px; bottom: 6px; padding: 1px 6px; border-radius: 6px; font-size: 0.72rem;
@@ -383,7 +391,7 @@ defineExpose({
 .rich-editor .img-toolbar {
   position: absolute; z-index: 4; display: flex; align-items: center; gap: 2px; padding: 3px;
   background: rgb(var(--v-theme-surface)); border: 1px solid rgba(var(--v-border-color), 0.16);
-  border-radius: 10px; box-shadow: 0 6px 18px -6px rgba(0, 0, 0, 0.25);
+  border-radius: var(--radius-control); box-shadow: 0 6px 18px -6px rgba(0, 0, 0, 0.25);
 }
 .rich-editor .itb {
   min-width: 30px; height: 30px; padding: 0 6px; border-radius: 7px; border: none; background: transparent;
@@ -395,6 +403,6 @@ defineExpose({
 .rich-editor .editor-footer {
   display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 8px 14px;
   border-top: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
-  color: rgba(var(--v-theme-on-surface), 0.62);
+  color: var(--text-secondary);
 }
 </style>

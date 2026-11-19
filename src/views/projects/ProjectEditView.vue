@@ -52,18 +52,17 @@
         <p class="section-hint">Compétences nécessaires : la répartition cherche un étudiant par domaine. Au moins un domaine.</p>
         <div class="domain-picks" role="group" aria-label="Domaines du projet">
           <button
-            v-for="d in session.domains"
+            v-for="d in sortedDomains"
             :key="d.id"
             type="button"
             class="domain-pick"
             :class="{ 'domain-pick--on': domainIds.includes(d.id) }"
-            :style="{ '--dc': domainColor(d, dark) }"
             :aria-pressed="domainIds.includes(d.id)"
             @click="toggleDomain(d.id)"
           >
-            <v-icon :icon="d.icon" size="20" />
-            <span>{{ d.name }}</span>
-            <v-icon v-if="domainIds.includes(d.id)" icon="mdi-check" size="18" class="ml-auto" />
+            <v-icon :icon="domainIcon(d)" :color="domainColor(d, dark)" size="20" />
+            <span class="pick-name">{{ d.name }}</span>
+            <span class="pick-box" aria-hidden="true"><v-icon v-if="domainIds.includes(d.id)" icon="mdi-check" size="16" /></span>
           </button>
         </div>
         <div v-if="showErrors && !domainIds.length" class="text-error text-body-2 mt-2">Sélectionnez au moins un domaine.</div>
@@ -110,7 +109,7 @@ import { useNotifyStore } from '@/stores/notify'
 import { useProjectsStore } from '@/stores/projects'
 import { useSessionStore } from '@/stores/session'
 import { byteSize } from '@/utils/html'
-import { domainColor } from '@/utils/palette'
+import { domainColor, domainIcon, sortDomains } from '@/utils/palette'
 import { formatBytes } from '@/utils/text'
 
 const TITLE_MAX = 100
@@ -145,6 +144,7 @@ const snapshot = ref('')
 let leaving = false
 
 const descriptionSize = computed(() => byteSize(description.value))
+const sortedDomains = computed(() => sortDomains(session.domains))
 // Liste à jour de ce qui manque (après une première tentative), plus l'erreur du serveur.
 const formErrors = computed(() => (showErrors.value ? [...check(), serverError.value].filter(Boolean) : []))
 const tooBig = computed(() => descriptionSize.value > MAX_MB * 1024 * 1024)
@@ -275,34 +275,34 @@ onBeforeRouteLeave(async () => {
 
 <style scoped>
 .section-title { font-size: 1.05rem; font-weight: 700; margin: 0 0 2px; }
-.section-hint { margin: 0 0 16px; color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity)); font-size: 0.9rem; }
+.section-hint { margin: 0 0 16px; color: var(--text-secondary); font-size: 0.9rem; }
 .section--error { border-color: rgba(var(--v-theme-error), 0.6) !important; }
 .domain-picks { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(190px, calc(50% - 5px)), 1fr)); gap: 10px; }
-.domain-pick span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Un seul style « coché » : bord neutre foncé et coche ; la couleur du domaine reste sur l'icône. */
 .domain-pick {
-  display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 12px;
-  font: inherit; font-weight: 550; text-align: left; cursor: pointer; color: inherit;
+  display: flex; align-items: center; gap: 10px; padding: 12px 12px 12px 14px; border-radius: var(--radius-control);
+  font: inherit; font-weight: 550; text-align: left; cursor: pointer; color: rgb(var(--v-theme-on-surface));
   background: rgb(var(--v-theme-surface));
-  border: 1px solid rgba(var(--v-border-color), 0.16);
+  border: 1px solid rgba(var(--v-border-color), 0.18);
   transition: border-color 0.15s, background 0.15s;
 }
-.domain-pick .v-icon:first-child { color: var(--dc); }
-.domain-pick:hover { border-color: var(--dc); }
-.domain-pick--on {
-  border-color: color-mix(in srgb, var(--dc) 55%, transparent);
-  background: color-mix(in srgb, var(--dc) 10%, transparent);
-  color: var(--dc);
+.domain-pick:hover { border-color: rgba(var(--v-border-color), 0.4); }
+.domain-pick--on { border: 2px solid var(--sel); padding: 11px 11px 11px 13px; background: rgba(var(--v-theme-selected), 0.05); }
+.pick-name { min-width: 0; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pick-box {
+  flex: none; width: 20px; height: 20px; border-radius: 5px; display: grid; place-items: center;
+  border: 1.5px solid rgba(var(--v-border-color), 0.35);
 }
+.domain-pick--on .pick-box { background: var(--sel); border-color: var(--sel); color: rgb(var(--v-theme-surface)); }
 .action-bar {
   position: sticky; bottom: 0; z-index: 3;
   display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
-  padding: 12px 16px; margin: 0 -8px;
-  background: rgba(var(--v-theme-background), 0.92); backdrop-filter: blur(6px);
+  padding: 12px 16px;
+  background: rgba(var(--v-theme-background), 0.94); backdrop-filter: blur(6px);
   border-top: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
 }
 @media (max-width: 600px) {
-  /* Sur téléphone : l'état choisi se lit au fond teinté et à la bordure, la coche est masquée. */
   .domain-pick { padding: 10px; gap: 8px; font-size: 0.86rem; }
-  .domain-pick .v-icon + span + .v-icon { display: none; }
+  .domain-pick--on { padding: 9px; }
 }
 </style>

@@ -25,7 +25,7 @@
     </v-main>
 
     <!-- Notifications sobres : fond neutre foncé, icône colorée selon le type. -->
-    <v-snackbar-queue v-model="notify.queue" closable close-text="Fermer" location="bottom" :max-width="560" color="surface-variant" multi-line>
+    <v-snackbar-queue v-model="notify.queue" closable close-text="Fermer" :max-width="440" color="surface-variant" multi-line>
       <template #text="{ item }">
         <div class="d-flex align-start ga-3" role="status" :data-type="item.type">
           <v-icon :icon="snackIcon(item.type)" :class="`snack-icon snack-icon--${item.type}`" class="mt-n1" />
@@ -70,6 +70,12 @@ onMounted(() => {
 </script>
 
 <style>
+/* Notifications en bas à droite, au-dessus des barres d'actions collantes (formulaires, pieds de fenêtres) */
+.v-snackbar.v-snackbar--bottom .v-snackbar__wrapper { margin-bottom: 88px !important; margin-right: 16px !important; }
+.v-snackbar.v-snackbar--top .v-snackbar__wrapper { margin-top: 12px !important; }
+@media (max-width: 600px) {
+  .v-snackbar.v-snackbar--bottom .v-snackbar__wrapper { margin: 0 8px 88px !important; }
+}
 .snack-icon--success { color: #8fcfa9; }
 .snack-icon--error { color: #f19a95; }
 .snack-icon--warning { color: #e3bf7c; }

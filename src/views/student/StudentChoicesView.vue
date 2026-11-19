@@ -13,7 +13,7 @@
           <v-icon v-else icon="mdi-cloud-check-outline" size="18" />
           {{ prefs.saving ? 'Enregistrement…' : 'Choix enregistrés' }}
         </span>
-        <v-btn variant="tonal" prepend-icon="mdi-view-grid-outline" to="/all-projects">Parcourir les projets</v-btn>
+        <v-btn variant="outlined" prepend-icon="mdi-view-grid-outline" to="/all-projects">Parcourir les projets</v-btn>
       </div>
     </header>
 
@@ -43,28 +43,30 @@
         @dragleave="onDragLeave(i)"
         @drop.prevent="onDrop(i)"
       >
+        <v-icon v-if="p" icon="mdi-drag-vertical" class="drag-handle" aria-hidden="true" />
+        <span v-else class="drag-space" aria-hidden="true"></span>
         <div class="slot-rank" :aria-label="`Choix n°${i + 1}`">{{ i + 1 }}</div>
         <template v-if="p">
           <div class="slot-body min-w-0">
-            <div class="d-flex align-center ga-2">
-              <v-icon icon="mdi-drag-vertical" class="drag-handle" aria-hidden="true" />
-              <h2 class="slot-title text-truncate">{{ p.title }}</h2>
-            </div>
+            <h2 class="slot-title text-truncate">{{ p.title }}</h2>
             <div class="text-body-2 muted text-truncate">{{ p.ownerName }}</div>
             <div class="text-body-2 slot-short line-clamp-2">{{ p.short_description }}</div>
             <DomainBadges :domains="p.domains" size="small" class="mt-2" />
           </div>
           <div class="slot-actions">
-            <v-btn icon="mdi-arrow-up" variant="text" size="small" :disabled="i === 0 || prefs.saving" :aria-label="`Monter « ${p.title} »`" @click="move(i, i - 1)" />
-            <v-btn icon="mdi-arrow-down" variant="text" size="small" :disabled="i === MAX_CHOICES - 1 || prefs.saving" :aria-label="`Descendre « ${p.title} »`" @click="move(i, i + 1)" />
+            <div class="move-group">
+              <v-btn icon="mdi-arrow-up" variant="text" size="small" :disabled="i === 0 || prefs.saving" :aria-label="`Monter « ${p.title} »`" @click="move(i, i - 1)" />
+              <v-btn icon="mdi-arrow-down" variant="text" size="small" :disabled="i === MAX_CHOICES - 1 || prefs.saving" :aria-label="`Descendre « ${p.title} »`" @click="move(i, i + 1)" />
+            </div>
             <v-btn icon="mdi-eye-outline" variant="text" size="small" :aria-label="`Voir « ${p.title} »`" @click="openId = p.id" />
+            <span class="actions-sep" aria-hidden="true"></span>
             <v-btn icon="mdi-close" variant="text" size="small" class="remove-btn" :disabled="prefs.saving" :aria-label="`Retirer « ${p.title} » de mes choix`" @click="remove(p)" />
           </div>
         </template>
         <template v-else>
           <div class="slot-empty">
             <span>Choix n°{{ i + 1 }} libre</span>
-            <v-btn variant="text" size="small" color="primary" to="/all-projects">Choisir un projet</v-btn>
+            <v-btn variant="text" size="small" to="/all-projects">Choisir un projet</v-btn>
           </div>
         </template>
       </li>
@@ -142,37 +144,41 @@ async function remove(p) {
 
 <style scoped>
 .save-state { display: inline-flex; align-items: center; gap: 6px; color: rgb(var(--v-theme-success)); }
-.save-state--busy { color: rgba(var(--v-theme-on-background), 0.7); }
+.save-state--busy { color: var(--text-secondary); }
 .slot-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px; }
 .slot {
-  display: flex; align-items: stretch; gap: 16px;
-  padding: 14px 12px 14px 14px;
-  border-radius: 14px;
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 12px 14px 8px;
+  border-radius: var(--radius-card);
   background: rgb(var(--v-theme-surface));
   border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
   transition: border-color 0.15s, box-shadow 0.15s, opacity 0.15s;
 }
-.slot:not(.slot--filled) { background: transparent; border-style: dashed; border-color: rgba(var(--v-border-color), 0.2); }
+.slot:not(.slot--filled) { background: transparent; border-style: dashed; border-color: rgba(var(--v-border-color), 0.22); }
 .slot--filled { cursor: grab; }
 .slot--dragging { opacity: 0.45; }
-.slot--over { border-color: rgb(var(--v-theme-primary)); box-shadow: 0 0 0 3px rgba(var(--v-theme-primary), 0.12); }
+.slot--over { border-color: var(--focus-ring); box-shadow: 0 0 0 3px color-mix(in srgb, var(--focus-ring) 18%, transparent); }
+.drag-handle { flex: none; color: var(--text-secondary); }
+.drag-space { flex: none; width: 24px; }
 .slot-rank {
-  flex: none; width: 44px; border-radius: 10px; display: grid; place-items: center;
-  font-size: 1.3rem; font-weight: 750;
-  background: rgba(var(--v-theme-primary), 0.08); color: rgb(var(--v-theme-primary));
+  flex: none; width: 44px; height: 44px; border-radius: var(--radius-control); display: grid; place-items: center;
+  font-size: 1.2rem; font-weight: 750;
+  background: var(--neutral-chip-bg); color: rgb(var(--v-theme-on-surface));
 }
-.slot:not(.slot--filled) .slot-rank { background: rgb(var(--v-theme-surface-light)); color: rgba(var(--v-theme-on-surface), 0.45); }
+.slot:not(.slot--filled) .slot-rank { background: transparent; border: 1.5px dashed rgba(var(--v-border-color), 0.3); color: var(--text-secondary); }
 .slot-body { flex: 1; display: flex; flex-direction: column; gap: 2px; }
 .slot-title { font-size: 1rem; font-weight: 650; margin: 0; }
-.slot-short { color: rgba(var(--v-theme-on-surface), 0.8); margin-top: 2px; }
-.drag-handle { color: rgba(var(--v-theme-on-surface), 0.35); margin-left: -6px; }
-.slot-actions { display: flex; flex-direction: column; flex-wrap: wrap; align-content: flex-end; justify-content: center; gap: 0 2px; max-height: 96px; }
-.remove-btn { color: rgba(var(--v-theme-on-surface), 0.55); }
+.slot-short { color: rgba(var(--v-theme-on-surface), 0.86); margin-top: 2px; }
+.slot-actions { flex: none; display: flex; align-items: center; gap: 2px; }
+.move-group { display: flex; border: 1px solid rgba(var(--v-border-color), 0.14); border-radius: var(--radius-control); }
+.actions-sep { width: 1px; height: 22px; margin: 0 6px; background: rgba(var(--v-border-color), 0.16); }
+.remove-btn { color: var(--text-secondary); }
 .remove-btn:hover { color: rgb(var(--v-theme-error)); }
-.slot-empty { flex: 1; display: flex; align-items: center; justify-content: space-between; gap: 8px; color: rgba(var(--v-theme-on-surface), 0.6); min-height: 44px; }
+.slot-empty { flex: 1; display: flex; align-items: center; justify-content: space-between; gap: 8px; color: var(--text-secondary); min-height: 44px; }
 @media (max-width: 600px) {
-  .slot { gap: 10px; padding: 12px 8px 12px 10px; }
-  .slot-rank { width: 34px; font-size: 1.1rem; }
-  .slot-actions { max-height: none; flex-direction: row; flex-wrap: wrap; width: 80px; align-content: center; }
+  .slot { flex-wrap: wrap; gap: 8px 10px; padding: 12px 10px 8px 6px; }
+  .slot-rank { width: 36px; height: 36px; font-size: 1.05rem; }
+  .slot-body { flex: 1 1 calc(100% - 80px); }
+  .slot-actions { width: 100%; justify-content: flex-end; border-top: 1px solid rgba(var(--v-border-color), var(--v-border-opacity)); padding-top: 6px; }
 }
 </style>

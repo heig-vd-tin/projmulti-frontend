@@ -1,8 +1,9 @@
 <template>
   <v-menu location="bottom end" offset="8">
     <template #activator="{ props }">
-      <v-chip v-bind="props" color="warning" variant="tonal" size="small" prepend-icon="mdi-account-switch-outline" aria-label="Changer d'utilisateur de test">
-        Dev{{ current ? ` · ${current}` : '' }}
+      <v-chip v-bind="props" color="warning" variant="tonal" size="small" :prepend-icon="compact ? undefined : 'mdi-account-switch-outline'" aria-label="Changer d'utilisateur de test">
+        <v-icon v-if="compact" icon="mdi-account-switch-outline" size="16" />
+        <template v-else>Dev{{ current ? ` · ${current}` : '' }}</template>
       </v-chip>
     </template>
     <v-card min-width="280" border>
@@ -18,7 +19,7 @@
           :title="u.label"
           :subtitle="`id ${u.id}`"
           :active="current === String(u.id)"
-          color="primary"
+          color="selected"
           @click="setDevUser(u.id)"
         />
         <v-list-item prepend-icon="mdi-account-cog-outline" title="Utilisateur par défaut (ID_USER)" :active="!current" @click="setDevUser(null)" />
@@ -35,6 +36,8 @@
 <script setup>
 import { ref } from 'vue'
 import { DEV_USERS, getDevUser, setDevUser } from '@/auth'
+
+defineProps({ compact: { type: Boolean, default: false } })
 
 const current = getDevUser()
 const other = ref('')

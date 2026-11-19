@@ -29,6 +29,18 @@ export function sanitizeHtml(html) {
   })
 }
 
+// Affichage d'une description : HTML nettoyé, paragraphes vides retirés (le HTML stocké n'est pas modifié).
+export function displayHtml(html) {
+  const clean = sanitizeHtml(html)
+  if (!clean) return ''
+  const tpl = document.createElement('template')
+  tpl.innerHTML = clean
+  tpl.content.querySelectorAll('p').forEach((p) => {
+    if (!p.textContent.replace(/\u00a0/g, ' ').trim() && !p.querySelector('img, iframe, video')) p.remove()
+  })
+  return tpl.innerHTML
+}
+
 // Quill 2 (getSemanticHTML) remplace chaque espace par &nbsp;, ce qui empêche le retour à la
 // ligne : on remet des espaces normales en gardant les suites d'espaces visibles.
 export function restoreSpaces(html) {

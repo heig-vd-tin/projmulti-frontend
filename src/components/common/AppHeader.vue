@@ -2,7 +2,7 @@
   <v-app-bar flat height="64" class="app-header" color="surface">
     <template #prepend>
       <v-app-bar-nav-icon
-        v-if="!showTabs && ready"
+        v-if="!showTabs && !showBottomNav && ready"
         aria-label="Ouvrir le menu"
         @click="$emit('update:drawer', !drawer)"
       />
@@ -35,7 +35,7 @@
 
     <PhaseChip v-if="session.currentYear && smAndUp" class="mr-2" />
 
-    <DevUserMenu v-if="DEV_AUTH" class="mr-1" />
+    <DevUserMenu v-if="DEV_AUTH" class="mr-1" :compact="xs" />
 
     <v-btn
       v-if="smAndUp"
@@ -51,7 +51,7 @@
     <v-menu v-if="session.user.id" location="bottom end" offset="8">
       <template #activator="{ props }">
         <v-btn v-bind="props" icon variant="text" class="mr-2" :aria-label="`Compte de ${session.user.fullName}`">
-          <v-avatar color="primary" variant="tonal" size="36">
+          <v-avatar color="selected" variant="tonal" size="36">
             <span class="text-body-2 font-weight-bold">{{ userInitials }}</span>
           </v-avatar>
         </v-btn>
@@ -77,11 +77,20 @@
         </v-list>
       </v-card>
     </v-menu>
-    <v-btn v-else variant="text" prepend-icon="mdi-logout" class="mr-2" @click="logout">Se déconnecter</v-btn>
+    <!-- Compte introuvable : l'écran « Connexion impossible » porte déjà le bouton de déconnexion. -->
+    <v-btn v-else-if="session.status !== 'fatal'" variant="text" prepend-icon="mdi-logout" class="mr-2" @click="logout">Se déconnecter</v-btn>
   </v-app-bar>
 
+  <!-- Téléphone, peu d'onglets (étudiant, enseignant) : barre d'onglets en bas -->
+  <v-bottom-navigation v-if="showBottomNav" :model-value="activeNav" grow color="primary" height="60" aria-label="Navigation principale">
+    <v-btn v-for="item in nav" :key="item.to" :value="item.to" :to="item.to" :data-testid="`bottom-${item.to.slice(1)}`">
+      <v-icon :icon="item.icon" />
+      <span>{{ item.badge ? `${item.title} ${item.badge}` : item.title }}</span>
+    </v-btn>
+  </v-bottom-navigation>
+
   <v-navigation-drawer
-    v-if="!showTabs && ready"
+    v-if="!showTabs && !showBottomNav && ready"
     :model-value="drawer"
     temporary
     width="290"
@@ -139,7 +148,7 @@ const session = useSessionStore()
 const prefs = usePreferencesStore()
 const route = useRoute()
 const theme = useTheme()
-const { mdAndUp, lgAndUp, smAndUp } = useDisplay()
+const { mdAndUp, lgAndUp, smAndUp, xs } = useDisplay()
 
 const ready = computed(() => session.status === 'ready')
 const isDark = computed(() => theme.global.current.value.dark)
@@ -172,6 +181,8 @@ const nav = computed(() => {
 })
 
 const showTabs = computed(() => lgAndUp.value || (mdAndUp.value && nav.value.length <= 3))
+// Barre du bas sur téléphone quand il y a peu d'onglets ; masquée dans le formulaire (il a sa propre barre d'actions).
+const showBottomNav = computed(() => ready.value && xs.value && nav.value.length <= 3 && !['project-new', 'project-edit'].includes(route.name))
 
 const activeNav = computed(() => {
   if (route.path.startsWith('/edit-project') || route.path.startsWith('/new-project')) return '/my-projects'
@@ -202,10 +213,11 @@ function toggleTheme() {
   min-width: 0;
 }
 .brand-text { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; }
-.brand-school { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; color: rgb(var(--v-theme-primary)); }
+.brand-school { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; color: var(--text-secondary); }
 .brand-name { font-size: 0.95rem; font-weight: 650; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 @media (max-width: 420px) {
-  .brand-name { font-size: 0.85rem; }
+  .brand-name { font-size: 0.84rem; }
+  .brand { margin-left: 4px; }
 }
 .app-nav :deep(.v-tab) { font-weight: 550; font-size: 0.92rem; min-width: 0; }
 </style>
