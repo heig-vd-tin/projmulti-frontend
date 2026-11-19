@@ -163,7 +163,7 @@ async function toggle(p, value) {
   background: rgb(var(--v-theme-surface)); border-radius: 14px;
   border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
 }
-.sel-card--on { border-color: rgba(var(--v-theme-success), 0.5); box-shadow: inset 3px 0 0 rgb(var(--v-theme-success)); }
+.sel-card--on { border-color: rgba(var(--v-theme-primary), 0.4); }
 .sel-title { font: inherit; font-weight: 650; font-size: 1rem; color: inherit; background: none; border: none; padding: 0; cursor: pointer; }
 .sel-title:hover { text-decoration: underline; }
 .stats { display: flex; gap: 24px; margin: 12px 0 4px; }

@@ -46,7 +46,7 @@
               <li v-for="u in p.assigned_users" :key="u.id">
                 <span class="font-weight-medium">{{ u.firstname }} {{ u.lastname }}</span>
                 <span v-if="u.orientation" class="ori">{{ u.orientation.acronym }}</span>
-                <a v-if="u.email" :href="`mailto:${u.email}`" class="muted text-caption d-block text-truncate">{{ u.email }}</a>
+                <a v-if="u.email" :href="`mailto:${u.email}`" class="mail muted text-caption d-block text-truncate">{{ u.email }}</a>
               </li>
             </ul>
             <div v-else class="text-body-2 muted">Aucun pour le moment</div>
@@ -162,6 +162,8 @@ async function duplicate(p) {
 .mine-title { font-size: 1.05rem; font-weight: 650; margin: 0 0 4px; }
 .mine-short { margin: 0 0 12px; color: rgba(var(--v-theme-on-surface), 0.82); }
 .students { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; font-size: 0.9rem; }
+.mail { text-decoration: none; }
+.mail:hover { text-decoration: underline; }
 .ori { margin-left: 6px; font-size: 0.72rem; font-weight: 600; padding: 1px 6px; border-radius: 6px; background: rgb(var(--v-theme-surface-light)); }
 @media (max-width: 760px) {
   .mine-card { grid-template-columns: 1fr; grid-template-areas: 'main' 'side' 'actions'; }

@@ -92,7 +92,7 @@ export default createVuetify({
     VTextarea: { variant: 'outlined', density: 'comfortable', color: 'primary' },
     VSelect: { variant: 'outlined', density: 'comfortable', color: 'primary' },
     VAutocomplete: { variant: 'outlined', density: 'comfortable', color: 'primary' },
-    VSwitch: { color: 'primary', inset: true, density: 'compact', hideDetails: true },
+    VSwitch: { color: 'primary', density: 'compact', hideDetails: true },
     VCheckbox: { color: 'primary', density: 'compact', hideDetails: true },
     VTooltip: { location: 'bottom', openDelay: 250 },
     VDialog: { scrollable: true },

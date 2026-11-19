@@ -144,7 +144,7 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useDisplay } from 'vuetify'
 import { useDark } from '@/composables/useDark'
 import { useConfirmStore } from '@/stores/confirm'
@@ -163,7 +163,7 @@ const props = defineProps({
   onUnassign: { type: Function, required: true },
   onFlags: { type: Function, required: true },
 })
-defineEmits(['close', 'update:onlyChoices'])
+const emit = defineEmits(['close', 'update:onlyChoices'])
 const { xs } = useDisplay()
 const dark = useDark()
 const confirm = useConfirmStore()
@@ -172,6 +172,13 @@ const busy = ref(null)
 const target = ref(null)
 
 watch(() => props.student && props.student.id, () => { target.value = null })
+
+// Échap ferme la fiche (le tableau reste utilisable pendant qu'elle est ouverte).
+function onKey(e) {
+  if (e.key === 'Escape' && props.student && !document.querySelector('.v-dialog.v-overlay--active, .v-menu.v-overlay--active')) emit('close')
+}
+onMounted(() => window.addEventListener('keydown', onKey))
+onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
 
 const oriStyle = computed(() => {
   const c = orientationColor(props.student && props.student.orientationAcronym, dark.value)
@@ -230,7 +237,8 @@ async function exclude() {
 </script>
 
 <style scoped>
-.student-panel { border-left: 1px solid rgba(var(--v-border-color), var(--v-border-opacity)) !important; box-shadow: -12px 0 32px -16px rgba(0, 0, 0, 0.25) !important; }
+.student-panel { border-left: 1px solid rgba(var(--v-border-color), var(--v-border-opacity)) !important; }
+.student-panel.v-navigation-drawer--active { box-shadow: -12px 0 32px -16px rgba(0, 0, 0, 0.25) !important; }
 .sp-head { display: flex; align-items: flex-start; gap: 12px; padding: 18px 8px 10px 18px; }
 .ori-lg { min-width: 44px; height: 30px; font-size: 0.8rem; border-radius: 8px; margin-top: 2px; }
 .sp-name { font-size: 1.15rem; font-weight: 700; margin: 0; line-height: 1.3; }

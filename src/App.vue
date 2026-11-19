@@ -24,10 +24,11 @@
       </template>
     </v-main>
 
-    <v-snackbar-queue v-model="notify.queue" closable close-text="Fermer" location="bottom" :max-width="560" multi-line>
+    <!-- Notifications sobres : fond neutre foncé, icône colorée selon le type. -->
+    <v-snackbar-queue v-model="notify.queue" closable close-text="Fermer" location="bottom" :max-width="560" color="surface-variant" multi-line>
       <template #text="{ item }">
-        <div class="d-flex align-start ga-3" role="status">
-          <v-icon :icon="snackIcon(item.color)" class="mt-n1" />
+        <div class="d-flex align-start ga-3" role="status" :data-type="item.type">
+          <v-icon :icon="snackIcon(item.type)" :class="`snack-icon snack-icon--${item.type}`" class="mt-n1" />
           <span>{{ item.text }}</span>
         </div>
       </template>
@@ -54,8 +55,8 @@ const drawer = ref(false)
 
 const isProjectPage = computed(() => ['projects', 'mine', 'project-new', 'project-edit'].includes(route.name))
 
-function snackIcon(color) {
-  return { success: 'mdi-check-circle-outline', error: 'mdi-alert-circle-outline', warning: 'mdi-alert-outline' }[color] || 'mdi-information-outline'
+function snackIcon(type) {
+  return { success: 'mdi-check-circle-outline', error: 'mdi-alert-circle-outline', warning: 'mdi-alert-outline' }[type] || 'mdi-information-outline'
 }
 
 // La phase a changé pendant la session d'un étudiant : écran « pas encore ouverte ».
@@ -69,6 +70,14 @@ onMounted(() => {
 </script>
 
 <style>
+.snack-icon--success { color: #8fcfa9; }
+.snack-icon--error { color: #f19a95; }
+.snack-icon--warning { color: #e3bf7c; }
+.snack-icon--info { color: #9cbde6; }
+.v-theme--dark .snack-icon--success { color: #2f7a52; }
+.v-theme--dark .snack-icon--error { color: #b03a3a; }
+.v-theme--dark .snack-icon--warning { color: #94610f; }
+.v-theme--dark .snack-icon--info { color: #3a679c; }
 .page-enter-active, .page-leave-active { transition: opacity 0.12s ease; }
 .page-enter-from, .page-leave-to { opacity: 0; }
 .readonly-banner { border-bottom: 1px solid rgba(var(--v-border-color), var(--v-border-opacity)); }

@@ -70,6 +70,7 @@
           v-if="session.user.isTeacher"
           :model-value="session.year"
           :items="yearItems"
+          :item-props="(item) => ({ subtitle: item.subtitle })"
           label="Cours"
           density="compact"
           hide-details
@@ -180,7 +181,7 @@ const sortItems = [
   { title: 'Plus récents', value: 'recent' },
 ]
 
-const yearItems = computed(() => session.years.map((y) => ({ title: y === session.currentYear ? `${y} (en cours)` : `${y}`, value: y })))
+const yearItems = computed(() => session.years.map((y) => ({ title: `${y}`, value: y, subtitle: y === session.currentYear ? 'en cours' : 'archive, lecture seule' })))
 const loadingList = computed(() => projects.loading && !projects.all.length)
 
 const heading = computed(() => (session.user.isStudent ? 'Choisir mes projets' : `Projets du cours ${session.year || ''}`))
@@ -268,11 +269,11 @@ async function onYear(year) {
   font-size: 0.8rem; font-weight: 700;
   border: 1.5px dashed rgba(var(--v-border-color), 0.25); color: rgba(var(--v-theme-on-surface), 0.45);
 }
-.slot-dot--on { border: none; background: rgb(var(--v-theme-primary)); color: rgb(var(--v-theme-on-primary)); }
+.slot-dot--on { border: 1.5px solid rgba(var(--v-theme-primary), 0.35); background: rgba(var(--v-theme-primary), 0.1); color: rgb(var(--v-theme-primary)); }
 .filters { padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; }
 .filters-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
 .search { flex: 1 1 280px; min-width: 220px; }
-.year-select { flex: 0 0 160px; }
+.year-select { flex: 0 0 140px; }
 .sort-select { flex: 0 0 180px; }
 .scope-toggle { height: 40px !important; }
 .domain-filter { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
@@ -292,6 +293,9 @@ async function onYear(year) {
   background: color-mix(in srgb, var(--dc) 11%, transparent);
 }
 @media (max-width: 600px) {
+  /* Domaines sur une ligne défilante pour garder la liste visible sur téléphone */
+  .domain-filter { flex-wrap: nowrap; overflow-x: auto; margin: 0 -16px; padding: 0 16px 4px; scrollbar-width: none; }
+  .domain-toggle { flex: none; }
   .year-select, .sort-select { flex: 1 1 140px; }
   .scope-toggle { width: 100%; }
   .scope-toggle .v-btn { flex: 1; }

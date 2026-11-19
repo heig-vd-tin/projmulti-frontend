@@ -185,7 +185,7 @@ function onLeave(event) {
 .cov--partial .cov-dot { background: rgb(var(--v-theme-warning)); }
 .cov--missing .cov-dot { background: rgb(var(--v-theme-surface)); box-shadow: inset 0 0 0 1.5px rgb(var(--v-theme-error)); }
 .cov--unknown .cov-dot { display: none; }
-.lock-on { color: rgb(var(--v-theme-primary)); }
+.lock-on { color: rgba(var(--v-theme-on-surface), 0.85); }
 .bp-members {
   display: flex; flex-wrap: wrap; gap: 6px; min-height: 44px; padding: 6px; border-radius: 10px;
   background: rgba(var(--v-theme-on-surface), 0.025);

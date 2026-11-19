@@ -169,7 +169,7 @@ onMounted(async () => {
   display: inline-flex; align-items: center; justify-content: center;
 }
 .legend .cell-pill { min-width: 0; height: 24px; cursor: default; }
-.cell-pill--base { background: rgba(var(--v-theme-primary), 0.09); color: rgb(var(--v-theme-primary)); border-color: rgba(var(--v-theme-primary), 0.25); }
+.cell-pill--base { background: rgba(var(--v-theme-secondary), 0.12); color: rgb(var(--v-theme-on-surface)); border-color: rgba(var(--v-theme-secondary), 0.3); }
 .cell-pill--enlarged { background: transparent; color: rgb(var(--v-theme-info)); border: 1px dashed rgba(var(--v-theme-info), 0.6); }
 .cell-pill--none { background: transparent; color: rgba(var(--v-theme-on-surface), 0.35); border-color: rgba(var(--v-border-color), 0.1); }
 button.cell-pill:hover { border-color: rgba(var(--v-theme-on-surface), 0.35); }
