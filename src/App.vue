@@ -58,8 +58,21 @@
       </v-navigation-drawer>
 
       <v-main style="height: 100vh">
+        <!-- Connexion refusée par le serveur (compte introuvable, serveur injoignable...). -->
+        <v-container v-if="fatalError" class="fill-height" fluid>
+          <v-row justify="center">
+            <v-col cols="12" sm="8" md="6">
+              <v-card class="pa-6 text-center" outlined>
+                <v-icon size="56" color="error">mdi-account-alert-outline</v-icon>
+                <div class="text-h5 my-4">Connexion impossible</div>
+                <div class="text-body-1 mb-4">{{ fatalError }}</div>
+                <v-btn outlined @click="keycloak.logout()">Se déconnecter</v-btn>
+              </v-card>
+            </v-col>
+          </v-row>
+        </v-container>
         <!-- Étudiant hors de la période de choix : rien d'autre n'est chargé. -->
-        <v-container v-if="closedForUser" class="fill-height" fluid>
+        <v-container v-else-if="closedForUser" class="fill-height" fluid>
           <v-row justify="center">
             <v-col cols="12" sm="8" md="6">
               <v-card class="pa-6 text-center" outlined>
@@ -95,6 +108,7 @@ export default {
   data: () => ({
     drawer: false,
     loading: true,
+    fatalError: null,
   }),
   methods: {
     ...mapActions([
@@ -183,7 +197,12 @@ export default {
         promises = promises.concat([this.retrievePreferredProjects()]);
       await Promise.all(promises);
     } catch (error) {
-      this.$notify({ title: "Erreur", text: error.userMessage || "Chargement impossible", type: "error" });
+      if (error.response && error.response.status === 401)
+        this.fatalError = "Votre compte n'a pas pu être identifié (annuaire de l'école). Contactez le responsable du cours.";
+      else if (!this.getUser.id)
+        this.fatalError = error.userMessage || "Le serveur ne répond pas. Réessayez dans quelques minutes.";
+      else
+        this.$notify({ title: "Erreur", text: error.userMessage || "Chargement impossible", type: "error" });
     } finally {
       this.loading = false;
     }

@@ -19,7 +19,10 @@ let keycloak = new Keycloak(initOptions)
 
 // Les erreurs de l'API portent un message lisible (validation, droits, phase fermée).
 axios.interceptors.response.use((response) => response, (error) => {
-  if (error.response && error.response.status === 401 && process.env.NODE_ENV !== 'development') {
+  // Jeton expiré : nouvelle connexion. Sinon (compte introuvable dans l'annuaire...), on n'insiste
+  // pas pour éviter une boucle de redirections : App.vue affiche le message.
+  if (error.response && error.response.status === 401 && process.env.NODE_ENV !== 'development'
+      && keycloak.isTokenExpired && keycloak.isTokenExpired(5)) {
     keycloak.login()
   }
   error.userMessage = apiErrorMessage(error)
