@@ -243,9 +243,9 @@ async function submit() {
   try {
     const saved = editing.value ? await projects.edit(payload) : await projects.create(payload)
     snapshot.value = state()
-    notify.success(editing.value ? 'Le projet a été modifié.' : 'Le projet a été publié.', `« ${saved.title} »`)
     leaving = true
-    router.push({ path: '/all-projects', query: { p: saved.id } })
+    // Le détail du projet s'ouvre et confirme l'enregistrement (pas de notification derrière la fenêtre).
+    router.push({ path: '/all-projects', query: { p: saved.id, saved: editing.value ? 'edit' : 'new' } })
   } catch (error) {
     serverError.value = error.userMessage
     await revealErrors()

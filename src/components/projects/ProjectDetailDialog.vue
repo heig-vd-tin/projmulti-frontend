@@ -28,6 +28,9 @@
       <v-divider />
 
       <v-card-text class="detail-body">
+        <v-alert v-if="notice" type="success" variant="tonal" density="compact" icon="mdi-check-circle-outline" class="mb-4" role="status" data-testid="saved-notice">
+          {{ notice }}
+        </v-alert>
         <template v-if="base">
           <div class="d-flex flex-wrap align-center ga-2 mb-4">
             <DomainBadges :domains="base.domains" mode="chips" />
@@ -113,6 +116,8 @@ const props = defineProps({
   projectId: { type: Number, default: null },
   // Projet de la liste (sans description), affiché immédiatement.
   project: { type: Object, default: null },
+  // Confirmation après enregistrement (« Le projet a été publié. »)
+  notice: { type: String, default: '' },
 })
 const emit = defineEmits(['close'])
 

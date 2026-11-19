@@ -172,7 +172,7 @@
       </v-col>
     </v-row>
 
-    <ProjectDetailDialog :project-id="openId" :project="openProjectObj" @close="closeProject" />
+    <ProjectDetailDialog :project-id="openId" :project="openProjectObj" :notice="savedNotice" @close="closeProject" />
   </div>
 </template>
 
@@ -259,13 +259,15 @@ const emptyText = computed(() => {
 
 const openId = computed(() => (route.query.p ? Number(route.query.p) : null))
 const openProjectObj = computed(() => projects.all.find((p) => p.id === openId.value) || null)
+const savedNotice = computed(() => ({ new: 'Le projet a été publié.', edit: 'Les modifications sont enregistrées.' })[route.query.saved] || '')
 
 function openProject(p) {
-  router.push({ query: { ...route.query, p: p.id } })
+  const { saved: _saved, ...query } = route.query
+  router.push({ query: { ...query, p: p.id } })
 }
 
 function closeProject() {
-  const { p: _p, ...rest } = route.query
+  const { p: _p, saved: _saved, ...rest } = route.query
   router.replace({ query: rest })
 }
 
