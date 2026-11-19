@@ -1,0 +1,14 @@
+/* Éléments partagés du tableau de répartition (puces étudiant, rangs, orientations). */
+.ori-badge {
+  flex: none; display: inline-grid; place-items: center; min-width: 34px; height: 20px; padding: 0 5px;
+  border-radius: 6px; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.02em;
+}
+.rank-badge {
+  flex: none; display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 5px;
+  border-radius: 6px; font-size: 0.72rem; font-weight: 700;
+}
+.rank--good { background: rgba(var(--v-theme-success), 0.12); color: rgb(var(--v-theme-success)); }
+.rank--mid { background: rgba(var(--v-theme-info), 0.11); color: rgb(var(--v-theme-info)); }
+.rank--warn { background: rgba(var(--v-theme-warning), 0.13); color: rgb(var(--v-theme-warning)); }
+.rank--out { background: rgba(var(--v-theme-error), 0.1); color: rgb(var(--v-theme-error)); }
+.rank--none { background: rgb(var(--v-theme-surface-light)); color: rgba(var(--v-theme-on-surface), 0.55); }

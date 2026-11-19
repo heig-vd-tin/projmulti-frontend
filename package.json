@@ -1,68 +1,40 @@
 {
-  "name": "proj-multi",
-  "version": "0.1.0",
+  "name": "projmulti-frontend",
+  "version": "2.0.0",
   "private": true,
+  "type": "module",
+  "description": "Répartition des projets multidisciplinaires (HEIG-VD) : interface web",
   "scripts": {
-    "serve": "vue-cli-service serve --mode development --port 8081",
-    "build": "vue-cli-service build",
-    "watch": "vue-cli-service build --watch",
-    "build-dist": "vue-cli-service build --mode development --dest ../backend/public --no-clean",
-    "build-dist-vm": "vue-cli-service build --dest ../projmulti-backend/public --no-clean",
-    "watch-dist": "vue-cli-service build --mode development --dest ../backend/public --watch --no-clean",
-    "lint": "vue-cli-service lint"
+    "dev": "vite",
+    "build": "vite build",
+    "build:dev": "vite build --mode development",
+    "preview": "vite preview",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
   },
   "dependencies": {
-    "@fortawesome/fontawesome-svg-core": "^6.2.0",
-    "@fortawesome/free-brands-svg-icons": "^6.2.0",
-    "@fortawesome/free-regular-svg-icons": "^6.2.0",
-    "@fortawesome/free-solid-svg-icons": "^6.2.0",
-    "@fortawesome/vue-fontawesome": "^2.0.8",
-    "axios": "^0.27.2",
-    "core-js": "^3.8.3",
-    "keycloak-js": "^19.0.1",
-    "quill-image-resize-vue": "^1.0.4",
-    "vue": "^2.6.14",
-    "vue-notification": "^1.3.20",
-    "vue-router": "^3.5.1",
-    "vue2-editor": "^2.10.3",
-    "vuedraggable": "^2.24.3",
-    "vuetify": "^2.6.0",
-    "vuex": "^3.6.2"
+    "@fontsource-variable/inter": "5.3.0",
+    "@mdi/font": "7.4.47",
+    "axios": "1.21.1",
+    "dompurify": "3.4.18",
+    "keycloak-js": "26.2.5",
+    "pinia": "4.1.0",
+    "quill": "2.0.3",
+    "vue": "3.5.45",
+    "vue-router": "4.6.5",
+    "vuetify": "3.13.8"
   },
   "devDependencies": {
-    "@babel/core": "^7.12.16",
-    "@babel/eslint-parser": "^7.12.16",
-    "@mdi/font": "^7.0.96",
-    "@vue/cli-plugin-babel": "~5.0.0",
-    "@vue/cli-plugin-eslint": "~5.0.0",
-    "@vue/cli-plugin-router": "~5.0.0",
-    "@vue/cli-plugin-vuex": "~5.0.0",
-    "@vue/cli-service": "~5.0.0",
-    "eslint": "^7.32.0",
-    "eslint-plugin-vue": "^8.0.3",
-    "sass": "~1.32.0",
-    "sass-loader": "^10.0.0",
-    "vue-cli-plugin-vuetify": "~2.5.1",
-    "vue-template-compiler": "^2.6.14",
-    "vuetify-loader": "^1.7.0"
+    "@eslint/js": "10.0.1",
+    "@vitejs/plugin-vue": "6.0.11",
+    "eslint": "10.15.0",
+    "eslint-plugin-vue": "10.12.1",
+    "globals": "17.14.0",
+    "vite": "8.3.8",
+    "vite-plugin-vuetify": "2.1.3",
+    "vue-eslint-parser": "10.4.2"
   },
-  "eslintConfig": {
-    "root": true,
-    "env": {
-      "node": true
-    },
-    "extends": [
-      "plugin:vue/essential",
-      "eslint:recommended"
-    ],
-    "parserOptions": {
-      "parser": "@babel/eslint-parser"
-    },
-    "rules": {}
-  },
-  "browserslist": [
-    "> 1%",
-    "last 2 versions",
-    "not dead"
-  ]
+  "engines": {
+    "node": ">=22.12.0"
+  }
 }

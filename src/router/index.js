@@ -1,70 +1,84 @@
-import Vue from 'vue'
-import VueRouter from 'vue-router'
-import store from '@/store'
+import { createRouter, createWebHistory } from 'vue-router'
+import { bootApp } from '@/stores/boot'
+import { useSessionStore } from '@/stores/session'
 
-Vue.use(VueRouter)
-
+// Les anciennes adresses (/all-projects, /global...) sont gardées : liens déjà envoyés aux profs.
 const routes = [
+  { path: '/', redirect: '/all-projects' },
   {
-    path: "*",
-    redirect: "/"
+    path: '/all-projects',
+    name: 'projects',
+    component: () => import('@/views/projects/ProjectsView.vue'),
+    meta: { title: 'Projets' },
   },
   {
-    path: "/",
-    redirect: "/all-projects"
+    path: '/my-projects',
+    name: 'mine',
+    component: () => import('@/views/MineView.vue'),
+    meta: { title: 'Mes projets' },
   },
   {
-    path: "/all-projects",
-    name: "AllProjects",
-    component: () => import("@/views/allProjects/AllProjects")
+    path: '/new-project',
+    name: 'project-new',
+    component: () => import('@/views/projects/ProjectEditView.vue'),
+    meta: { title: 'Nouveau projet', roles: ['professor', 'admin'] },
   },
   {
-    path: "/my-projects",
-    name: "MyProjects",
-    component: () => import("@/views/myProjects/MyProjects")
+    path: '/edit-project/:id(\\d+)',
+    name: 'project-edit',
+    component: () => import('@/views/projects/ProjectEditView.vue'),
+    props: true,
+    meta: { title: 'Modifier le projet', roles: ['professor', 'admin'] },
   },
   {
-    path: "/new-project",
-    name: "NewProject",
-    component: () => import("@/views/NewProject"),
-    beforeEnter: (to, from, next) => store.dispatch('ensureUser').then(() => next(store.getters.getUser.isTeacher)).catch(() => next(false))
+    path: '/global',
+    name: 'board',
+    component: () => import('@/views/admin/BoardView.vue'),
+    meta: { title: 'Répartition', roles: ['admin'], wide: true },
   },
   {
-    path: "/edit-project/:project_id",
-    name: "EditProject",
-    component: () => import("@/views/EditProject"),
-    beforeEnter: (to, from, next) => store.dispatch('ensureUser').then(() => next(store.getters.getUser.isTeacher)).catch(() => next(false))
+    path: '/select',
+    name: 'selection',
+    component: () => import('@/views/admin/SelectionView.vue'),
+    meta: { title: 'Sélection des projets', roles: ['admin'] },
   },
   {
-    path: "/global",
-    name: "Global",
-    component: () => import("@/views/Global"),
-    beforeEnter: (to, from, next) => store.dispatch('ensureUser').then(() => next(store.getters.getUser.isAdmin)).catch(() => next(false))
+    path: '/infos',
+    name: 'stats',
+    component: () => import('@/views/admin/StatsView.vue'),
+    meta: { title: 'Statistiques', roles: ['admin'] },
   },
   {
-    path: "/select",
-    name: "Select",
-    component: () => import("@/views/Select"),
-    beforeEnter: (to, from, next) => store.dispatch('ensureUser').then(() => next(store.getters.getUser.isAdmin)).catch(() => next(false))
+    path: '/settings',
+    name: 'settings',
+    component: () => import('@/views/admin/SettingsView.vue'),
+    meta: { title: 'Réglages', roles: ['admin'] },
   },
-  {
-    path: "/settings",
-    name: "Settings",
-    component: () => import("@/views/Settings"),
-    beforeEnter: (to, from, next) => store.dispatch('ensureUser').then(() => next(store.getters.getUser.isAdmin)).catch(() => next(false))
-  },
-  {
-    path: "/infos",
-    name: "Infos",
-    component: () => import("@/views/Infos"),
-    beforeEnter: (to, from, next) => store.dispatch('ensureUser').then(() => next(store.getters.getUser.isAdmin)).catch(() => next(false))
-  }
+  { path: '/:pathMatch(.*)*', redirect: '/all-projects' },
 ]
 
-const router = new VueRouter({
-  mode: 'history',
-  base: process.env.BASE_URL,
-  routes
+const router = createRouter({
+  history: createWebHistory(import.meta.env.BASE_URL),
+  routes,
+  scrollBehavior(to, from, saved) {
+    if (saved) return saved
+    if (to.path === from.path) return false
+    return { top: 0 }
+  },
+})
+
+router.beforeEach(async (to) => {
+  const session = useSessionStore()
+  // Démarrage idempotent : la première navigation attend l'utilisateur et la phase.
+  await bootApp().catch(() => {})
+  if (session.status !== 'ready') return true
+  if (to.meta.roles && !to.meta.roles.includes(session.user.role)) return { name: 'projects' }
+  return true
+})
+
+router.afterEach((to) => {
+  const base = 'Projets multidisciplinaires · HEIG-VD'
+  document.title = to.meta.title ? `${to.meta.title} · ${base}` : base
 })
 
 export default router

@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#bf2a3c" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <title>Projets multidisciplinaires · HEIG-VD</title>
+    <style>
+      /* Écran de démarrage (connexion Keycloak, chargement) avant le montage de Vue. */
+      html, body { margin: 0; background: #f6f7f9; }
+      @media (prefers-color-scheme: dark) { html, body { background: #14171c; } }
+      #boot { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
+        font: 500 15px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; color: #5b606b; }
+      #boot .mark { width: 44px; height: 44px; border-radius: 12px; background: #bf2a3c; color: #fff; display: grid; place-items: center;
+        font-weight: 800; letter-spacing: .5px; animation: boot-pulse 1.4s ease-in-out infinite; }
+      @keyframes boot-pulse { 50% { transform: scale(.92); opacity: .75; } }
+      @media (prefers-reduced-motion: reduce) { #boot .mark { animation: none; } }
+    </style>
+  </head>
+  <body>
+    <noscript>Cette application nécessite JavaScript. Activez-le dans votre navigateur.</noscript>
+    <div id="app">
+      <div id="boot" role="status" aria-live="polite"><div class="mark">PM</div><div>Chargement de l'application…</div></div>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
