@@ -25,7 +25,6 @@
           <div class="d-flex align-center ga-2 mb-2">
             <v-icon :icon="info.icon" size="20" />
             <span class="font-weight-bold">{{ info.title }}</span>
-            <v-spacer />
             <span v-if="session.phase === key" class="current-tag">actuelle</span>
           </div>
           <div class="text-body-2 phase-desc">{{ info.description }}</div>
@@ -50,8 +49,8 @@
       <h2 id="students-title" class="section-title">Étudiants inscrits</h2>
       <div class="d-flex align-center flex-wrap ga-3">
         <p class="section-hint mb-0 flex-grow-1">
-          {{ plural(admin.students.length, 'étudiant') }} se sont connectés à la plateforme pour le cours {{ session.currentYear }}
-          ({{ withChoices }} avec au moins un choix).
+          {{ plural(admin.students.length, 'étudiant') }} {{ admin.students.length > 1 ? 'se sont connectés' : 's\'est connecté' }}
+          à la plateforme pour le cours {{ session.currentYear }} ({{ withChoices }} avec au moins un choix).
         </p>
         <v-btn variant="tonal" prepend-icon="mdi-file-delimited-outline" data-testid="export-students" @click="exportStudents">
           Exporter la liste (CSV)
@@ -153,6 +152,7 @@ function exportStudents() {
 .section-hint { margin: 0 0 16px; color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity)); font-size: 0.92rem; }
 .phase-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
 .phase-option {
+  position: relative;
   text-align: left; padding: 14px 16px; border-radius: 12px; cursor: pointer; font: inherit; color: inherit;
   background: rgb(var(--v-theme-surface));
   border: 1px solid rgba(var(--v-border-color), 0.16);
@@ -162,7 +162,7 @@ function exportStudents() {
 .phase-option--on { border-color: rgb(var(--v-theme-primary)); background: rgba(var(--v-theme-primary), 0.05); box-shadow: 0 0 0 1px rgb(var(--v-theme-primary)); }
 .phase-option--on .v-icon { color: rgb(var(--v-theme-primary)); }
 .phase-desc { color: rgba(var(--v-theme-on-surface), 0.72); }
-.current-tag { font-size: 0.72rem; font-weight: 600; padding: 1px 8px; border-radius: 999px; background: rgb(var(--v-theme-surface-light)); }
+.current-tag { position: absolute; top: 10px; right: 10px; font-size: 0.72rem; font-weight: 600; padding: 1px 8px; border-radius: 999px; background: rgb(var(--v-theme-surface-light)); }
 .danger { border-color: rgba(var(--v-theme-error), 0.35) !important; }
 .year-list { padding-left: 1.3em; line-height: 1.7; }
 .confirm-field { flex: 1 1 260px; max-width: 360px; }

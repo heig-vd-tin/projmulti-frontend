@@ -142,3 +142,10 @@ html { overflow-y: auto; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
 }
+
+/* Boutons principaux désactivés : gris neutre plutôt qu'un rouge délavé. */
+.v-application .v-btn.v-btn--disabled.v-btn--variant-flat {
+  background-color: rgb(var(--v-theme-surface-light)) !important;
+  color: rgba(var(--v-theme-on-surface), 0.45) !important;
+  opacity: 1;
+}

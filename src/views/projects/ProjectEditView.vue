@@ -300,4 +300,9 @@ onBeforeRouteLeave(async () => {
   background: rgba(var(--v-theme-background), 0.92); backdrop-filter: blur(6px);
   border-top: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
 }
+@media (max-width: 600px) {
+  /* Sur téléphone : l'état choisi se lit au fond teinté et à la bordure, la coche est masquée. */
+  .domain-pick { padding: 10px; gap: 8px; font-size: 0.86rem; }
+  .domain-pick .v-icon + span + .v-icon { display: none; }
+}
 </style>
