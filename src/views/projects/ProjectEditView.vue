@@ -92,7 +92,7 @@
         <v-spacer />
         <v-btn variant="text" :disabled="saving" @click="goBack">Annuler</v-btn>
         <v-btn type="submit" color="primary" variant="flat" :loading="saving" prepend-icon="mdi-check" data-testid="submit">
-          {{ editing ? 'Enregistrer les modifications' : 'Publier le projet' }}
+          {{ editing ? (xs ? 'Enregistrer' : 'Enregistrer les modifications') : (xs ? 'Publier' : 'Publier le projet') }}
         </v-btn>
       </div>
     </form>
@@ -102,6 +102,7 @@
 <script setup>
 import { computed, nextTick, onMounted, ref } from 'vue'
 import { onBeforeRouteLeave, useRouter } from 'vue-router'
+import { useDisplay } from 'vuetify'
 import RichEditor from '@/components/editor/RichEditor.vue'
 import { useDark } from '@/composables/useDark'
 import { useConfirmStore } from '@/stores/confirm'
@@ -125,6 +126,7 @@ const notify = useNotifyStore()
 const confirm = useConfirmStore()
 const router = useRouter()
 const dark = useDark()
+const { xs } = useDisplay()
 
 const editing = computed(() => !!props.id)
 const original = ref(null)
@@ -136,13 +138,15 @@ const domainIds = ref([])
 const description = ref('')
 const saving = ref(false)
 const showErrors = ref(false)
-const formErrors = ref([])
+const serverError = ref('')
 const editor = ref(null)
 const errorBox = ref(null)
 const snapshot = ref('')
 let leaving = false
 
 const descriptionSize = computed(() => byteSize(description.value))
+// Liste à jour de ce qui manque (après une première tentative), plus l'erreur du serveur.
+const formErrors = computed(() => (showErrors.value ? [...check(), serverError.value].filter(Boolean) : []))
 const tooBig = computed(() => descriptionSize.value > MAX_MB * 1024 * 1024)
 
 const blocker = computed(() => {
@@ -200,12 +204,10 @@ function check() {
   if (tooBig.value) {
     errors.push(`La description pèse ${formatBytes(descriptionSize.value)} (maximum ${MAX_MB} Mo) : réduisez la taille ou le nombre des images.`)
   }
-  if (editor.value && editor.value.busy) errors.push('Les images sont en cours de réduction : patientez une seconde.')
   return errors
 }
 
-async function showFormErrors(errors) {
-  formErrors.value = errors
+async function revealErrors() {
   await nextTick()
   const el = errorBox.value && errorBox.value.$el
   if (el) {
@@ -217,12 +219,15 @@ async function showFormErrors(errors) {
 async function submit() {
   if (editor.value) description.value = editor.value.getHtml()
   showErrors.value = true
-  const errors = check()
-  if (errors.length) {
-    await showFormErrors(errors)
+  serverError.value = ''
+  if (editor.value && editor.value.busy) {
+    notify.info('Les images sont en cours de réduction : réessayez dans une seconde.')
     return
   }
-  formErrors.value = []
+  if (check().length) {
+    await revealErrors()
+    return
+  }
   saving.value = true
   const payload = {
     id: editing.value ? Number(props.id) : -1,
@@ -242,7 +247,8 @@ async function submit() {
     leaving = true
     router.push({ path: '/all-projects', query: { p: saved.id } })
   } catch (error) {
-    await showFormErrors([error.userMessage])
+    serverError.value = error.userMessage
+    await revealErrors()
     notify.error(error, "Le projet n'a pas été enregistré")
   } finally {
     saving.value = false
@@ -271,7 +277,8 @@ onBeforeRouteLeave(async () => {
 .section-title { font-size: 1.05rem; font-weight: 700; margin: 0 0 2px; }
 .section-hint { margin: 0 0 16px; color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity)); font-size: 0.9rem; }
 .section--error { border-color: rgba(var(--v-theme-error), 0.6) !important; }
-.domain-picks { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; }
+.domain-picks { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(190px, calc(50% - 5px)), 1fr)); gap: 10px; }
+.domain-pick span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .domain-pick {
   display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 12px;
   font: inherit; font-weight: 550; text-align: left; cursor: pointer; color: inherit;

@@ -35,7 +35,7 @@
           <v-icon :icon="project.selected ? 'mdi-check-circle-outline' : 'mdi-circle-outline'" size="14" />
           {{ project.selected ? 'Sélectionné' : 'Non sélectionné' }}
         </span>
-        <span class="meta-tag" :title="`Choisi par ${project.preferredCount(5)} étudiant(s), dont ${project.preferredCount(3)} en choix 1 à 3`">
+        <span class="meta-tag" :title="`Choisi par ${plural(project.preferredCount(5), 'étudiant')}, dont ${project.preferredCount(3)} en choix 1 à 3`">
           <v-icon icon="mdi-account-heart-outline" size="14" />{{ project.preferredCount(3) }} / {{ project.preferredCount(5) }}
         </span>
       </template>
@@ -49,6 +49,7 @@ import { computed } from 'vue'
 import DomainBadges from '@/components/projects/DomainBadges.vue'
 import { usePreferencesStore } from '@/stores/preferences'
 import { useSessionStore } from '@/stores/session'
+import { plural } from '@/utils/text'
 
 const props = defineProps({ project: { type: Object, required: true } })
 defineEmits(['open'])

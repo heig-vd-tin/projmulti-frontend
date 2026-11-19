@@ -22,7 +22,9 @@ html { overflow-y: auto; }
 .v-application .text-body-1, .v-application .text-body-2, .v-application .text-caption,
 .v-application .text-subtitle-1, .v-application .text-subtitle-2, .v-application .v-btn,
 .v-application .v-chip, .v-application .v-field, .v-application .v-label, .v-application .v-list-item-title,
-.v-application .v-list-item-subtitle, .v-application .v-messages, .v-application .v-counter, .v-application .v-tab {
+.v-application .v-list-item-subtitle, .v-application .v-messages, .v-application .v-counter, .v-application .v-tab,
+.v-application .v-card-text, .v-application .v-card-title, .v-application .v-card-subtitle, .v-application .v-alert,
+.v-application .v-snackbar__content, .v-application .v-field__input, .v-application .v-tooltip > .v-overlay__content {
   letter-spacing: 0 !important;
 }
 
@@ -35,6 +37,8 @@ html { overflow-y: auto; }
   outline-offset: 2px;
 }
 .v-application .v-field :focus-visible { outline: none; }
+/* L'éditeur affiche son propre anneau de focus (bordure du cadre). */
+.v-application .ql-editor:focus-visible { outline: none; }
 
 .page {
   max-width: 1360px;

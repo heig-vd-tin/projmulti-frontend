@@ -7,7 +7,7 @@
       'bp--choice': focusRank,
       'bp--unselected': !project.selected,
     }"
-    :aria-label="`Projet ${project.title}, ${members.length} étudiant(s)`"
+    :aria-label="`Projet ${project.title}, ${plural(members.length, 'étudiant')}`"
     :data-testid="`board-project-${project.id}`"
     @dragover.prevent="$emit('drag-over', project)"
     @dragleave="onLeave"
@@ -91,6 +91,7 @@ import StudentChip from '@/components/board/StudentChip.vue'
 import { useDark } from '@/composables/useDark'
 import { domainCoverage } from '@/utils/board'
 import { domainColor } from '@/utils/palette'
+import { plural } from '@/utils/text'
 
 const props = defineProps({
   project: { type: Object, required: true },
@@ -115,7 +116,7 @@ const sizeTone = computed(() => {
   if (n > props.params.max_size) return 'high'
   return 'ok'
 })
-const sizeTitle = computed(() => `${props.members.length} étudiant(s) · taille visée ${props.params.min_size} à ${props.params.max_size}`)
+const sizeTitle = computed(() => `${plural(props.members.length, 'étudiant')} · taille visée ${props.params.min_size} à ${props.params.max_size}`)
 
 const coverage = computed(() =>
   props.project.domains.map((d) => {

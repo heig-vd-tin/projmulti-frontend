@@ -59,7 +59,7 @@
               <div class="min-w-0 flex-grow-1">
                 <div class="choice-title text-truncate" :title="c.project.title">{{ c.project.title }}</div>
                 <div class="text-caption muted">
-                  #{{ c.project.id }} · {{ c.count }} étudiant(s)
+                  #{{ c.project.id }} · {{ plural(c.count, 'étudiant') }}
                   <template v-if="!c.project.selected"> · <span class="text-error">non sélectionné</span></template>
                   <v-icon v-if="c.project.isLocked" icon="mdi-lock" size="12" class="ml-1" aria-label="projet verrouillé" />
                 </div>
@@ -150,6 +150,7 @@ import { useDark } from '@/composables/useDark'
 import { useConfirmStore } from '@/stores/confirm'
 import { rankTone } from '@/utils/board'
 import { orientationColor } from '@/utils/palette'
+import { plural } from '@/utils/text'
 import './boardStyles.css'
 
 const props = defineProps({

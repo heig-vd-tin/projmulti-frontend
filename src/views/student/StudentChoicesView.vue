@@ -58,7 +58,7 @@
             <v-btn icon="mdi-arrow-up" variant="text" size="small" :disabled="i === 0 || prefs.saving" :aria-label="`Monter « ${p.title} »`" @click="move(i, i - 1)" />
             <v-btn icon="mdi-arrow-down" variant="text" size="small" :disabled="i === MAX_CHOICES - 1 || prefs.saving" :aria-label="`Descendre « ${p.title} »`" @click="move(i, i + 1)" />
             <v-btn icon="mdi-eye-outline" variant="text" size="small" :aria-label="`Voir « ${p.title} »`" @click="openId = p.id" />
-            <v-btn icon="mdi-close" variant="text" size="small" color="error" :disabled="prefs.saving" :aria-label="`Retirer « ${p.title} » de mes choix`" @click="remove(p)" />
+            <v-btn icon="mdi-close" variant="text" size="small" class="remove-btn" :disabled="prefs.saving" :aria-label="`Retirer « ${p.title} » de mes choix`" @click="remove(p)" />
           </div>
         </template>
         <template v-else>
@@ -167,10 +167,12 @@ async function remove(p) {
 .slot-short { color: rgba(var(--v-theme-on-surface), 0.8); margin-top: 2px; }
 .drag-handle { color: rgba(var(--v-theme-on-surface), 0.35); margin-left: -6px; }
 .slot-actions { display: flex; flex-direction: column; flex-wrap: wrap; align-content: flex-end; justify-content: center; gap: 0 2px; max-height: 96px; }
+.remove-btn { color: rgba(var(--v-theme-on-surface), 0.55); }
+.remove-btn:hover { color: rgb(var(--v-theme-error)); }
 .slot-empty { flex: 1; display: flex; align-items: center; justify-content: space-between; gap: 8px; color: rgba(var(--v-theme-on-surface), 0.6); min-height: 44px; }
 @media (max-width: 600px) {
   .slot { gap: 10px; padding: 12px 8px 12px 10px; }
   .slot-rank { width: 34px; font-size: 1.1rem; }
-  .slot-actions { max-height: none; flex-direction: row; flex-wrap: wrap; width: 72px; }
+  .slot-actions { max-height: none; flex-direction: row; flex-wrap: wrap; width: 80px; align-content: center; }
 }
 </style>

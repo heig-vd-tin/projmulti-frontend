@@ -33,17 +33,6 @@
 
     <v-spacer />
 
-    <v-btn
-      v-if="ready && session.user.isProfessor && session.canEditProjects && mdAndUp"
-      to="/new-project"
-      color="primary"
-      variant="flat"
-      prepend-icon="mdi-plus"
-      class="mr-3"
-    >
-      Nouveau projet
-    </v-btn>
-
     <PhaseChip v-if="session.currentYear && smAndUp" class="mr-2" />
 
     <DevUserMenu v-if="DEV_AUTH" class="mr-1" />

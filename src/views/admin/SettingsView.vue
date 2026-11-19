@@ -144,7 +144,7 @@ async function newYear() {
 
 function exportStudents() {
   const n = exportStudentsCsv(admin.students, admin.projectById)
-  notify.success(`${plural(n, 'étudiant')} exporté(s).`)
+  notify.success(`${plural(n, 'étudiant exporté', 'étudiants exportés')}.`)
 }
 </script>
 

@@ -4,7 +4,7 @@
       <div>
         <h1>Sélection des projets</h1>
         <div class="subtitle">
-          Cours {{ session.currentYear }} · {{ selectedCount }} projet(s) sélectionné(s) sur {{ admin.projects.length }}.
+          Cours {{ session.currentYear }} · {{ plural(selectedCount, 'projet sélectionné', 'projets sélectionnés') }} sur {{ admin.projects.length }}.
           Les projets sélectionnés sont ouverts dans la répartition.
         </div>
       </div>
@@ -91,6 +91,7 @@ import ProjectDetailDialog from '@/components/projects/ProjectDetailDialog.vue'
 import { useAdminStore } from '@/stores/admin'
 import { useNotifyStore } from '@/stores/notify'
 import { useSessionStore } from '@/stores/session'
+import { plural } from '@/utils/text'
 
 const session = useSessionStore()
 const admin = useAdminStore()

@@ -8,19 +8,24 @@
         <div class="img-size">{{ overlay.width }} px</div>
       </div>
       <div v-if="overlay" class="img-toolbar" :style="toolbarStyle" role="toolbar" aria-label="Image sélectionnée">
-        <v-btn-group density="compact" variant="flat" divided rounded="lg" class="img-btns">
-          <v-btn size="small" @click="setWidthRatio(0.33)">S</v-btn>
-          <v-btn size="small" @click="setWidthRatio(0.5)">M</v-btn>
-          <v-btn size="small" @click="setWidthRatio(0.75)">L</v-btn>
-          <v-btn size="small" @click="setWidthRatio(1)">100 %</v-btn>
-        </v-btn-group>
-        <v-btn-group density="compact" variant="flat" divided rounded="lg" class="img-btns ml-1">
-          <v-btn size="small" icon="mdi-format-float-left" aria-label="Image à gauche, texte autour" @click="setAlign('left')" />
-          <v-btn size="small" icon="mdi-format-float-center" aria-label="Image centrée" @click="setAlign('center')" />
-          <v-btn size="small" icon="mdi-format-float-right" aria-label="Image à droite, texte autour" @click="setAlign('right')" />
-          <v-btn size="small" icon="mdi-format-float-none" aria-label="Image dans le texte" @click="setAlign(null)" />
-          <v-btn size="small" icon="mdi-delete-outline" aria-label="Supprimer l'image" @click="deleteImage" />
-        </v-btn-group>
+        <button v-for="s in SIZES" :key="s.label" type="button" class="itb itb--text" :title="s.title" @mousedown.prevent @click="setWidthRatio(s.ratio)">{{ s.label }}</button>
+        <span class="itb-sep" aria-hidden="true"></span>
+        <button
+          v-for="a in ALIGNS"
+          :key="a.icon"
+          type="button"
+          class="itb"
+          :title="a.title"
+          :aria-label="a.title"
+          @mousedown.prevent
+          @click="setAlign(a.value)"
+        >
+          <v-icon :icon="a.icon" size="18" />
+        </button>
+        <span class="itb-sep" aria-hidden="true"></span>
+        <button type="button" class="itb" title="Supprimer l'image" aria-label="Supprimer l'image" @mousedown.prevent @click="deleteImage">
+          <v-icon icon="mdi-delete-outline" size="18" />
+        </button>
       </div>
     </div>
     <div class="editor-footer text-caption">
@@ -50,6 +55,18 @@ const emit = defineEmits(['update:modelValue', 'image-error'])
 const Quill = setupQuill()
 const Delta = Quill.import('delta')
 const IMAGE_MIME = ['image/png', 'image/jpeg', 'image/webp', 'image/gif']
+const SIZES = [
+  { label: 'S', ratio: 0.33, title: 'Petite (un tiers de la largeur)' },
+  { label: 'M', ratio: 0.5, title: 'Moyenne (la moitié)' },
+  { label: 'L', ratio: 0.75, title: 'Grande (trois quarts)' },
+  { label: '100 %', ratio: 1, title: 'Toute la largeur' },
+]
+const ALIGNS = [
+  { icon: 'mdi-format-float-left', value: 'left', title: 'À gauche, texte autour' },
+  { icon: 'mdi-format-float-center', value: 'center', title: 'Centrée' },
+  { icon: 'mdi-format-float-right', value: 'right', title: 'À droite, texte autour' },
+  { icon: 'mdi-format-float-none', value: null, title: 'Dans le texte' },
+]
 
 const host = ref(null)
 const editorEl = ref(null)
@@ -315,7 +332,7 @@ defineExpose({
 
 <style>
 .rich-editor { border: 1px solid rgba(var(--v-border-color), 0.22); border-radius: 12px; background: rgb(var(--v-theme-surface)); }
-.rich-editor:focus-within { border-color: rgb(var(--v-theme-primary)); box-shadow: 0 0 0 1px rgb(var(--v-theme-primary)); }
+.rich-editor:focus-within { border-color: rgba(var(--v-theme-primary), 0.55); box-shadow: 0 0 0 3px rgba(var(--v-theme-primary), 0.1); }
 .rich-editor--error { border-color: rgb(var(--v-theme-error)); }
 .rich-editor .editor-host { position: relative; }
 .rich-editor .ql-toolbar.ql-snow {
@@ -363,8 +380,18 @@ defineExpose({
   position: absolute; right: 6px; bottom: 6px; padding: 1px 6px; border-radius: 6px; font-size: 0.72rem;
   background: rgba(20, 23, 28, 0.75); color: #fff;
 }
-.rich-editor .img-toolbar { position: absolute; z-index: 4; display: flex; flex-wrap: wrap; gap: 4px; }
-.rich-editor .img-btns { box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18); }
+.rich-editor .img-toolbar {
+  position: absolute; z-index: 4; display: flex; align-items: center; gap: 2px; padding: 3px;
+  background: rgb(var(--v-theme-surface)); border: 1px solid rgba(var(--v-border-color), 0.16);
+  border-radius: 10px; box-shadow: 0 6px 18px -6px rgba(0, 0, 0, 0.25);
+}
+.rich-editor .itb {
+  min-width: 30px; height: 30px; padding: 0 6px; border-radius: 7px; border: none; background: transparent;
+  display: inline-grid; place-items: center; cursor: pointer; color: rgba(var(--v-theme-on-surface), 0.8);
+  font: inherit; font-size: 0.8rem; font-weight: 650;
+}
+.rich-editor .itb:hover { background: rgb(var(--v-theme-surface-light)); color: rgb(var(--v-theme-on-surface)); }
+.rich-editor .itb-sep { width: 1px; height: 18px; margin: 0 3px; background: rgba(var(--v-border-color), 0.16); }
 .rich-editor .editor-footer {
   display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 8px 14px;
   border-top: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));

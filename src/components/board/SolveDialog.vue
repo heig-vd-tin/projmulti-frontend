@@ -11,9 +11,19 @@
 
       <v-card-text>
         <div class="params">
-          <v-number-input v-model="form.min_size" label="Taille minimale d'un groupe" :min="1" :max="10" control-variant="split" density="compact" hide-details="auto" />
-          <v-number-input v-model="form.max_size" label="Taille maximale d'un groupe" :min="1" :max="10" control-variant="split" density="compact" hide-details="auto" :error-messages="sizeError" />
-          <v-number-input v-model="form.max_same_orientation" label="Max. étudiants d'une même orientation" :min="1" :max="10" control-variant="split" density="compact" hide-details="auto" />
+          <div v-for="f in fields" :key="f.key" class="param">
+            <label :for="`solve-${f.key}`" class="param-label">{{ f.label }}</label>
+            <v-number-input
+              :id="`solve-${f.key}`"
+              v-model="form[f.key]"
+              :min="1"
+              :max="10"
+              control-variant="split"
+              density="compact"
+              hide-details="auto"
+              :error-messages="f.key === 'max_size' ? sizeError : undefined"
+            />
+          </div>
         </div>
         <div class="switches mt-4">
           <v-switch v-model="form.allow_fifth_choice" label="Autoriser le 5e choix" />
@@ -30,7 +40,7 @@
           Le calcul <strong>remplace la répartition actuelle</strong> (hors éléments verrouillés).
           Sauvegardez-la d'abord pour pouvoir revenir en arrière.
           <div class="mt-2">
-            <v-btn size="small" variant="flat" color="warning" prepend-icon="mdi-download" :loading="saving" data-testid="solve-save-first" @click="$emit('save')">
+            <v-btn size="small" variant="outlined" color="warning" prepend-icon="mdi-download" :loading="saving" data-testid="solve-save-first" @click="$emit('save')">
               Sauvegarder la répartition actuelle (.prjmult)
             </v-btn>
             <span v-if="saved" class="ml-2 text-body-2"><v-icon icon="mdi-check" size="16" /> sauvegardée</span>
@@ -67,6 +77,11 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue', 'run', 'save'])
 
 const form = reactive({ ...props.params })
+const fields = [
+  { key: 'min_size', label: 'Taille minimale d\u2019un groupe' },
+  { key: 'max_size', label: 'Taille maximale d\u2019un groupe' },
+  { key: 'max_same_orientation', label: 'Maximum d\u2019étudiants d\u2019une même orientation' },
+]
 watch(() => props.modelValue, (open) => { if (open) Object.assign(form, props.params) })
 
 const sizeError = computed(() => (Number(form.max_size) < Number(form.min_size) ? 'Doit être au moins égale à la taille minimale.' : ''))
@@ -87,7 +102,9 @@ function submit() {
 </script>
 
 <style scoped>
-.params { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
+.params { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; align-items: end; }
+.param { display: flex; flex-direction: column; gap: 6px; }
+.param-label { font-size: 0.84rem; font-weight: 600; color: rgba(var(--v-theme-on-surface), 0.8); line-height: 1.3; }
 .switches { display: flex; flex-direction: column; gap: 4px; }
 .rules { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; color: rgba(var(--v-theme-on-surface), 0.75); }
 .rules .v-icon { margin-right: 4px; vertical-align: -2px; }

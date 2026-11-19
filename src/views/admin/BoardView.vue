@@ -456,7 +456,7 @@ async function saveToFile(name, beforeSolve = false) {
     const rows = await admin.getAssignments()
     downloadBlob(new Blob([JSON.stringify(rows)], { type: 'text/plain' }), `${name}.prjmult`)
     if (beforeSolve) savedBeforeSolve.value = true
-    notify.success(`${plural(rows.length, 'affectation')} sauvegardée(s) dans ${name}.prjmult.`)
+    notify.success(`${plural(rows.length, 'affectation sauvegardée', 'affectations sauvegardées')} dans ${name}.prjmult.`)
     return true
   } catch (error) {
     notify.error(error, 'Sauvegarde impossible')
@@ -503,12 +503,12 @@ async function readFile(event) {
 
 function exportAssignment() {
   const n = exportAssignmentCsv(admin.students, admin.projectById)
-  notify.success(`${plural(n, 'affectation')} exportée(s).`)
+  notify.success(`${plural(n, 'affectation exportée', 'affectations exportées')}.`)
 }
 
 function exportStudents() {
   const n = exportStudentsCsv(admin.students, admin.projectById)
-  notify.success(`${plural(n, 'étudiant')} exporté(s).`)
+  notify.success(`${plural(n, 'étudiant exporté', 'étudiants exportés')}.`)
 }
 
 /* ---------- Calcul ---------- */
@@ -528,7 +528,7 @@ async function solve(values) {
     solveDialog.value = false
     showSolve.value = true
     const m = result.metrics || {}
-    notify.success(`${m.assigned ?? '?'} étudiant(s) affecté(s), rang moyen ${m.mean_rank != null ? Number(m.mean_rank).toFixed(2) : '—'}.`, 'Répartition calculée')
+    notify.success(`${plural(m.assigned ?? 0, 'étudiant affecté', 'étudiants affectés')}, rang moyen ${m.mean_rank != null ? Number(m.mean_rank).toFixed(2).replace('.', ',') : '—'}.`, 'Répartition calculée')
   } catch (error) {
     if (error.status === 404) {
       solveError.value = "Le calcul automatique n'est pas disponible sur ce serveur (POST /api/assignment/solve introuvable). Mettez le backend à jour ou utilisez l'ancien algorithme."

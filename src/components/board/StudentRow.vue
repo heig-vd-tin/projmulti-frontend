@@ -41,6 +41,7 @@ import { computed } from 'vue'
 import { useDark } from '@/composables/useDark'
 import { rankTone } from '@/utils/board'
 import { orientationColor } from '@/utils/palette'
+import { plural } from '@/utils/text'
 import './boardStyles.css'
 
 const props = defineProps({
@@ -76,7 +77,7 @@ function choiceClass(pid) {
 
 function choiceTitle(pref) {
   const p = props.projectById.get(pref.project_id)
-  const parts = [`Choix ${pref.priority} : ${p ? p.title : 'projet inconnu'}`, `${memberCount(pref.project_id)} étudiant(s)`]
+  const parts = [`Choix ${pref.priority} : ${p ? p.title : 'projet inconnu'}`, plural(memberCount(pref.project_id), 'étudiant')]
   if (p && !p.selected) parts.push('non sélectionné')
   if (props.student.assignedProjectId === pref.project_id) parts.push('affecté')
   return parts.join(' · ')

@@ -50,6 +50,16 @@ export async function initAuth() {
   setInterval(() => keycloak.updateToken(MIN_VALIDITY_S).catch(() => {}), REFRESH_EVERY_MS)
 }
 
+/** Rafraîchit le jeton s'il expire dans moins de 30 s (après une mise en veille, par exemple). */
+export async function ensureFreshToken() {
+  if (DEV_AUTH || !keycloak) return
+  try {
+    await keycloak.updateToken(30)
+  } catch {
+    /* session expirée : la réponse 401 relancera la connexion */
+  }
+}
+
 /** En-têtes d'authentification ajoutés à chaque requête vers l'API. */
 export function authHeaders() {
   if (DEV_AUTH) {

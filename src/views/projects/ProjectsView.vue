@@ -7,7 +7,7 @@
       </div>
       <div class="d-flex align-center flex-wrap ga-2">
         <v-btn
-          v-if="session.user.isTeacher && session.canEditProjects && session.isCurrentYear"
+          v-if="session.user.isTeacher && session.canEditProjects && session.isCurrentYear && (projects.all.length || loadingList)"
           color="primary"
           variant="flat"
           prepend-icon="mdi-plus"
@@ -108,7 +108,7 @@
     </div>
 
     <div class="d-flex align-center mb-3 text-body-2 muted" aria-live="polite">
-      <template v-if="!loadingList">{{ resultLabel }}</template>
+      <template v-if="!loadingList && projects.all.length">{{ resultLabel }}</template>
     </div>
 
     <v-row v-if="loadingList" dense>

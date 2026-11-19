@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { authHeaders, handleUnauthorized } from '@/auth'
+import { authHeaders, ensureFreshToken, handleUnauthorized } from '@/auth'
 import { apiErrorMessage } from '@/utils/errors'
 
 // Client unique de l'API Laravel. Chaque erreur reçoit `userMessage` (texte lisible) et
@@ -9,7 +9,8 @@ const http = axios.create({
   headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
 })
 
-http.interceptors.request.use((config) => {
+http.interceptors.request.use(async (config) => {
+  await ensureFreshToken()
   Object.assign(config.headers, authHeaders())
   return config
 })
