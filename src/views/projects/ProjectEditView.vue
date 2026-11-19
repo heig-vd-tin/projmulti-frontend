@@ -302,7 +302,11 @@ onBeforeRouteLeave(async () => {
   border-top: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
 }
 @media (max-width: 600px) {
-  .domain-pick { padding: 10px; gap: 8px; font-size: 0.86rem; }
+  .domain-pick { padding: 10px; gap: 8px; font-size: 0.9rem; }
   .domain-pick--on { padding: 9px; }
+}
+/* Téléphone : une colonne, pour lire le nom entier et garder la coche */
+@media (max-width: 440px) {
+  .domain-picks { grid-template-columns: 1fr; gap: 8px; }
 }
 </style>

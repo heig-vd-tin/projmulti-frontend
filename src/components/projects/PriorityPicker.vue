@@ -30,8 +30,9 @@
       </button>
     </div>
     <div class="d-flex align-center flex-wrap ga-2 mt-3">
-      <span class="text-body-2 muted">
-        <template v-if="current">Choisissez un autre numéro pour changer sa place (échange avec le projet qui l'occupe).</template>
+      <span class="text-body-2 muted" aria-live="polite">
+        <template v-if="savedMessage"><span class="saved"><v-icon icon="mdi-check" size="16" /> {{ savedMessage }}</span></template>
+        <template v-else-if="current">Choisissez un autre numéro pour changer sa place (échange avec le projet qui l'occupe).</template>
         <template v-else-if="prefs.isFull">Vos 5 choix sont faits : choisir un numéro remplace le projet qui l'occupe.</template>
         <template v-else>Il vous reste {{ MAX_CHOICES - prefs.count }} choix.</template>
       </span>
@@ -44,7 +45,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useConfirmStore } from '@/stores/confirm'
 import { useNotifyStore } from '@/stores/notify'
 import { MAX_CHOICES, usePreferencesStore } from '@/stores/preferences'
@@ -56,6 +57,14 @@ const notify = useNotifyStore()
 const confirm = useConfirmStore()
 
 const current = computed(() => prefs.priorityOf(props.project.id))
+// Confirmation dans la fenêtre même (une notification masquerait son titre ou ses actions).
+const savedMessage = ref('')
+let savedTimer = null
+function confirmSaved(text) {
+  savedMessage.value = text
+  clearTimeout(savedTimer)
+  savedTimer = setTimeout(() => { savedMessage.value = '' }, 4000)
+}
 
 function occupantOf(n) {
   const p = prefs.occupant(n)
@@ -84,7 +93,7 @@ async function pick(n) {
     } else {
       await prefs.choose(props.project.id, n)
     }
-    notify.success(`« ${props.project.title} » est votre choix n°${n}.`)
+    confirmSaved(`Enregistré : votre choix n°${n}.`)
   } catch (error) {
     notify.error(error, "Le choix n'a pas été enregistré")
     prefs.fetch().catch(() => {})
@@ -94,7 +103,7 @@ async function pick(n) {
 async function removeIt() {
   try {
     await prefs.remove(props.project.id)
-    notify.success(`« ${props.project.title} » a été retiré de vos choix.`)
+    confirmSaved('Retiré de vos choix.')
   } catch (error) {
     notify.error(error, "Le choix n'a pas pu être retiré")
   }
@@ -108,6 +117,7 @@ async function removeIt() {
   background: rgb(var(--v-theme-surface-light));
 }
 .pp-title { font-size: 0.98rem; font-weight: 650; margin: 0; }
+.saved { display: inline-flex; align-items: center; gap: 4px; color: rgb(var(--v-theme-success)); font-weight: 600; }
 .pp-slots { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
 .pp-slot {
   display: flex; flex-direction: column; align-items: center; gap: 2px;

@@ -16,6 +16,18 @@
         <div class="subtitle">{{ subtitle }}</div>
       </div>
       <div class="d-flex align-center flex-wrap ga-2">
+        <!-- Aucun projet : pas de filtres, seulement le choix de l'année (archives) -->
+        <v-select
+          v-if="!showFilters && session.user.isTeacher && session.years.length > 1"
+          :model-value="session.year"
+          :items="yearItems"
+          :item-props="(item) => ({ subtitle: item.subtitle })"
+          label="Cours"
+          density="compact"
+          hide-details
+          class="year-select year-select--alone"
+          @update:model-value="onYear"
+        />
         <v-btn
           v-if="session.user.isTeacher && session.canEditProjects && session.isCurrentYear && (projects.all.length || loadingList)"
           color="primary"
@@ -57,20 +69,6 @@
       Projets du cours {{ session.year }} (lecture seule). Pour reprendre un de vos projets cette année,
       ouvrez-le et cliquez sur « Reprendre pour {{ session.currentYear }} ».
     </v-alert>
-
-    <!-- Aucun projet cette année : seulement le choix de l'année (archives), pas de filtres inutiles -->
-    <div v-if="!showFilters && session.user.isTeacher && session.years.length > 1" class="d-flex justify-end mb-4">
-      <v-select
-        :model-value="session.year"
-        :items="yearItems"
-        :item-props="(item) => ({ subtitle: item.subtitle })"
-        label="Cours"
-        density="compact"
-        hide-details
-        class="year-select year-select--alone"
-        @update:model-value="onYear"
-      />
-    </div>
 
     <!-- Filtres (masqués tant qu'il n'y a aucun projet) -->
     <div v-if="showFilters" class="filters surface-card mb-5">

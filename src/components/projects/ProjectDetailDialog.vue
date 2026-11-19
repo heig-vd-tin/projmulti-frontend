@@ -194,15 +194,16 @@ async function duplicate() {
   duplicating.value = true
   try {
     const copy = await projects.duplicate(base.value.id)
+    // Navigation d'abord : la fenêtre se ferme et la notification s'affiche en bas à droite.
+    await router.push(`/edit-project/${copy.id}`)
     notify.success(`« ${copy.title} » a été ajouté au cours ${copy.year}. Vous pouvez le modifier.`, 'Projet repris')
-    router.push(`/edit-project/${copy.id}`)
   } catch (e) {
     const copyId = e.status === 409 && e.response.data && e.response.data.project_id
     if (copyId) {
       // Déjà repris (par exemple dans un autre onglet) : on ouvre la copie existante.
-      notify.info(e.userMessage)
       await projects.fetchOwned().catch(() => {})
-      router.push(copyTarget(copyId))
+      await router.push(copyTarget(copyId))
+      notify.info(e.userMessage)
     } else {
       notify.error(e, 'Impossible de reprendre le projet')
     }

@@ -493,8 +493,9 @@ async function saveToFile(name, beforeSolve = false) {
   try {
     const rows = await admin.getAssignments()
     downloadBlob(new Blob([JSON.stringify(rows)], { type: 'text/plain' }), `${name}.prjmult`)
+    // Depuis la fenêtre de calcul, la confirmation s'affiche dans la fenêtre (« sauvegardée »).
     if (beforeSolve) savedBeforeSolve.value = true
-    notify.success(`${plural(rows.length, 'affectation sauvegardée', 'affectations sauvegardées')} dans ${name}.prjmult.`)
+    else notify.success(`${plural(rows.length, 'affectation sauvegardée', 'affectations sauvegardées')} dans ${name}.prjmult.`)
     return true
   } catch (error) {
     notify.error(error, 'Sauvegarde impossible')
