@@ -8,9 +8,10 @@
         <h3>Déplacer les étudiants</h3>
         <ul>
           <li>Glissez une puce d'étudiant vers un projet pour l'y affecter, ou vers la liste de droite pour le retirer de son projet.</li>
-          <li>Un projet <v-icon icon="mdi-lock" size="15" /> verrouillé garde ses étudiants lors du calcul automatique ; le glisser-déposer reste possible.</li>
+          <li>Un projet <v-icon icon="mdi-lock" size="15" /> verrouillé a une équipe figée : plus de glisser-déposer vers ou depuis ce projet, et le calcul automatique la garde telle quelle. Même chose pour un étudiant verrouillé (dans sa fiche). Déverrouillez pour modifier.</li>
           <li>Cliquez sur un étudiant pour ouvrir sa fiche : ses 5 choix dans l'ordre, son affectation, l'affectation en un clic, le verrouillage et l'exclusion.</li>
-          <li><v-icon icon="mdi-account-search-outline" size="15" /> sur un projet : liste des étudiants qui l'ont choisi, triés par rang.</li>
+          <li><v-icon icon="mdi-account-search-outline" size="15" /> sur un projet : liste des étudiants qui l'ont choisi, triés par rang ; le projet concerné est encadré en bleu.</li>
+          <li>« Trier » au-dessus des projets : par numéro, titre ou effectif (les moins remplis d'abord pour voir où il manque du monde).</li>
         </ul>
         <h3>Légende</h3>
         <div class="legend">

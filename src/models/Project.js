@@ -24,7 +24,7 @@ export default class Project {
     this.source_id = data.source_id ?? null
   }
 
-  // Projet verrouillé : la répartition automatique garde exactement ses étudiants.
+  // Projet verrouillé : équipe figée (ni affectation manuelle, ni calcul automatique).
   get isLocked() { return this.state === 1 }
   get ownerName() { return this.owner ? [this.owner.firstname, this.owner.lastname].filter(Boolean).join(' ') : '' }
 

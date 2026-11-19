@@ -29,7 +29,6 @@
           <v-card min-width="320" class="pa-4" border>
             <v-switch v-model="showName" label="Afficher les noms" data-testid="toggle-names" />
             <v-switch v-model="showAllProjects" label="Afficher les projets non sélectionnés" class="mt-2" />
-            <v-select v-model="projectSort" :items="projectSortItems" label="Ordre des projets" density="compact" hide-details class="mt-4" />
             <div class="legend-title">Couverture des domaines</div>
             <div class="cov-legend">
               <span class="cov-sample cov-sample--ok"><v-icon icon="mdi-check-bold" size="9" /></span><span>couvert par l'orientation d'un étudiant</span>
@@ -75,12 +74,12 @@
 
     <!-- Indicateurs en direct -->
     <div class="live surface-card mb-4" aria-label="Indicateurs de la répartition actuelle">
-      <div class="live-item"><span class="live-value tabular">{{ assignedStudents.length }}<span class="live-of">/{{ activeStudents.length }}</span></span><span class="live-label">affectés</span></div>
-      <div class="live-item"><span class="live-value tabular" :class="{ 'text-warning': unassigned.length }">{{ unassigned.length }}</span><span class="live-label">non affectés</span></div>
-      <div class="live-item"><span class="live-value tabular">{{ excluded.length }}</span><span class="live-label">exclus</span></div>
-      <div class="live-item"><span class="live-value tabular" :class="{ 'text-error': outOfChoice.length }">{{ outOfChoice.length }}</span><span class="live-label">hors choix</span></div>
-      <div class="live-item"><span class="live-value tabular">{{ meanRank }}</span><span class="live-label">rang moyen</span></div>
-      <div class="live-item"><span class="live-value tabular" :class="{ 'text-warning': badSizes }">{{ badSizes }}</span><span class="live-label">groupes hors taille</span></div>
+      <div class="live-item"><span class="live-value tabular">{{ assignedStudents.length }}<span class="live-of">/{{ activeStudents.length }}</span></span><span class="live-label">affectés</span><v-tooltip activator="parent" location="bottom">Étudiants affectés à un projet, sur les étudiants inscrits (hors exclus)</v-tooltip></div>
+      <div class="live-item"><span class="live-value tabular" :class="{ 'text-warning': unassigned.length }">{{ unassigned.length }}</span><span class="live-label">non affectés</span><v-tooltip activator="parent" location="bottom">Étudiants encore sans projet (onglet « Non affectés » de la liste)</v-tooltip></div>
+      <div class="live-item"><span class="live-value tabular">{{ excluded.length }}</span><span class="live-label">exclus</span><v-tooltip activator="parent" location="bottom">Étudiants retirés de la répartition (sujet personnel, abandon…)</v-tooltip></div>
+      <div class="live-item"><span class="live-value tabular" :class="{ 'text-error': outOfChoice.length }">{{ outOfChoice.length }}</span><span class="live-label">hors choix</span><v-tooltip activator="parent" location="bottom">Étudiants affectés à un projet qui n'est pas dans leurs 5 choix</v-tooltip></div>
+      <div class="live-item"><span class="live-value tabular">{{ meanRank }}</span><span class="live-label">rang moyen</span><v-tooltip activator="parent" location="bottom">Rang moyen du projet obtenu dans les choix (1 = premier choix pour tous)</v-tooltip></div>
+      <div class="live-item"><span class="live-value tabular" :class="{ 'text-warning': badSizes }">{{ badSizes }}</span><span class="live-label">groupes hors taille</span><v-tooltip activator="parent" location="bottom">Projets sélectionnés avec moins de {{ params.min_size }} ou plus de {{ params.max_size }} étudiants</v-tooltip></div>
       <div class="live-ranks" aria-label="Rangs obtenus">
         <span class="live-label mr-1">Rangs :</span>
         <span v-for="r in rankCounts" :key="r.key" class="rank-cell" :title="r.label">
@@ -117,7 +116,27 @@
           title="Aucun projet sélectionné"
           text="Sélectionnez les projets ouverts dans « Sélection », ou affichez les projets non sélectionnés (menu Affichage)."
         />
-        <div class="board-grid">
+        <div v-if="boardProjects.length" class="sort-bar mb-3">
+          <span class="sort-count">{{ plural(visibleProjects.length, 'projet') }}</span>
+          <v-spacer />
+          <span id="sort-label" class="sort-label">Trier</span>
+          <v-btn-toggle
+            v-model="projectSort"
+            mandatory
+            density="compact"
+            variant="outlined"
+            divided
+            aria-labelledby="sort-label"
+            data-testid="project-sort"
+            :disabled="!!(focusStudent && onlyChoices)"
+          >
+            <v-btn v-for="o in projectSortItems" :key="o.value" :value="o.value" size="small" :data-testid="`sort-${o.value}`">
+              <v-icon v-if="o.icon" :icon="o.icon" size="16" class="mr-1" />{{ o.short }}
+              <v-tooltip activator="parent" location="top">{{ o.title }}</v-tooltip>
+            </v-btn>
+          </v-btn-toggle>
+        </div>
+        <TransitionGroup tag="div" name="bp-move" class="board-grid">
           <BoardProject
             v-for="p in visibleProjects"
             :key="p.id"
@@ -127,6 +146,7 @@
             :params="params"
             :show-name="showName"
             :drop-active="dropTarget === p.id"
+            :dragging="!!dragging"
             :focus-student-id="focusId"
             :focus-rank="focusStudent ? focusStudent.rankOf(p.id) : null"
             :dimmed="!!focusStudent && !focusStudent.rankOf(p.id) && focusStudent.assignedProjectId !== p.id"
@@ -141,7 +161,7 @@
             @toggle-lock="toggleLock"
             @candidates="toggleCandidates"
           />
-        </div>
+        </TransitionGroup>
       </div>
 
       <aside
@@ -175,12 +195,23 @@
             clearable
             aria-label="Rechercher un étudiant"
           />
-          <div v-if="candidatesProject" class="cand-bar">
-            <span class="min-w-0 text-truncate">Candidats de <strong>{{ candidatesProject.title }}</strong> (par rang)</span>
-            <v-btn icon="mdi-close" size="x-small" variant="text" aria-label="Arrêter le filtre des candidats" @click="candidatesFor = null" />
+          <div v-if="candidatesProject" class="cand-bar" data-testid="cand-bar">
+            <v-icon icon="mdi-account-search" size="18" class="flex-none" />
+            <div class="min-w-0 flex-grow-1">
+              <div class="cand-kicker">Candidats du projet #{{ candidatesProject.id }}, par rang</div>
+              <div class="cand-title text-truncate">{{ candidatesProject.title }}</div>
+            </div>
+            <v-btn icon size="small" variant="text" aria-label="Montrer le projet dans le tableau" data-testid="cand-locate" @click="locateProject(candidatesProject.id)">
+              <v-icon icon="mdi-crosshairs-gps" size="18" />
+              <v-tooltip activator="parent" location="bottom">Montrer le projet dans le tableau</v-tooltip>
+            </v-btn>
+            <v-btn icon size="small" variant="text" aria-label="Arrêter le filtre des candidats" @click="candidatesFor = null">
+              <v-icon icon="mdi-close" size="18" />
+              <v-tooltip activator="parent" location="bottom">Revenir à la liste des étudiants</v-tooltip>
+            </v-btn>
           </div>
         </div>
-        <div class="pool-list">
+        <div ref="poolList" class="pool-list">
           <div v-if="dragging && dragging.assignedProjectId" class="drop-hint">
             <v-icon icon="mdi-tray-arrow-down" size="18" /> Déposer ici pour retirer de son projet
           </div>
@@ -216,6 +247,7 @@
       :on-assign="assignTo"
       :on-unassign="unassignStudent"
       :on-flags="setFlags"
+      :on-toggle-lock="toggleLock"
       @update:only-choices="onlyChoices = $event"
       @close="focusId = null"
     />
@@ -251,7 +283,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useDisplay } from 'vuetify'
 import BoardHelp from '@/components/board/BoardHelp.vue'
 import BoardProject from '@/components/board/BoardProject.vue'
@@ -264,7 +296,7 @@ import { DEFAULT_SOLVE_PARAMS, LEGACY_ACTIONS, useAdminStore } from '@/stores/ad
 import { useConfirmStore } from '@/stores/confirm'
 import { useNotifyStore } from '@/stores/notify'
 import { useSessionStore } from '@/stores/session'
-import { defaultFilename, loadPref, loadSolveParams, rankTone, savePref, saveSolveParams } from '@/utils/board'
+import { defaultFilename, loadPref, loadSolveParams, lockedProjectText, lockReason, rankTone, savePref, saveSolveParams } from '@/utils/board'
 import { downloadBlob } from '@/utils/csv'
 import { exportAssignmentCsv, exportStudentsCsv } from '@/utils/exports'
 import { matchesQuery, plural } from '@/utils/text'
@@ -288,10 +320,12 @@ watch(showName, (v) => savePref('board.showName', v))
 watch(showAllProjects, (v) => savePref('board.showAll', v))
 watch(projectSort, (v) => savePref('board.sort', v))
 const projectSortItems = [
-  { title: 'Numéro du projet', value: 'id' },
-  { title: 'Titre', value: 'title' },
-  { title: 'Remplissage (les moins remplis d’abord)', value: 'fill' },
+  { value: 'id', short: 'N°', title: 'Par numéro de projet' },
+  { value: 'title', short: 'Titre', title: 'Par titre (A → Z)' },
+  { value: 'fill', short: 'Effectif', icon: 'mdi-sort-numeric-ascending', title: "Par nombre d'étudiants affectés : les moins remplis d'abord" },
+  { value: 'fill-desc', short: 'Effectif', icon: 'mdi-sort-numeric-descending', title: "Par nombre d'étudiants affectés : les plus remplis d'abord" },
 ]
+if (!projectSortItems.some((o) => o.value === projectSort.value)) projectSort.value = 'id'
 
 const params = ref(loadSolveParams(DEFAULT_SOLVE_PARAMS))
 const poolTab = ref('unassigned')
@@ -312,6 +346,7 @@ const solveError = ref('')
 const savedBeforeSolve = ref(false)
 const showSolve = ref(true)
 const fileInput = ref(null)
+const poolList = ref(null)
 
 /* ---------- Données dérivées ---------- */
 const activeStudents = computed(() => admin.students.filter((s) => !s.excluded))
@@ -339,7 +374,9 @@ const boardProjects = computed(() => {
   const collator = new Intl.Collator('fr', { sensitivity: 'base' })
   const list = admin.projects.filter((p) => p.selected || showAllProjects.value || memberCounts.value.get(p.id))
   if (projectSort.value === 'title') return list.sort((a, b) => collator.compare(a.title, b.title))
-  if (projectSort.value === 'fill') return list.sort((a, b) => (memberCounts.value.get(a.id) || 0) - (memberCounts.value.get(b.id) || 0) || a.id - b.id)
+  const count = (p) => memberCounts.value.get(p.id) || 0
+  if (projectSort.value === 'fill') return list.sort((a, b) => count(a) - count(b) || a.id - b.id)
+  if (projectSort.value === 'fill-desc') return list.sort((a, b) => count(b) - count(a) || a.id - b.id)
   return list.sort((a, b) => a.id - b.id)
 })
 
@@ -423,6 +460,12 @@ async function dropOnProject(project) {
   await assignTo(s, project)
 }
 
+// Verrou : refusé côté client avant même d'appeler le serveur (qui refuse aussi).
+function blockedMove(student, target) {
+  if (target && target.isLocked) return lockedProjectText(target)
+  return lockReason(student, admin.projectById)
+}
+
 async function dropOnPool() {
   const s = dragging.value
   onDragEnd()
@@ -435,8 +478,12 @@ function who(s) {
   return showName.value ? s.fullName : `#${s.id}`
 }
 
-// Le verrou d'un projet ne concerne que le calcul automatique : le déplacement manuel est toujours permis.
 async function assignTo(student, project) {
+  const blocked = blockedMove(student, project)
+  if (blocked) {
+    notify.warning(blocked)
+    return
+  }
   try {
     await admin.assign(student.id, project.id)
     const rank = student.rankOf(project.id)
@@ -447,6 +494,11 @@ async function assignTo(student, project) {
 }
 
 async function unassignStudent(student) {
+  const blocked = blockedMove(student, null)
+  if (blocked) {
+    notify.warning(blocked)
+    return
+  }
   try {
     await admin.unassign(student.id)
     notify.success(`${who(student)} n'est plus affecté.`)
@@ -471,7 +523,7 @@ async function toggleLock(project) {
   locking.value = project.id
   try {
     await admin.setProjectLocked(project.id, !project.isLocked)
-    notify.success(project.isLocked ? `« ${project.title} » est verrouillé : le calcul gardera ses étudiants.` : `« ${project.title} » est déverrouillé.`)
+    notify.success(project.isLocked ? `« ${project.title} » est verrouillé : son équipe est figée.` : `« ${project.title} » est déverrouillé : son équipe peut de nouveau changer.`)
   } catch (error) {
     notify.error(error, "Le verrou n'a pas été modifié")
   } finally {
@@ -481,6 +533,23 @@ async function toggleLock(project) {
 
 function toggleCandidates(project) {
   candidatesFor.value = candidatesFor.value === project.id ? null : project.id
+  if (!candidatesFor.value) return
+  if (!poolVisible.value) poolOpen.value = true
+  nextTick(() => { if (poolList.value) poolList.value.scrollTop = 0 })
+}
+
+// Fait défiler le tableau jusqu'au projet et le fait clignoter brièvement.
+function locateProject(id) {
+  const el = document.getElementById(`bp-${id}`)
+  if (!el) {
+    notify.info("Ce projet n'est pas affiché dans le tableau (projet non sélectionné ou filtre actif).")
+    return
+  }
+  el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  el.classList.remove('bp--flash')
+  void el.offsetWidth
+  el.classList.add('bp--flash')
+  window.setTimeout(() => el.classList.remove('bp--flash'), 1600)
 }
 
 function openStudent(student) {
@@ -526,15 +595,19 @@ async function readFile(event) {
   }
   const ok = await confirm.ask({
     title: 'Charger cette répartition ?',
-    text: `« ${file.name} » contient ${plural(rows.length, 'affectation')}.\nLa répartition actuelle sera entièrement remplacée.`,
+    text: `« ${file.name} » contient ${plural(rows.length, 'affectation')}.\nLa répartition actuelle sera remplacée, sauf les projets et étudiants verrouillés, qui gardent leur équipe.`,
     confirmText: 'Remplacer la répartition',
     color: 'warning',
     icon: 'mdi-folder-open-outline',
   })
   if (!ok) return
   try {
-    await admin.loadAssignments(rows)
-    notify.success(`Répartition chargée depuis « ${file.name} ».`)
+    const r = await admin.loadAssignments(rows)
+    if (r.skipped) {
+      notify.warning(`Répartition chargée depuis « ${file.name} » : ${plural(r.loaded ?? 0, 'affectation appliquée', 'affectations appliquées')}, ${plural(r.skipped, 'ignorée', 'ignorées')} car l'étudiant ou le projet est verrouillé.`)
+    } else {
+      notify.success(`Répartition chargée depuis « ${file.name} ».`)
+    }
   } catch (error) {
     notify.error(error, 'Chargement impossible')
   }
@@ -624,7 +697,24 @@ async function runLegacy(key) {
 .pool-head { padding: 6px 10px 10px; border-bottom: 1px solid rgba(var(--v-border-color), var(--v-border-opacity)); }
 .pool--narrow :deep(.v-tab), .pool--overlay :deep(.v-tab) { padding: 0 6px; min-width: 0; font-size: 0.84rem; }
 .tab-count { margin-left: 6px; font-size: 0.72rem; font-weight: 700; padding: 0 7px; border-radius: 999px; background: var(--neutral-chip-bg); }
-.cand-bar { display: flex; align-items: center; gap: 4px; margin-top: 8px; padding: 4px 4px 4px 10px; border-radius: var(--radius-control); font-size: 0.84rem; background: var(--neutral-chip-bg); }
+.cand-bar {
+  display: flex; align-items: center; gap: 6px; margin-top: 8px; padding: 6px 2px 6px 10px; border-radius: var(--radius-control);
+  background: rgb(var(--v-theme-info)); color: rgb(var(--v-theme-on-info));
+}
+.cand-kicker { font-size: 0.72rem; opacity: 0.9; }
+.cand-title { font-size: 0.88rem; font-weight: 700; }
+.sort-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.sort-count { font-size: 0.84rem; color: var(--text-secondary); }
+.sort-label { font-size: 0.84rem; color: var(--text-secondary); }
+.sort-bar :deep(.v-btn-group) { height: 32px; }
+.sort-bar :deep(.v-btn) { text-transform: none; letter-spacing: 0; font-weight: 600; }
+/* Réordonnancement animé (tri par effectif après un déplacement) */
+.bp-move-move { transition: transform 0.3s ease; }
+:deep(.bp--flash) { animation: bp-flash 1.5s ease; }
+@keyframes bp-flash {
+  0%, 60% { box-shadow: 0 0 0 4px rgba(var(--v-theme-info), 0.55); }
+  100% { box-shadow: 0 0 0 0 rgba(var(--v-theme-info), 0); }
+}
 .pool-list { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
 .drop-hint { display: flex; align-items: center; gap: 6px; justify-content: center; padding: 10px; border-radius: var(--radius-control); border: 1px dashed var(--focus-ring); color: var(--focus-ring); font-size: 0.85rem; }
 .legend-title { font-size: 0.76rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-secondary); margin: 18px 0 8px; }

@@ -98,7 +98,7 @@ export const useAdminStore = defineStore('admin', () => {
     return replaceStudent(data)
   }
 
-  // Affectation manuelle (aussi vers un projet verrouillé : le verrou ne concerne que le calcul).
+  // Affectation manuelle ; le serveur refuse si l'étudiant ou l'un des projets est verrouillé.
   async function assign(userId, projectId) {
     const student = studentById.value.get(userId)
     const previous = student ? student.assignments : []
@@ -142,9 +142,11 @@ export const useAdminStore = defineStore('admin', () => {
     return data
   }
 
+  // Les étudiants et projets verrouillés gardent leur affectation : { loaded, skipped, kept }.
   async function loadAssignments(rows) {
-    await http.post('/assignment/load-data', { data: rows })
+    const { data } = await http.post('/assignment/load-data', { data: rows })
     await refresh()
+    return data || {}
   }
 
   async function solve(params) {

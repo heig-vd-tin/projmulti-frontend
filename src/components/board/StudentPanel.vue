@@ -27,6 +27,26 @@
         <span v-if="student.locked" class="flag flag--locked"><v-icon icon="mdi-lock" size="15" />Affectation verrouillée</span>
       </div>
 
+      <div v-if="frozen" class="frozen" data-testid="panel-frozen">
+        <v-icon icon="mdi-lock" size="18" class="flex-none mt-px" />
+        <div class="flex-grow-1">
+          <div>{{ projectLocked ? `Son projet « ${assignedProject.title} » est verrouillé : son affectation ne peut pas changer.` : 'Son affectation est verrouillée : elle ne peut pas changer.' }}</div>
+          <v-btn
+            v-if="projectLocked"
+            class="mt-2"
+            size="small"
+            variant="outlined"
+            prepend-icon="mdi-lock-open-variant-outline"
+            :loading="busy === 'unlock-project'"
+            data-testid="panel-unlock-project"
+            @click="run('unlock-project', () => onToggleLock(assignedProject))"
+          >
+            Déverrouiller le projet
+          </v-btn>
+          <div v-else class="text-caption mt-1">Déverrouillez-la plus bas (« Verrouiller son affectation »).</div>
+        </div>
+      </div>
+
       <section class="sp-section">
         <h3 class="sp-title">Affectation actuelle</h3>
         <div v-if="assignedProject" class="current">
@@ -34,7 +54,10 @@
             <div class="font-weight-bold text-truncate">{{ assignedProject.title }}</div>
             <div class="text-caption muted">#{{ assignedProject.id }} · {{ assignedProject.ownerName }}</div>
           </div>
-          <span class="rank-badge" :class="`rank--${rankTone(assignedRank)}`">{{ assignedRank == null ? 'hors choix' : `choix ${assignedRank}` }}</span>
+          <span class="rank-badge" :class="`rank--${rankTone(assignedRank)}`">
+            {{ assignedRank == null ? 'hors choix' : `choix ${assignedRank}` }}
+            <v-tooltip activator="parent" location="top">{{ assignedRank == null ? "Ce projet n'est pas dans ses 5 choix" : `Ce projet est son choix n°${assignedRank}` }}</v-tooltip>
+          </span>
         </div>
         <div v-else class="text-body-2 muted">{{ student.excluded ? 'Exclu : non affecté.' : 'Non affecté.' }}</div>
         <v-btn
@@ -43,7 +66,9 @@
           variant="text"
           size="small"
           prepend-icon="mdi-account-remove-outline"
+          :disabled="!!frozen"
           :loading="busy === 'unassign'"
+          data-testid="panel-unassign"
           @click="run('unassign', () => onUnassign(student))"
         >
           Retirer de ce projet
@@ -54,27 +79,40 @@
         <h3 class="sp-title">Ses choix</h3>
         <ol class="choices">
           <li v-for="c in choices" :key="c.rank" class="choice" :class="{ 'choice--assigned': c.assigned }" :data-testid="`panel-choice-${c.rank}`">
-            <span class="choice-rank" :class="`rank--${rankTone(c.rank)}`">{{ c.rank }}</span>
+            <span class="choice-rank" :class="`rank--${rankTone(c.rank)}`">
+              {{ c.rank }}
+              <v-tooltip activator="parent" location="left">Choix n°{{ c.rank }}</v-tooltip>
+            </span>
             <template v-if="c.project">
               <div class="min-w-0 flex-grow-1">
-                <div class="choice-title text-truncate" :title="c.project.title">{{ c.project.title }}</div>
+                <div class="choice-title text-truncate">
+                  {{ c.project.title }}
+                  <v-tooltip activator="parent" location="top" :open-delay="300">#{{ c.project.id }} · {{ c.project.title }} · {{ c.project.ownerName }}</v-tooltip>
+                </div>
                 <div class="text-caption muted">
-                  #{{ c.project.id }} · {{ plural(c.count, 'étudiant') }}
-                  <template v-if="!c.project.selected"> · <span class="text-error">non sélectionné</span></template>
-                  <v-icon v-if="c.project.isLocked" icon="mdi-lock" size="12" class="ml-1" aria-label="projet verrouillé" />
+                  #{{ c.project.id }} ·
+                  <span class="hint">{{ plural(c.count, 'étudiant') }}<v-tooltip activator="parent" location="bottom">{{ plural(c.count, 'étudiant déjà affecté', 'étudiants déjà affectés') }} à ce projet</v-tooltip></span>
+                  <template v-if="!c.project.selected"> · <span class="text-error hint" :data-testid="`panel-unselected-${c.rank}`">non sélectionné<v-tooltip activator="parent" location="bottom">Projet non sélectionné pour le cours : il n'est pas prévu de l'ouvrir (page « Sélection »).</v-tooltip></span></template>
+                  <template v-if="c.project.isLocked"> · <span class="hint"><v-icon icon="mdi-lock" size="12" aria-label="projet verrouillé" /> verrouillé<v-tooltip activator="parent" location="bottom">Projet verrouillé : son équipe ne peut pas changer.</v-tooltip></span></template>
                 </div>
               </div>
-              <span v-if="c.assigned" class="assigned"><v-icon icon="mdi-check" size="15" />Affecté</span>
-              <v-btn
-                v-else-if="!student.excluded"
-                size="small"
-                variant="outlined"
-                :loading="busy === `assign-${c.project.id}`"
-                :data-testid="`assign-choice-${c.rank}`"
-                @click="run(`assign-${c.project.id}`, () => onAssign(student, c.project))"
-              >
-                Affecter
-              </v-btn>
+              <span v-if="c.assigned" class="assigned">
+                <v-icon icon="mdi-check" size="15" />Affecté
+                <v-tooltip activator="parent" location="top">Il est actuellement affecté à ce projet</v-tooltip>
+              </span>
+              <span v-else-if="!student.excluded" class="d-inline-flex">
+                <v-btn
+                  size="small"
+                  variant="outlined"
+                  :disabled="!!assignBlock(c.project)"
+                  :loading="busy === `assign-${c.project.id}`"
+                  :data-testid="`assign-choice-${c.rank}`"
+                  @click="run(`assign-${c.project.id}`, () => onAssign(student, c.project))"
+                >
+                  Affecter
+                </v-btn>
+                <v-tooltip activator="parent" location="left" max-width="280">{{ assignBlock(c.project) || `Affecter à ce projet (son choix n°${c.rank})` }}</v-tooltip>
+              </span>
             </template>
             <span v-else-if="c.unknownId" class="text-body-2 muted">Projet #{{ c.unknownId }} (hors du cours)</span>
             <span v-else class="text-body-2 muted font-italic">Aucun</span>
@@ -88,37 +126,44 @@
           <v-autocomplete
             v-model="target"
             :items="projectItems"
+            :disabled="!!frozen"
             label="Projet"
             density="compact"
             hide-details
             clearable
             class="flex-grow-1"
           />
-          <v-btn variant="outlined" :disabled="!target" :loading="busy === 'assign-other'" @click="assignOther">Affecter</v-btn>
+          <v-btn variant="outlined" :disabled="!target || !!frozen" :loading="busy === 'assign-other'" @click="assignOther">Affecter</v-btn>
         </div>
+        <p class="text-caption muted mt-1 mb-0">Les projets verrouillés ne sont pas proposés.</p>
       </section>
 
       <section class="sp-section">
         <h3 class="sp-title">Répartition automatique</h3>
         <v-switch
           :model-value="student.locked"
-          :disabled="student.excluded || busy === 'lock'"
+          :disabled="student.excluded || (!student.locked && !assignedProject) || busy === 'lock'"
           label="Verrouiller son affectation"
           data-testid="student-lock"
           @update:model-value="(v) => run('lock', () => onFlags(student, { locked: !!v }))"
         />
-        <p class="text-caption muted mt-1 mb-3">Le calcul automatique ne changera pas son projet. Le glisser-déposer reste possible.</p>
-        <v-btn
-          v-if="!student.excluded"
-          variant="outlined"
-          color="error"
-          prepend-icon="mdi-account-cancel-outline"
-          :loading="busy === 'exclude'"
-          data-testid="student-exclude"
-          @click="exclude"
-        >
-          Exclure de la répartition
-        </v-btn>
+        <p class="text-caption muted mt-1 mb-3">
+          {{ assignedProject || student.locked ? "Son projet ne change plus : ni glisser-déposer, ni calcul automatique. Déverrouillez pour le déplacer." : "Affectez-le d'abord à un projet pour pouvoir verrouiller son affectation." }}
+        </p>
+        <span v-if="!student.excluded" class="d-inline-flex">
+          <v-btn
+            variant="outlined"
+            color="error"
+            prepend-icon="mdi-account-cancel-outline"
+            :disabled="!!frozen"
+            :loading="busy === 'exclude'"
+            data-testid="student-exclude"
+            @click="exclude"
+          >
+            Exclure de la répartition
+          </v-btn>
+          <v-tooltip v-if="frozen" activator="parent" location="top" max-width="300">{{ frozen }}</v-tooltip>
+        </span>
         <v-btn
           v-else
           variant="outlined"
@@ -147,7 +192,7 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useDisplay } from 'vuetify'
 import { useConfirmStore } from '@/stores/confirm'
-import { rankTone } from '@/utils/board'
+import { lockedProjectText, lockReason, rankTone } from '@/utils/board'
 import { plural } from '@/utils/text'
 import './boardStyles.css'
 
@@ -161,6 +206,7 @@ const props = defineProps({
   onAssign: { type: Function, required: true },
   onUnassign: { type: Function, required: true },
   onFlags: { type: Function, required: true },
+  onToggleLock: { type: Function, required: true },
 })
 const emit = defineEmits(['close', 'update:onlyChoices'])
 const { xs } = useDisplay()
@@ -182,6 +228,14 @@ const assignedProject = computed(() => {
   const pid = props.student && props.student.assignedProjectId
   return pid ? props.projectById.get(pid) || { id: pid, title: `Projet #${pid}`, ownerName: '' } : null
 })
+// Affectation figée : étudiant verrouillé ou projet actuel verrouillé (raison affichée).
+const frozen = computed(() => (props.student ? lockReason(props.student, props.projectById) : null))
+const projectLocked = computed(() => !!(assignedProject.value && assignedProject.value.isLocked))
+function assignBlock(project) {
+  if (frozen.value) return frozen.value
+  if (project.isLocked) return lockedProjectText(project)
+  return null
+}
 const assignedRank = computed(() => (assignedProject.value ? props.student.rankOf(assignedProject.value.id) : null))
 const choices = computed(() =>
   [1, 2, 3, 4, 5].map((rank) => {
@@ -199,6 +253,7 @@ const choices = computed(() =>
 const projectItems = computed(() =>
   props.boardProjects
     .filter((p) => !props.student || p.id !== props.student.assignedProjectId)
+    .filter((p) => !p.isLocked)
     .map((p) => ({ title: `#${p.id} · ${p.title}`, value: p.id })),
 )
 
@@ -251,4 +306,10 @@ async function exclude() {
 .choice-rank { flex: none; width: 26px; height: 26px; border-radius: 999px; display: grid; place-items: center; font-weight: 700; font-size: 0.8rem; }
 .choice-title { font-weight: 600; font-size: 0.9rem; }
 .assigned { display: inline-flex; align-items: center; gap: 3px; font-size: 0.78rem; font-weight: 700; }
+.hint { text-decoration: underline dotted; text-underline-offset: 2px; cursor: help; }
+.frozen {
+  display: flex; gap: 10px; margin: 12px 18px 0; padding: 10px 12px; border-radius: var(--radius-control);
+  background: var(--neutral-chip-bg); font-size: 0.86rem; line-height: 1.4;
+}
+.mt-px { margin-top: 1px; }
 </style>

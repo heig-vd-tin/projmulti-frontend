@@ -1,27 +1,53 @@
 <template>
   <section
+    :id="`bp-${project.id}`"
     class="bp"
     :class="{
-      'bp--over': dropActive,
+      'bp--over': dropActive && !project.isLocked,
+      'bp--refuse': dropActive && project.isLocked,
       'bp--dim': dimmed,
       'bp--choice': focusRank,
+      'bp--cand': candidates,
+      'bp--locked': project.isLocked,
+      'bp--locked-drag': dragging && project.isLocked,
       'bp--unselected': !project.selected,
     }"
-    :aria-label="`Projet ${project.title}, ${plural(members.length, 'étudiant')}`"
+    :aria-label="`Projet ${project.title}, ${plural(members.length, 'étudiant')}${project.isLocked ? ', verrouillé' : ''}`"
     :data-testid="`board-project-${project.id}`"
-    @dragover.prevent="$emit('drag-over', project)"
+    @dragenter="onOver"
+    @dragover="onOver"
     @dragleave="onLeave"
-    @drop.prevent="$emit('drop', project)"
+    @drop.prevent="onDrop"
   >
+    <div v-if="candidates" class="cand-flag" data-testid="cand-flag">
+      <v-icon icon="mdi-account-search" size="15" />
+      <span>Candidats affichés dans la liste</span>
+      <v-icon icon="mdi-arrow-right" size="15" class="ml-auto" />
+    </div>
+
     <header class="bp-head">
       <div class="min-w-0 flex-grow-1">
-        <div class="d-flex align-center ga-2 min-w-0">
-          <h3 class="bp-title text-truncate" :title="project.title">{{ project.title }}</h3>
-          <span v-if="focusRank" class="rank-badge" :class="`rank--${rankTone(focusRank)}`" :title="`Choix n°${focusRank} de l'étudiant sélectionné`">choix {{ focusRank }}</span>
+        <h3 class="bp-title text-truncate">
+          {{ project.title }}
+          <v-tooltip activator="parent" location="top" :open-delay="300">{{ project.title }}</v-tooltip>
+        </h3>
+        <div class="bp-sub text-truncate">
+          #{{ project.id }} · {{ project.ownerName }}<template v-if="!project.selected"> · <span class="sub-tag">non sélectionné<v-tooltip activator="parent" location="bottom">Projet non sélectionné pour le cours : il n'est pas prévu de l'ouvrir (page « Sélection »).</v-tooltip></span></template>
         </div>
-        <div class="bp-sub text-truncate">#{{ project.id }} · {{ project.ownerName }}<template v-if="!project.selected"> · non sélectionné</template></div>
       </div>
-      <span class="size-badge tabular" :class="`size--${sizeTone}`" :title="sizeTitle">{{ members.length }}</span>
+      <span
+        v-if="focusRank"
+        class="rank-badge choice-badge"
+        :class="`rank--${rankTone(focusRank)}`"
+        :data-testid="`focus-rank-${project.id}`"
+      >
+        choix {{ focusRank }}
+        <v-tooltip activator="parent" location="top">Choix n°{{ focusRank }} de l'étudiant dont la fiche est ouverte</v-tooltip>
+      </span>
+      <span class="size-badge tabular" :class="`size--${sizeTone}`">
+        {{ members.length }}
+        <v-tooltip activator="parent" location="top">{{ sizeTitle }}</v-tooltip>
+      </span>
     </header>
 
     <div class="bp-tools">
@@ -38,19 +64,20 @@
       <v-btn
         icon
         size="small"
-        variant="text"
+        :variant="candidates ? 'flat' : 'text'"
+        :color="candidates ? 'info' : undefined"
+        :aria-pressed="candidates"
         :aria-label="`Voir les candidats de ${project.title}`"
-        :color="candidates ? 'selected' : undefined"
         :data-testid="`candidates-${project.id}`"
         @click="$emit('candidates', project)"
       >
         <v-icon icon="mdi-account-search-outline" size="19" />
-        <v-tooltip activator="parent">Candidats (étudiants qui l'ont choisi)</v-tooltip>
+        <v-tooltip activator="parent">{{ candidates ? 'Masquer les candidats' : "Candidats : étudiants qui ont choisi ce projet, par rang" }}</v-tooltip>
       </v-btn>
       <v-btn
         icon
         size="small"
-        variant="text"
+        :variant="project.isLocked ? 'tonal' : 'text'"
         :loading="locking"
         :aria-pressed="project.isLocked"
         :aria-label="project.isLocked ? `Déverrouiller ${project.title}` : `Verrouiller ${project.title}`"
@@ -60,7 +87,7 @@
       >
         <v-icon :icon="project.isLocked ? 'mdi-lock' : 'mdi-lock-open-variant-outline'" size="19" />
         <v-tooltip activator="parent">
-          {{ project.isLocked ? 'Verrouillé : le calcul garde exactement ces étudiants. Le glisser-déposer reste possible.' : 'Verrouiller : le calcul automatique gardera ces étudiants' }}
+          {{ project.isLocked ? 'Verrouillé : équipe figée (ni glisser-déposer, ni calcul). Cliquer pour déverrouiller.' : "Verrouiller l'équipe : plus aucun déplacement, le calcul la garde telle quelle" }}
         </v-tooltip>
       </v-btn>
     </div>
@@ -73,16 +100,23 @@
         :project-id="project.id"
         :show-name="showName"
         :focused="focusStudentId === s.id"
+        :frozen="project.isLocked || s.locked"
         @open="$emit('open-student', $event)"
         @drag-start="$emit('drag-start', $event)"
         @drag-end="$emit('drag-end')"
       />
-      <span v-if="!members.length" class="empty-hint">Glissez des étudiants ici</span>
+      <span v-if="!members.length" class="empty-hint">{{ project.isLocked ? 'Projet verrouillé' : 'Glissez des étudiants ici' }}</span>
+      <div v-if="dropActive && project.isLocked" class="refuse-hint" aria-hidden="true">
+        <v-icon icon="mdi-lock" size="16" /> Verrouillé : déverrouillez pour modifier
+      </div>
     </div>
 
     <footer v-if="warnings.length" class="bp-warn">
       <v-icon icon="mdi-alert-outline" size="15" />
       <span>{{ warnings.join(' · ') }}</span>
+      <v-tooltip activator="parent" location="bottom">
+        <div v-for="w in warningDetails" :key="w">{{ w }}</div>
+      </v-tooltip>
     </footer>
   </section>
 </template>
@@ -103,6 +137,8 @@ const props = defineProps({
   params: { type: Object, required: true },
   showName: { type: Boolean, default: false },
   dropActive: { type: Boolean, default: false },
+  // Un glisser-déposer est en cours (les projets verrouillés s'effacent : dépôt impossible).
+  dragging: { type: Boolean, default: false },
   focusStudentId: { type: Number, default: null },
   focusRank: { type: Number, default: null },
   dimmed: { type: Boolean, default: false },
@@ -119,7 +155,13 @@ const sizeTone = computed(() => {
   if (n > props.params.max_size) return 'high'
   return 'ok'
 })
-const sizeTitle = computed(() => `${plural(props.members.length, 'étudiant')} · taille visée ${props.params.min_size} à ${props.params.max_size}`)
+const sizeTitle = computed(() => {
+  const n = props.members.length
+  const target = `taille visée ${props.params.min_size} à ${props.params.max_size}`
+  if (n < props.params.min_size) return `${plural(n, 'étudiant affecté', 'étudiants affectés')} · il en manque ${props.params.min_size - n} (${target})`
+  if (n > props.params.max_size) return `${plural(n, 'étudiant affecté', 'étudiants affectés')} · ${n - props.params.max_size} de trop (${target})`
+  return `${plural(n, 'étudiant affecté', 'étudiants affectés')} · ${target}`
+})
 
 const coverage = computed(() =>
   sortDomains(props.project.domains).map((d) => {
@@ -135,6 +177,20 @@ const coverage = computed(() =>
   }),
 )
 
+const orientationExcess = computed(() => {
+  const counts = {}
+  for (const s of props.members) {
+    const a = s.orientationAcronym || '?'
+    counts[a] = (counts[a] || 0) + 1
+  }
+  return Object.entries(counts).filter(([, n]) => n > props.params.max_same_orientation)
+})
+const outCount = computed(() => props.members.filter((s) => s.rankOf(props.project.id) == null).length)
+const warningDetails = computed(() => [
+  ...orientationExcess.value.map(([a, n]) => `${n} étudiants ${a} : au plus ${props.params.max_same_orientation} d'une même orientation (paramètres du calcul).`),
+  ...(outCount.value ? [`${plural(outCount.value, 'étudiant affecté', 'étudiants affectés')} hors de ses 5 choix.`] : []),
+])
+
 const warnings = computed(() => {
   const w = []
   const counts = {}
@@ -149,6 +205,21 @@ const warnings = computed(() => {
   if (out) w.push(`${out} hors choix`)
   return w
 })
+
+// Projet verrouillé : pas de preventDefault, le navigateur refuse le dépôt (curseur interdit).
+function onOver(event) {
+  if (props.project.isLocked) {
+    event.dataTransfer.dropEffect = 'none'
+  } else {
+    event.preventDefault()
+    event.dataTransfer.dropEffect = 'move'
+  }
+  emit('drag-over', props.project)
+}
+
+function onDrop() {
+  if (!props.project.isLocked) emit('drop', props.project)
+}
 
 function onLeave(event) {
   if (!event.currentTarget.contains(event.relatedTarget)) emit('drag-leave', props.project)
@@ -167,7 +238,28 @@ function onLeave(event) {
 .bp--over { border-color: var(--focus-ring); box-shadow: 0 0 0 2px var(--focus-ring); }
 .bp--choice { border: 2px solid var(--sel); padding: 11px 11px 9px; }
 .bp--dim { opacity: 0.5; }
-.bp-head { display: flex; align-items: flex-start; gap: 8px; }
+/* Candidats affichés dans la liste : cadre et bandeau bleus (même bleu que la barre de la liste) */
+.bp--cand { border: 2px solid rgb(var(--v-theme-info)); padding: 0 11px 9px; box-shadow: 0 4px 16px -6px rgba(var(--v-theme-info), 0.45); }
+.cand-flag {
+  display: flex; align-items: center; gap: 6px; margin: 0 -11px 2px; padding: 5px 11px;
+  background: rgb(var(--v-theme-info)); color: rgb(var(--v-theme-on-info));
+  font-size: 0.76rem; font-weight: 650; border-radius: calc(var(--radius-card) - 2px) calc(var(--radius-card) - 2px) 0 0;
+}
+/* Verrouillé : équipe figée (fond hachuré) ; pendant un glisser-déposer, effacé et refusé */
+.bp--locked .bp-members {
+  background: repeating-linear-gradient(-45deg, transparent 0 7px, rgba(var(--v-theme-on-surface), 0.045) 7px 14px);
+}
+.bp--locked-drag { opacity: 0.55; }
+.bp--refuse { border-color: rgba(var(--v-theme-error), 0.7); border-style: dashed; opacity: 0.85; }
+.bp-members { position: relative; }
+.refuse-hint {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 6px;
+  border-radius: var(--radius-control); background: rgba(var(--v-theme-surface), 0.9);
+  color: rgb(var(--v-theme-error)); font-size: 0.82rem; font-weight: 650; pointer-events: none;
+}
+.choice-badge { height: 26px; padding: 0 10px; font-size: 0.78rem; white-space: nowrap; }
+.sub-tag { text-decoration: underline dotted; text-underline-offset: 2px; cursor: help; }
+.bp-head { display: flex; align-items: flex-start; gap: 6px; }
 .bp-title { font-size: 0.95rem; font-weight: 650; margin: 0; min-width: 0; }
 .bp-sub { font-size: 0.78rem; color: var(--text-secondary); }
 .size-badge {

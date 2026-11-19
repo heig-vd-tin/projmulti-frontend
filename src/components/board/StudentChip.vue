@@ -1,8 +1,8 @@
 <template>
   <div
     class="stu-chip"
-    :class="{ 'stu-chip--focus': focused, 'stu-chip--out': rank == null }"
-    :draggable="!student.excluded"
+    :class="{ 'stu-chip--focus': focused, 'stu-chip--out': rank == null, 'stu-chip--frozen': frozen }"
+    :draggable="!student.excluded && !frozen"
     role="button"
     tabindex="0"
     :aria-label="`${label}, ${student.orientationAcronym || 'orientation inconnue'}, ${rankText(rank)}${student.locked ? ', verrouillé' : ''}. Ouvrir la fiche.`"
@@ -17,7 +17,8 @@
     <v-icon v-if="student.locked" icon="mdi-lock" size="13" class="lock" />
     <span class="rank-badge" :class="`rank--${rankTone(rank)}`">{{ rank == null ? '✕' : rank }}</span>
     <v-tooltip activator="parent" location="top" :open-delay="400">
-      {{ student.fullName }} · {{ student.orientationAcronym }} · {{ rankText(rank) }}<template v-if="student.locked"> · verrouillé</template>
+      {{ student.fullName }} · {{ student.orientationAcronym }} · {{ rankText(rank) }}<template v-if="student.locked"> · affectation verrouillée</template>
+      <template v-if="frozen"><br>Verrouillé : déplacement impossible. Cliquer pour ouvrir la fiche.</template>
     </v-tooltip>
   </div>
 </template>
@@ -32,6 +33,8 @@ const props = defineProps({
   projectId: { type: Number, default: null },
   showName: { type: Boolean, default: false },
   focused: { type: Boolean, default: false },
+  // Étudiant ou projet verrouillé : la puce ne se déplace pas.
+  frozen: { type: Boolean, default: false },
 })
 const emit = defineEmits(['open', 'drag-start', 'drag-end'])
 
@@ -56,6 +59,7 @@ function onDragStart(event) {
 }
 .stu-chip:hover { border-color: rgba(var(--v-border-color), 0.32); }
 .stu-chip:active { cursor: grabbing; }
+.stu-chip--frozen, .stu-chip--frozen:active { cursor: pointer; }
 .stu-chip--out { border-color: rgba(var(--v-theme-error), 0.5); }
 .stu-chip--focus { border: 2px solid var(--sel); padding: 0 4px; }
 .stu-name { font-weight: 550; min-width: 0; }

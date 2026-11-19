@@ -59,3 +59,18 @@ export function savePref(key, value) {
     /* stockage indisponible */
   }
 }
+
+// Affectation figée (verrou) : étudiant verrouillé et affecté, ou projet actuel verrouillé.
+// Un verrou bloque toute modification : glisser-déposer, fiche, exclusion, fichier et calcul.
+export function lockReason(student, projectById) {
+  const pid = student && student.assignedProjectId
+  if (!pid) return null
+  if (student.locked) return `L'affectation de ${student.fullName} est verrouillée : déverrouillez-la dans sa fiche.`
+  const p = projectById.get(pid)
+  if (p && p.isLocked) return lockedProjectText(p)
+  return null
+}
+
+export function lockedProjectText(project) {
+  return `Le projet « ${project.title} » est verrouillé : déverrouillez-le (cadenas) pour modifier son équipe.`
+}
