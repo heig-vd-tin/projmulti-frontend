@@ -23,7 +23,7 @@
       </template>
     </v-alert>
 
-    <form v-else class="d-flex flex-column ga-5" novalidate @submit.prevent="submit">
+    <form v-else class="d-flex flex-column ga-5" novalidate @submit.prevent="submit(false)">
       <section class="surface-card pa-5 pa-sm-6">
         <h2 class="section-title">Présentation</h2>
         <p class="section-hint">Le titre et le résumé court apparaissent sur la carte du projet vue par les étudiants.</p>
@@ -74,7 +74,7 @@
       <section class="surface-card pa-5 pa-sm-6">
         <h2 class="section-title">Description détaillée</h2>
         <p class="section-hint">Contexte, objectifs, cahier des charges, images. Exportable en PDF.</p>
-        <RichEditor ref="editor" v-model="description" :disabled="saving" @image-error="notify.warning">
+        <RichEditor ref="editor" v-model="description" :disabled="!!saving" @image-error="notify.warning">
           <template #footer>
             <span :class="{ 'text-error': tooBig }">Taille : {{ formatBytes(descriptionSize) }} / {{ MAX_MB }} Mo</span>
           </template>
@@ -102,23 +102,36 @@
         <ul class="pl-5"><li v-for="(e, i) in formErrors" :key="i">{{ e }}</li></ul>
       </v-alert>
 
+      <!-- Barre d'actions : état de l'enregistrement toujours visible, et une sortie claire -->
       <div class="action-bar">
-        <span class="text-body-2 muted d-none d-sm-inline">
-          <template v-if="dirty">Modifications non enregistrées</template>
-          <template v-else>Aucune modification</template>
+        <span class="save-status" :class="`save-status--${status.kind}`" aria-live="polite" data-testid="save-status">
+          <v-icon :icon="status.icon" size="18" />
+          <span :class="{ 'd-none d-sm-inline': status.kind === 'idle' }">{{ status.text }}</span>
         </span>
         <v-spacer />
-        <v-btn variant="text" :disabled="saving" @click="goBack">Annuler</v-btn>
-        <v-btn type="submit" color="primary" variant="flat" :loading="saving" prepend-icon="mdi-check" data-testid="submit">
-          {{ submitLabel }}
-        </v-btn>
+        <template v-if="dirty || !editing">
+          <v-btn v-if="!xs" variant="text" :disabled="!!saving" data-testid="cancel" @click="goBack">Annuler</v-btn>
+          <v-btn type="submit" variant="outlined" :loading="saving === 'stay'" :disabled="!!saving" title="Enregistrer et continuer (Ctrl+S)" data-testid="submit">
+            Enregistrer
+          </v-btn>
+          <v-btn color="primary" variant="flat" prepend-icon="mdi-check" :loading="saving === 'close'" :disabled="!!saving" data-testid="submit-close" @click="submit(true)">
+            {{ xs ? 'Terminer' : 'Enregistrer et fermer' }}
+          </v-btn>
+        </template>
+        <!-- Tout est enregistré : rien à annuler, on ferme -->
+        <v-btn v-else color="primary" variant="flat" prepend-icon="mdi-check" data-testid="close" @click="goBack">Fermer</v-btn>
       </div>
     </form>
   </div>
 </template>
 
+<script>
+// Nouveau projet créé avec « Enregistrer » : la page se recharge en mode « modifier » et garde l'heure.
+let lastCreated = null
+</script>
+
 <script setup>
-import { computed, nextTick, onMounted, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { onBeforeRouteLeave, useRouter } from 'vue-router'
 import { useDisplay } from 'vuetify'
 import RichEditor from '@/components/editor/RichEditor.vue'
@@ -183,12 +196,15 @@ const blocker = computed(() => {
 })
 
 const state = () => JSON.stringify([title.value, shortDescription.value, [...domainIds.value].sort(), description.value, proposed.value])
-const submitLabel = computed(() => {
-  if (editing.value) return xs.value ? 'Enregistrer' : 'Enregistrer les modifications'
-  if (!proposed.value) return xs.value ? 'Enregistrer' : 'Enregistrer le brouillon'
-  return xs.value ? 'Publier' : 'Publier le projet'
-})
 const dirty = computed(() => state() !== snapshot.value)
+// Heure du dernier enregistrement (gardée quand un nouveau projet passe en mode « modifier »).
+const savedAt = ref(lastCreated && lastCreated.id === Number(props.id) ? lastCreated.at : null)
+const status = computed(() => {
+  if (saving.value) return { kind: 'busy', icon: 'mdi-cloud-upload-outline', text: 'Enregistrement…' }
+  if (dirty.value) return { kind: 'dirty', icon: 'mdi-circle-medium', text: 'Modifications non enregistrées' }
+  if (savedAt.value) return { kind: 'saved', icon: 'mdi-cloud-check-outline', text: `Enregistré à ${savedAt.value}` }
+  return { kind: 'idle', icon: 'mdi-check', text: editing.value ? 'Aucune modification' : 'Nouveau projet' }
+})
 
 onMounted(async () => {
   if (editing.value) {
@@ -242,7 +258,9 @@ async function revealErrors() {
   }
 }
 
-async function submit() {
+// close : « Enregistrer et fermer » ; sinon on reste sur la page (bouton Enregistrer, Entrée, Ctrl+S).
+async function submit(close) {
+  if (saving.value) return
   if (editor.value) description.value = editor.value.getHtml()
   showErrors.value = true
   serverError.value = ''
@@ -254,7 +272,7 @@ async function submit() {
     await revealErrors()
     return
   }
-  saving.value = true
+  saving.value = close ? 'close' : 'stay'
   const payload = {
     id: editing.value ? Number(props.id) : -1,
     title: title.value.trim(),
@@ -271,11 +289,18 @@ async function submit() {
     const saved = editing.value ? await projects.edit(payload) : await projects.create(payload)
     snapshot.value = state()
     showErrors.value = false
-    // On reste sur la page d'édition : un nouveau projet passe en mode « modifier ».
-    if (editing.value) {
-      notify.success('Les modifications sont enregistrées.')
-    } else {
-      notify.success(proposed.value ? 'Le projet a été publié.' : 'Le brouillon est enregistré : il reste invisible pour les étudiants.')
+    savedAt.value = new Date().toLocaleTimeString('fr-CH', { hour: '2-digit', minute: '2-digit' })
+    const message = editing.value
+      ? 'Les modifications sont enregistrées.'
+      : proposed.value ? 'Le projet est créé et proposé aux étudiants.' : 'Le brouillon est créé : il reste invisible pour les étudiants.'
+    if (close) {
+      leaving = true
+      goBack()
+      notify.success(message, `« ${saved.title} »`)
+    } else if (!editing.value) {
+      // Nouveau projet : on reste, en mode « modifier » (les enregistrements suivants le mettent à jour).
+      notify.success(message)
+      lastCreated = { id: saved.id, at: savedAt.value }
       leaving = true
       router.replace({ name: 'project-edit', params: { id: String(saved.id) } })
     }
@@ -295,10 +320,31 @@ function viewProject() {
   else router.push(target)
 }
 
+// Retour d'où l'on vient (Mes projets, page du projet, catalogue).
 function goBack() {
   if (window.history.state && window.history.state.back) router.back()
-  else router.push('/all-projects')
+  else router.push(session.user.isTeacher ? '/my-projects' : '/all-projects')
 }
+
+// Ctrl+S / Cmd+S : enregistrer sans quitter. Fermer l'onglet avec des modifications : alerte du navigateur.
+function onKey(e) {
+  if ((e.ctrlKey || e.metaKey) && !e.altKey && e.key.toLowerCase() === 's') {
+    e.preventDefault()
+    if (!blocker.value && !loadingProject.value) submit(false)
+  }
+}
+function onBeforeUnload(e) {
+  if (dirty.value && !leaving) {
+    e.preventDefault()
+    e.returnValue = ''
+  }
+}
+window.addEventListener('keydown', onKey)
+window.addEventListener('beforeunload', onBeforeUnload)
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', onKey)
+  window.removeEventListener('beforeunload', onBeforeUnload)
+})
 
 onBeforeRouteLeave(async () => {
   if (leaving || blocker.value || loadingProject.value || !dirty.value) return true
@@ -335,6 +381,9 @@ onBeforeRouteLeave(async () => {
   border: 1.5px solid rgba(var(--v-border-color), 0.35);
 }
 .domain-pick--on .pick-box { background: var(--sel); border-color: var(--sel); color: rgb(var(--v-theme-surface)); }
+.save-status { display: inline-flex; align-items: center; gap: 6px; font-size: 0.875rem; color: var(--text-secondary); min-width: 0; }
+.save-status--dirty { color: rgb(var(--v-theme-warning)); font-weight: 600; }
+.save-status--saved { color: rgb(var(--v-theme-success)); font-weight: 600; }
 .action-bar {
   position: sticky; bottom: 0; z-index: 3;
   display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
