@@ -11,6 +11,8 @@ export default class Project {
     this.owner = data.owner ?? null
     this.year = data.year ?? null
     this.selected = !!data.selected
+    // Proposé aux étudiants (true) ou brouillon, visible seulement par son responsable et l'admin.
+    this.proposed = data.proposed ?? true
     this.state = data.state ?? 0
     // Ordre canonique (par identifiant), le même partout
     this.domains = sortDomains(data.domains)

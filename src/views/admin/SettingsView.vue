@@ -62,26 +62,31 @@
     </section>
 
     <section class="surface-card danger pa-5 pa-sm-6" aria-labelledby="year-title">
-      <h2 id="year-title" class="section-title">Démarrer le cours {{ nextYear }}</h2>
+      <h2 id="year-title" class="section-title">Démarrer une nouvelle année</h2>
       <p class="section-hint mb-2">À faire une fois la répartition du cours {{ session.currentYear }} terminée et exportée. Cette action :</p>
       <ul class="year-list mb-3">
         <li><strong>supprime</strong> les choix des étudiants, la répartition et la liste des étudiants ;</li>
         <li><strong>garde</strong> tous les projets (consultables en choisissant l'année {{ session.currentYear }}) et les enseignants ;</li>
-        <li>ouvre la saisie des projets du cours {{ nextYear }} aux enseignants.</li>
+        <li>ouvre la saisie des projets de la nouvelle année aux enseignants.</li>
       </ul>
       <p class="text-body-2 muted mb-4">Une sauvegarde de la base est faite automatiquement deux fois par jour sur le serveur.</p>
       <div class="d-flex align-center flex-wrap ga-3 justify-end">
         <v-text-field
-          v-model="confirmText"
-          label="Tapez NOUVELLE ANNÉE pour confirmer"
+          v-model="yearInput"
+          label="Nouvelle année"
+          inputmode="numeric"
+          maxlength="4"
           density="compact"
-          hide-details
-          class="confirm-field"
+          :hint="yearError || `Par exemple ${nextYear}`"
+          :error="!!yearInput && !!yearError"
+          persistent-hint
+          class="year-field"
           autocomplete="off"
-          data-testid="confirm-new-year"
+          data-testid="new-year-input"
+          @keyup.enter="yearOk && newYear()"
         />
-        <v-btn color="error" variant="flat" :disabled="!confirmOk" :loading="starting" data-testid="start-new-year" @click="newYear">
-          Démarrer le cours {{ nextYear }}
+        <v-btn color="error" variant="flat" :disabled="!yearOk" :loading="starting" data-testid="start-new-year" @click="newYear">
+          {{ yearOk ? `Démarrer le cours ${newYearValue}` : 'Démarrer la nouvelle année' }}
         </v-btn>
       </div>
     </section>
@@ -92,6 +97,7 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import DomainMappingEditor from '@/components/admin/DomainMappingEditor.vue'
 import { useAdminStore } from '@/stores/admin'
+import { useConfirmStore } from '@/stores/confirm'
 import { useNotifyStore } from '@/stores/notify'
 import { useProjectsStore } from '@/stores/projects'
 import { PHASES, useSessionStore } from '@/stores/session'
@@ -102,15 +108,26 @@ const session = useSessionStore()
 const admin = useAdminStore()
 const projects = useProjectsStore()
 const notify = useNotifyStore()
+const confirm = useConfirmStore()
 
 const phase = ref(session.phase)
 const savingPhase = ref(false)
-const confirmText = ref('')
+const yearInput = ref('')
 const starting = ref(false)
 
 const nextYear = computed(() => (session.currentYear || 0) + 1)
-// Le serveur accepte « NOUVELLE ANNÉE » (et l'ancienne forme sans accent).
-const confirmOk = computed(() => ['NOUVELLE ANNÉE', 'NOUVELLE ANNEE'].includes(confirmText.value.trim().toUpperCase()))
+// Année tapée en chiffres : après l'année courante, au plus 5 ans plus tard (comme le serveur).
+const newYearValue = computed(() => Number(String(yearInput.value || '').trim()))
+const yearError = computed(() => {
+  const y = newYearValue.value
+  const cur = session.currentYear || 0
+  if (!yearInput.value) return ''
+  if (!Number.isInteger(y)) return 'Entrez une année en chiffres.'
+  if (y <= cur) return `Doit être après ${cur}.`
+  if (y > cur + 5) return `Au plus ${cur + 5}.`
+  return ''
+})
+const yearOk = computed(() => !!yearInput.value && !yearError.value)
 const withChoices = computed(() => admin.students.filter((s) => s.preferences.length).length)
 
 watch(() => session.phase, (p) => { phase.value = p })
@@ -133,11 +150,22 @@ async function savePhase() {
 }
 
 async function newYear() {
+  const year = newYearValue.value
+  const n = admin.students.length
+  const ok = await confirm.ask({
+    title: `Démarrer le cours ${year}\u00a0?`,
+    text: `Êtes-vous sûr de vouloir démarrer une nouvelle année\u00a0? ${n ? `Les ${plural(n, 'étudiant')}, leurs choix` : 'Les choix des étudiants'} et la répartition du cours ${session.currentYear} seront supprimés définitivement. Les projets et les enseignants sont gardés.`,
+    confirmText: `Oui, démarrer ${year}`,
+    cancelText: 'Annuler',
+    color: 'error',
+    icon: 'mdi-calendar-alert',
+  })
+  if (!ok) return
   starting.value = true
   try {
-    await session.startNewYear({ year: nextYear.value, confirm: confirmText.value.trim().toUpperCase() })
+    await session.startNewYear({ year })
     await Promise.all([projects.fetchAll(), projects.fetchOwned(), admin.fetchStudents(), admin.fetchUsers(), admin.fetchProjects()])
-    confirmText.value = ''
+    yearInput.value = ''
     notify.success('La saisie des projets est ouverte aux enseignants.', `Cours ${session.currentYear} démarré`)
   } catch (error) {
     notify.error(error)
@@ -176,5 +204,5 @@ function exportStudents() {
 .current-tag { align-self: flex-start; }
 .danger { border-color: rgba(var(--v-theme-error), 0.35) !important; }
 .year-list { padding-left: 1.3em; line-height: 1.7; }
-.confirm-field { flex: 1 1 260px; max-width: 360px; }
+.year-field { flex: 0 1 200px; }
 </style>

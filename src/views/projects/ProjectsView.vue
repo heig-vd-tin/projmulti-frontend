@@ -168,22 +168,20 @@
 
     <v-row v-else>
       <v-col v-for="p in filtered" :key="p.id" cols="12" sm="6" lg="4" xxl="3">
-        <ProjectCard :project="p" @open="openProject" />
+        <ProjectCard :project="p" @open="openProject(filtered, $event)" />
       </v-col>
     </v-row>
-
-    <ProjectDetailDialog :project-id="openId" :project="openProjectObj" :notice="savedNotice" @close="closeProject" />
   </div>
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useDisplay } from 'vuetify'
 import EmptyState from '@/components/common/EmptyState.vue'
 import ProjectCard from '@/components/projects/ProjectCard.vue'
-import ProjectDetailDialog from '@/components/projects/ProjectDetailDialog.vue'
 import { useDark } from '@/composables/useDark'
+import { useOpenProject } from '@/composables/useOpenProject'
 import { useNotifyStore } from '@/stores/notify'
 import { usePreferencesStore } from '@/stores/preferences'
 import { useProjectsStore } from '@/stores/projects'
@@ -199,12 +197,26 @@ const route = useRoute()
 const router = useRouter()
 const dark = useDark()
 const { xs } = useDisplay()
-const filtersOpen = ref(false)
 
-const query = ref('')
-const scope = ref('all')
-const selectedDomains = ref([])
-const sort = ref('title')
+// Filtres gardés dans l'adresse (?q=…&d=1,3&scope=mine&sort=owner) : retrouvés au retour d'un projet, partageables.
+const SCOPES = ['all', 'mine', 'selected']
+const SORTS = ['title', 'owner', 'recent']
+const q0 = route.query
+const query = ref(typeof q0.q === 'string' ? q0.q : '')
+const scope = ref(SCOPES.includes(q0.scope) ? q0.scope : 'all')
+const selectedDomains = ref(typeof q0.d === 'string' ? q0.d.split(',').map(Number).filter((n) => n > 0) : [])
+const sort = ref(SORTS.includes(q0.sort) ? q0.sort : 'title')
+const filtersOpen = ref(!!(selectedDomains.value.length || scope.value !== 'all' || sort.value !== 'title'))
+const openProject = useOpenProject(session.user.isStudent ? 'Choisir mes projets' : 'Projets')
+
+watch([query, scope, selectedDomains, sort], () => {
+  const next = {}
+  if (query.value) next.q = query.value
+  if (selectedDomains.value.length) next.d = selectedDomains.value.join(',')
+  if (scope.value !== 'all') next.scope = scope.value
+  if (sort.value !== 'title') next.sort = sort.value
+  router.replace({ query: next })
+}, { deep: true })
 
 const sortItems = [
   { title: 'Titre (A → Z)', value: 'title' },
@@ -256,20 +268,6 @@ const emptyText = computed(() => {
   if (session.user.isTeacher && session.isCurrentYear) return session.canEditProjects ? 'Proposez le premier projet de ce cours.' : 'Les projets du cours apparaîtront ici.'
   return 'Les projets proposés apparaîtront ici.'
 })
-
-const openId = computed(() => (route.query.p ? Number(route.query.p) : null))
-const openProjectObj = computed(() => projects.all.find((p) => p.id === openId.value) || null)
-const savedNotice = computed(() => ({ new: 'Le projet a été publié.', edit: 'Les modifications sont enregistrées.' })[route.query.saved] || '')
-
-function openProject(p) {
-  const { saved: _saved, ...query } = route.query
-  router.push({ query: { ...query, p: p.id } })
-}
-
-function closeProject() {
-  const { p: _p, saved: _saved, ...rest } = route.query
-  router.replace({ query: rest })
-}
 
 function toggleDomain(id) {
   const i = selectedDomains.value.indexOf(id)

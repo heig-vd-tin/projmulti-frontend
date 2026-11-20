@@ -5,10 +5,34 @@
         <h1>Mes projets</h1>
         <div class="subtitle">Vos projets de toutes les années, avec les étudiants qui y sont affectés.</div>
       </div>
-      <v-btn v-if="session.canEditProjects && projects.owned.length" color="primary" variant="flat" prepend-icon="mdi-plus" to="/new-project">
-        Nouveau projet
-      </v-btn>
+      <div class="d-flex align-center flex-wrap ga-2">
+        <v-btn-toggle
+          v-if="yearChoices.length > 1"
+          v-model="yearFilter"
+          mandatory
+          density="compact"
+          variant="outlined"
+          divided
+          aria-label="Année du cours"
+          data-testid="year-filter"
+        >
+          <v-btn v-for="y in yearChoices" :key="y" :value="y">{{ y }}</v-btn>
+          <v-btn value="all">Toutes</v-btn>
+        </v-btn-toggle>
+        <v-btn v-if="session.canEditProjects && projects.owned.length" color="primary" variant="flat" prepend-icon="mdi-plus" to="/new-project">
+          Nouveau projet
+        </v-btn>
+      </div>
     </header>
+
+    <!-- Année en cours : combien de projets les étudiants verront -->
+    <div v-if="currentItems.length && showsCurrent" class="propose-summary text-body-2 mb-4" aria-live="polite">
+      <v-icon icon="mdi-eye-outline" size="18" class="muted" />
+      <span>
+        <strong>{{ plural(proposedCount, 'projet proposé', 'projets proposés') }}</strong> aux étudiants
+        <template v-if="draftCount"> · {{ plural(draftCount, 'brouillon') }} visible{{ draftCount > 1 ? 's' : '' }} seulement par vous</template>
+      </span>
+    </div>
 
     <div v-if="loading && !projects.owned.length" class="d-flex flex-column ga-3">
       <div v-for="n in 3" :key="n" class="surface-card pa-2"><v-skeleton-loader type="list-item-three-line" class="bg-transparent" /></div>
@@ -26,6 +50,19 @@
       </template>
     </EmptyState>
 
+    <EmptyState
+      v-if="projects.owned.length && !groups.length"
+      class="surface-card"
+      icon="mdi-folder-outline"
+      :title="`Aucun projet pour le cours ${yearFilter}`"
+      :text="yearFilter === session.currentYear && session.canEditProjects ? 'Créez un projet, ou reprenez un projet d\'une année précédente.' : 'Choisissez une autre année.'"
+    >
+      <template v-if="yearFilter === session.currentYear && session.canEditProjects" #actions>
+        <v-btn color="primary" variant="flat" prepend-icon="mdi-plus" to="/new-project">Nouveau projet</v-btn>
+        <v-btn variant="outlined" @click="yearFilter = 'all'">Voir toutes les années</v-btn>
+      </template>
+    </EmptyState>
+
     <section v-for="group in groups" :key="group.year" class="mb-8">
       <div class="year-head">
         <h2>Cours {{ group.year }}</h2>
@@ -36,7 +73,10 @@
       <div class="d-flex flex-column ga-3">
         <article v-for="p in group.items" :key="p.id" class="mine-card surface-card" data-testid="owned-project">
           <div class="mine-main min-w-0">
-            <h3 class="mine-title">{{ p.title }}</h3>
+            <h3 class="mine-title">
+              {{ p.title }}
+              <span v-if="!p.proposed" class="tag tag--draft ml-1 align-middle"><v-icon icon="mdi-eye-off-outline" size="14" />Brouillon</span>
+            </h3>
             <p class="mine-short">{{ p.short_description }}</p>
             <DomainBadges :domains="p.domains" mode="chips" />
           </div>
@@ -52,7 +92,23 @@
             <div v-else class="text-body-2 muted">Aucun pour le moment</div>
           </div>
           <div class="mine-actions">
-            <v-btn variant="text" prepend-icon="mdi-eye-outline" @click="openId = p.id">Voir</v-btn>
+            <v-switch
+              v-if="p.year === session.currentYear"
+              :model-value="p.proposed"
+              :loading="proposing === p.id"
+              :disabled="!session.canEditProjects || proposing === p.id"
+              :label="p.proposed ? 'Proposé aux étudiants' : 'Brouillon'"
+              :aria-label="`Proposer « ${p.title} » aux étudiants`"
+              color="primary"
+              density="compact"
+              hide-details
+              inset
+              class="propose-switch"
+              data-testid="propose-switch"
+              @update:model-value="(v) => setProposed(p, v)"
+            />
+            <v-spacer />
+            <v-btn variant="text" prepend-icon="mdi-eye-outline" @click="openProject(ordered, p)">Voir</v-btn>
             <v-btn variant="text" prepend-icon="mdi-file-pdf-box" :loading="exporting === p.id" @click="exportPdf(p)">PDF</v-btn>
             <v-btn
               v-if="p.year === session.currentYear && session.canEditProjects"
@@ -86,17 +142,15 @@
         </article>
       </div>
     </section>
-
-    <ProjectDetailDialog :project-id="openId" :project="openProject" @close="openId = null" />
   </div>
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, onMounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import EmptyState from '@/components/common/EmptyState.vue'
 import DomainBadges from '@/components/projects/DomainBadges.vue'
-import ProjectDetailDialog from '@/components/projects/ProjectDetailDialog.vue'
+import { useOpenProject } from '@/composables/useOpenProject'
 import { useNotifyStore } from '@/stores/notify'
 import { useProjectsStore } from '@/stores/projects'
 import { useSessionStore } from '@/stores/session'
@@ -106,13 +160,27 @@ const session = useSessionStore()
 const projects = useProjectsStore()
 const notify = useNotifyStore()
 const router = useRouter()
+const route = useRoute()
 
 const loading = ref(false)
-const openId = ref(null)
 const exporting = ref(null)
 const duplicating = ref(null)
+const proposing = ref(null)
 
-const openProject = computed(() => projects.owned.find((p) => p.id === openId.value) || null)
+// Filtre d'année en haut (?year=2026 ou ?year=all) ; par défaut l'année en cours.
+const yearChoices = computed(() => {
+  const ys = new Set(projects.owned.map((p) => p.year || session.currentYear))
+  if (session.currentYear) ys.add(session.currentYear)
+  return [...ys].sort((a, b) => b - a)
+})
+const yearFilter = ref(route.query.year === 'all' ? 'all' : Number(route.query.year) || session.currentYear)
+watch(yearFilter, (y) => router.replace({ query: y === session.currentYear ? {} : { year: String(y) } }))
+const showsCurrent = computed(() => yearFilter.value === 'all' || yearFilter.value === session.currentYear)
+const currentItems = computed(() => projects.owned.filter((p) => (p.year || session.currentYear) === session.currentYear))
+const proposedCount = computed(() => currentItems.value.filter((p) => p.proposed).length)
+const draftCount = computed(() => currentItems.value.length - proposedCount.value)
+
+const openProject = useOpenProject('Mes projets')
 // Copie de l'année en cours déjà faite à partir de ce projet (source_id).
 function copyOf(p) {
   return projects.owned.find((x) => x.source_id === p.id && x.year === session.currentYear) || null
@@ -124,8 +192,13 @@ const groups = computed(() => {
     if (!byYear.has(y)) byYear.set(y, [])
     byYear.get(y).push(p)
   }
-  return [...byYear.entries()].sort((a, b) => b[0] - a[0]).map(([year, items]) => ({ year, items }))
+  return [...byYear.entries()]
+    .filter(([year]) => yearFilter.value === 'all' || year === yearFilter.value)
+    .sort((a, b) => b[0] - a[0])
+    .map(([year, items]) => ({ year, items }))
 })
+// Ordre affiché (années puis projets) : Précédent / Suivant sur la page du projet.
+const ordered = computed(() => groups.value.flatMap((g) => g.items))
 
 onMounted(async () => {
   loading.value = true
@@ -146,6 +219,18 @@ async function exportPdf(p) {
     notify.error(error, 'Export PDF impossible')
   } finally {
     exporting.value = null
+  }
+}
+
+async function setProposed(p, value) {
+  proposing.value = p.id
+  try {
+    await projects.setProposed(p.id, !!value)
+    notify.success(value ? `« ${p.title} » est proposé aux étudiants.` : `« ${p.title} » est un brouillon : les étudiants ne le voient plus.`)
+  } catch (error) {
+    notify.error(error, 'La visibilité n’a pas été modifiée')
+  } finally {
+    proposing.value = null
   }
 }
 
@@ -176,13 +261,15 @@ async function duplicate(p) {
 .mine-card { display: grid; grid-template-columns: minmax(0, 1fr) 260px; grid-template-areas: 'main side' 'actions actions'; gap: 12px 24px; padding: 18px 20px 12px; }
 .mine-main { grid-area: main; }
 .mine-side { grid-area: side; }
-.mine-actions { grid-area: actions; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; border-top: 1px solid rgba(var(--v-border-color), var(--v-border-opacity)); padding-top: 10px; }
+.mine-actions { grid-area: actions; display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 6px; border-top: 1px solid rgba(var(--v-border-color), var(--v-border-opacity)); padding-top: 10px; }
 .mine-title { font-size: 1.05rem; font-weight: 650; margin: 0 0 4px; }
 .mine-short { margin: 0 0 12px; color: rgba(var(--v-theme-on-surface), 0.82); }
 .students { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; font-size: 0.9rem; }
 .mail { text-decoration: none; }
 .mail:hover { text-decoration: underline; }
 .ori { margin-left: 6px; font-size: 0.72rem; font-weight: 600; padding: 1px 7px; border-radius: 999px; background: var(--neutral-chip-bg); color: var(--neutral-chip-fg); }
+.propose-summary { display: flex; align-items: center; gap: 8px; }
+.propose-switch { flex: none; }
 @media (max-width: 760px) {
   .mine-card { grid-template-columns: 1fr; grid-template-areas: 'main' 'side' 'actions'; }
 }

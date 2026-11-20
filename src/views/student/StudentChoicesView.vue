@@ -45,7 +45,7 @@
       >
         <v-icon v-if="p" icon="mdi-drag-vertical" class="drag-handle" aria-hidden="true" />
         <span v-else class="drag-space" aria-hidden="true"></span>
-        <div class="slot-rank" :aria-label="`Choix n°${i + 1}`">{{ i + 1 }}</div>
+        <RankBadge :rank="i + 1" :empty="!p" size="lg" />
         <template v-if="p">
           <div class="slot-body min-w-0">
             <h2 class="slot-title text-truncate">{{ p.title }}</h2>
@@ -58,7 +58,7 @@
               <v-btn icon="mdi-arrow-up" variant="text" size="small" :disabled="i === 0 || prefs.saving" :aria-label="`Monter « ${p.title} »`" @click="move(i, i - 1)" />
               <v-btn icon="mdi-arrow-down" variant="text" size="small" :disabled="i === MAX_CHOICES - 1 || prefs.saving" :aria-label="`Descendre « ${p.title} »`" @click="move(i, i + 1)" />
             </div>
-            <v-btn icon="mdi-eye-outline" variant="text" size="small" :aria-label="`Voir « ${p.title} »`" @click="openId = p.id" />
+            <v-btn icon="mdi-eye-outline" variant="text" size="small" :aria-label="`Voir « ${p.title} »`" @click="openProject(chosen, p)" />
             <span class="actions-sep" aria-hidden="true"></span>
             <v-btn icon="mdi-close" variant="text" size="small" class="remove-btn" :disabled="prefs.saving" :aria-label="`Retirer « ${p.title} » de mes choix`" @click="remove(p)" />
           </div>
@@ -71,15 +71,14 @@
         </template>
       </li>
     </ol>
-
-    <ProjectDetailDialog :project-id="openId" :project="openProject" @close="openId = null" />
   </div>
 </template>
 
 <script setup>
 import { computed, ref } from 'vue'
 import DomainBadges from '@/components/projects/DomainBadges.vue'
-import ProjectDetailDialog from '@/components/projects/ProjectDetailDialog.vue'
+import RankBadge from '@/components/projects/RankBadge.vue'
+import { useOpenProject } from '@/composables/useOpenProject'
 import { useNotifyStore } from '@/stores/notify'
 import { MAX_CHOICES, usePreferencesStore } from '@/stores/preferences'
 
@@ -89,8 +88,8 @@ const notify = useNotifyStore()
 const order = computed(() => prefs.slots)
 const dragIndex = ref(null)
 const overIndex = ref(null)
-const openId = ref(null)
-const openProject = computed(() => prefs.items.find((p) => p.id === openId.value) || null)
+const chosen = computed(() => prefs.slots.filter(Boolean))
+const openProject = useOpenProject('Mes choix')
 
 function onDragStart(event, i) {
   dragIndex.value = i
@@ -160,12 +159,6 @@ async function remove(p) {
 .slot--over { border-color: var(--focus-ring); box-shadow: 0 0 0 3px color-mix(in srgb, var(--focus-ring) 18%, transparent); }
 .drag-handle { flex: none; color: var(--text-secondary); }
 .drag-space { flex: none; width: 24px; }
-.slot-rank {
-  flex: none; width: 44px; height: 44px; border-radius: var(--radius-control); display: grid; place-items: center;
-  font-size: 1.2rem; font-weight: 750;
-  background: var(--neutral-chip-bg); color: rgb(var(--v-theme-on-surface));
-}
-.slot:not(.slot--filled) .slot-rank { background: transparent; border: 1.5px dashed rgba(var(--v-border-color), 0.3); color: var(--text-secondary); }
 .slot-body { flex: 1; display: flex; flex-direction: column; gap: 2px; }
 .slot-title { font-size: 1rem; font-weight: 650; margin: 0; }
 .slot-short { color: rgba(var(--v-theme-on-surface), 0.86); margin-top: 2px; }
@@ -177,7 +170,6 @@ async function remove(p) {
 .slot-empty { flex: 1; display: flex; align-items: center; justify-content: space-between; gap: 8px; color: var(--text-secondary); min-height: 44px; }
 @media (max-width: 600px) {
   .slot { flex-wrap: wrap; gap: 8px 10px; padding: 12px 10px 8px 6px; }
-  .slot-rank { width: 36px; height: 36px; font-size: 1.05rem; }
   .slot-body { flex: 1 1 calc(100% - 80px); }
   .slot-actions { width: 100%; justify-content: flex-end; border-top: 1px solid rgba(var(--v-border-color), var(--v-border-opacity)); padding-top: 6px; }
 }

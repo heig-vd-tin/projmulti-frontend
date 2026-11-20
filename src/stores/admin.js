@@ -60,7 +60,8 @@ export const useAdminStore = defineStore('admin', () => {
   async function fetchProjects() {
     const session = useSessionStore()
     const { data } = await http.get('/project/alld', { params: { year: session.currentYear } })
-    projects.value = data.map((p) => new Project(p))
+    // Sélection et répartition : jamais de brouillon.
+    projects.value = data.filter((p) => p.proposed !== false).map((p) => new Project(p))
   }
 
   async function fetchMapping() {

@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { whenPageEntered } from '@/router/pageTransition'
 import { bootApp } from '@/stores/boot'
 import { useSessionStore } from '@/stores/session'
 
@@ -10,6 +11,15 @@ const routes = [
     name: 'projects',
     component: () => import('@/views/projects/ProjectsView.vue'),
     meta: { title: 'Projets' },
+    // Anciens liens « /all-projects?p=42 » (détail en fenêtre) : page du projet.
+    beforeEnter: (to) => (/^\d+$/.test(String(to.query.p || '')) ? { name: 'project', params: { id: String(to.query.p) } } : true),
+  },
+  {
+    path: '/project/:id(\\d+)',
+    name: 'project',
+    component: () => import('@/views/projects/ProjectView.vue'),
+    props: true,
+    meta: { title: 'Projet' },
   },
   {
     path: '/my-projects',
@@ -61,7 +71,8 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes,
   scrollBehavior(to, from, saved) {
-    if (saved) return saved
+    // Retour à une liste : on attend la fin du fondu entre pages, sinon la liste n'est pas encore là.
+    if (saved) return to.path === from.path ? saved : whenPageEntered().then(() => saved)
     if (to.path === from.path) return false
     return { top: 0 }
   },

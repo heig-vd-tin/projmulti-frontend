@@ -170,9 +170,10 @@ const nav = computed(() => {
   }
   if (u.isTeacher) items.push({ to: '/my-projects', title: 'Mes projets', icon: 'mdi-folder-account-outline' })
   if (u.isAdmin) {
+    // Ordre du travail : sélectionner les projets, puis répartir les étudiants.
     items.push(
-      { to: '/global', title: 'Répartition', icon: 'mdi-account-group-outline' },
       { to: '/select', title: 'Sélection', icon: 'mdi-checkbox-marked-circle-outline' },
+      { to: '/global', title: 'Répartition', icon: 'mdi-account-group-outline' },
       { to: '/infos', title: 'Statistiques', icon: 'mdi-chart-box-outline' },
       { to: '/settings', title: 'Réglages', icon: 'mdi-cog-outline' },
     )

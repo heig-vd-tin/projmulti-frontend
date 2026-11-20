@@ -17,7 +17,7 @@
           La saisie des projets est fermée : vous pouvez consulter et exporter vos projets, mais plus les modifier.
         </v-alert>
         <router-view v-slot="{ Component, route: r }">
-          <transition name="page" mode="out-in">
+          <transition name="page" mode="out-in" @after-enter="pageEntered">
             <component :is="Component" :key="r.path" />
           </transition>
         </router-view>
@@ -44,6 +44,7 @@ import http from '@/api/http'
 import AppHeader from '@/components/common/AppHeader.vue'
 import ConfirmHost from '@/components/common/ConfirmHost.vue'
 import StatusScreen from '@/components/common/StatusScreen.vue'
+import { pageEntered } from '@/router/pageTransition'
 import { bootApp } from '@/stores/boot'
 import { useNotifyStore } from '@/stores/notify'
 import { useSessionStore } from '@/stores/session'
@@ -53,7 +54,7 @@ const notify = useNotifyStore()
 const route = useRoute()
 const drawer = ref(false)
 
-const isProjectPage = computed(() => ['projects', 'mine', 'project-new', 'project-edit'].includes(route.name))
+const isProjectPage = computed(() => ['projects', 'project', 'mine', 'project-new', 'project-edit'].includes(route.name))
 
 function snackIcon(type) {
   return { success: 'mdi-check-circle-outline', error: 'mdi-alert-circle-outline', warning: 'mdi-alert-outline' }[type] || 'mdi-information-outline'

@@ -9,6 +9,9 @@
           <template v-if="editing && original"> · {{ original.ownerName }}</template>
         </div>
       </div>
+      <v-btn v-if="editing && original" variant="outlined" prepend-icon="mdi-eye-outline" data-testid="view-project" @click="viewProject">
+        Voir le projet
+      </v-btn>
     </header>
 
     <div v-if="loadingProject" class="surface-card pa-4"><v-skeleton-loader type="heading, text, text, image" class="bg-transparent" /></div>
@@ -78,6 +81,22 @@
         </RichEditor>
       </section>
 
+      <section class="surface-card pa-5 pa-sm-6" :class="{ 'section--draft': !proposed }">
+        <h2 class="section-title">Visibilité</h2>
+        <p class="section-hint">
+          Vous pouvez saisir plusieurs idées en brouillon, puis proposer seulement celles que vous voulez soumettre.
+          Un brouillon n'est visible que par vous et le responsable du cours : les étudiants ne le voient pas et il n'entre pas dans la sélection.
+        </p>
+        <v-switch
+          v-model="proposed"
+          color="primary"
+          inset
+          hide-details
+          :label="proposed ? 'Proposé aux étudiants' : 'Brouillon (non visible par les étudiants)'"
+          data-testid="proposed"
+        />
+      </section>
+
       <v-alert v-if="formErrors.length" ref="errorBox" type="warning" variant="tonal" icon="mdi-alert-outline" data-testid="form-errors" tabindex="-1">
         <div class="font-weight-bold mb-1">Le projet n'est pas encore enregistré :</div>
         <ul class="pl-5"><li v-for="(e, i) in formErrors" :key="i">{{ e }}</li></ul>
@@ -91,7 +110,7 @@
         <v-spacer />
         <v-btn variant="text" :disabled="saving" @click="goBack">Annuler</v-btn>
         <v-btn type="submit" color="primary" variant="flat" :loading="saving" prepend-icon="mdi-check" data-testid="submit">
-          {{ editing ? (xs ? 'Enregistrer' : 'Enregistrer les modifications') : (xs ? 'Publier' : 'Publier le projet') }}
+          {{ submitLabel }}
         </v-btn>
       </div>
     </form>
@@ -135,6 +154,7 @@ const title = ref('')
 const shortDescription = ref('')
 const domainIds = ref([])
 const description = ref('')
+const proposed = ref(true)
 const saving = ref(false)
 const showErrors = ref(false)
 const serverError = ref('')
@@ -162,7 +182,12 @@ const blocker = computed(() => {
   return ''
 })
 
-const state = () => JSON.stringify([title.value, shortDescription.value, [...domainIds.value].sort(), description.value])
+const state = () => JSON.stringify([title.value, shortDescription.value, [...domainIds.value].sort(), description.value, proposed.value])
+const submitLabel = computed(() => {
+  if (editing.value) return xs.value ? 'Enregistrer' : 'Enregistrer les modifications'
+  if (!proposed.value) return xs.value ? 'Enregistrer' : 'Enregistrer le brouillon'
+  return xs.value ? 'Publier' : 'Publier le projet'
+})
 const dirty = computed(() => state() !== snapshot.value)
 
 onMounted(async () => {
@@ -176,6 +201,7 @@ onMounted(async () => {
       shortDescription.value = p.short_description || ''
       domainIds.value = p.domains.map((d) => d.id)
       description.value = p.description || ''
+      proposed.value = p.proposed
     } catch (error) {
       loadError.value = error.userMessage || 'Projet introuvable.'
     } finally {
@@ -235,6 +261,7 @@ async function submit() {
     short_description: shortDescription.value.trim(),
     description: description.value,
     tags: original.value ? original.value.tags.map((t) => t.id) : [],
+    proposed: proposed.value,
     domains: domainIds.value.map((id) => {
       const old = original.value && original.value.domains.find((d) => d.id === id)
       return { id, importance: old && old.pivot ? old.pivot.importance : 1 }
@@ -243,9 +270,15 @@ async function submit() {
   try {
     const saved = editing.value ? await projects.edit(payload) : await projects.create(payload)
     snapshot.value = state()
-    leaving = true
-    // Le détail du projet s'ouvre et confirme l'enregistrement (pas de notification derrière la fenêtre).
-    router.push({ path: '/all-projects', query: { p: saved.id, saved: editing.value ? 'edit' : 'new' } })
+    showErrors.value = false
+    // On reste sur la page d'édition : un nouveau projet passe en mode « modifier ».
+    if (editing.value) {
+      notify.success('Les modifications sont enregistrées.')
+    } else {
+      notify.success(proposed.value ? 'Le projet a été publié.' : 'Le brouillon est enregistré : il reste invisible pour les étudiants.')
+      leaving = true
+      router.replace({ name: 'project-edit', params: { id: String(saved.id) } })
+    }
   } catch (error) {
     serverError.value = error.userMessage
     await revealErrors()
@@ -253,6 +286,13 @@ async function submit() {
   } finally {
     saving.value = false
   }
+}
+
+// Venu de la page du projet : on y retourne (sans empiler l'historique).
+function viewProject() {
+  const target = `/project/${props.id}`
+  if (window.history.state && window.history.state.back === target) router.back()
+  else router.push(target)
 }
 
 function goBack() {
@@ -276,6 +316,7 @@ onBeforeRouteLeave(async () => {
 <style scoped>
 .section-title { font-size: 1.05rem; font-weight: 700; margin: 0 0 2px; }
 .section-hint { margin: 0 0 16px; color: var(--text-secondary); font-size: 0.9rem; }
+.section--draft { border-color: rgba(var(--v-theme-warning), 0.5) !important; }
 .section--error { border-color: rgba(var(--v-theme-error), 0.6) !important; }
 .domain-picks { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(190px, calc(50% - 5px)), 1fr)); gap: 10px; }
 /* Un seul style « coché » : bord neutre foncé et coche ; la couleur du domaine reste sur l'icône. */

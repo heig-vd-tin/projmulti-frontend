@@ -13,7 +13,7 @@
     <header class="d-flex align-start ga-3">
       <h3 class="card-title line-clamp-2">{{ project.title }}</h3>
       <v-spacer />
-      <span v-if="priority" class="choice-pill"><v-icon icon="mdi-check" size="14" />n°{{ priority }}</span>
+      <RankBadge v-if="priority" :rank="priority" pill />
       <v-icon v-if="showAdmin && project.isLocked" icon="mdi-lock-outline" size="18" class="muted" aria-label="Projet verrouillé" />
     </header>
 
@@ -21,6 +21,7 @@
       <v-icon icon="mdi-account-outline" size="16" />
       <span class="text-truncate">{{ project.ownerName || 'Responsable inconnu' }}</span>
       <span v-if="isMine" class="tag">Votre projet</span>
+      <span v-if="!project.proposed" class="tag tag--draft" title="Brouillon : visible seulement par son responsable et l'admin"><v-icon icon="mdi-eye-off-outline" size="14" />Brouillon</span>
     </div>
 
     <p class="short line-clamp-3">{{ project.short_description }}</p>
@@ -45,6 +46,7 @@
 <script setup>
 import { computed } from 'vue'
 import DomainBadges from '@/components/projects/DomainBadges.vue'
+import RankBadge from '@/components/projects/RankBadge.vue'
 import { usePreferencesStore } from '@/stores/preferences'
 import { useSessionStore } from '@/stores/session'
 import { plural } from '@/utils/text'
@@ -85,9 +87,4 @@ const pastYear = computed(() => props.project.year && props.project.year !== ses
 .owner { display: flex; align-items: center; gap: 6px; min-width: 0; }
 .short { margin: 4px 0 8px; color: rgba(var(--v-theme-on-surface), 0.86); font-size: 0.92rem; line-height: 1.5; flex: 1; }
 footer { margin-top: auto; padding-top: 4px; }
-.choice-pill {
-  flex: none; display: inline-flex; align-items: center; gap: 3px;
-  height: 24px; padding: 0 10px 0 7px; border-radius: 999px; font-weight: 700; font-size: 0.8rem;
-  background: var(--sel); color: rgb(var(--v-theme-surface));
-}
 </style>

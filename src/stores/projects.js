@@ -115,11 +115,20 @@ export const useProjectsStore = defineStore('projects', () => {
     return data
   }
 
+  // Proposé aux étudiants ou brouillon (un brouillon perd sa sélection).
+  async function setProposed(id, proposed) {
+    const { data } = await http.post(`/project/${id}/propose`, { proposed })
+    const fields = { proposed: !!data.proposed, selected: !!data.selected }
+    patch(all, id, fields)
+    patch(owned, id, fields)
+    return data
+  }
+
   async function setLocked(id, lock) {
     const { data } = await http.post('/project/lock', { id, lock })
     patch(all, id, { state: data.state })
     return data
   }
 
-  return { all, owned, loading, loaded, fetchAll, changeYear, fetchOwned, fetchFull, create, edit, duplicate, exportPdf, setSelected, setLocked, patch: (id, f) => { patch(all, id, f); patch(owned, id, f) } }
+  return { all, owned, loading, loaded, fetchAll, changeYear, fetchOwned, fetchFull, create, edit, duplicate, exportPdf, setSelected, setProposed, setLocked, patch: (id, f) => { patch(all, id, f); patch(owned, id, f) } }
 })

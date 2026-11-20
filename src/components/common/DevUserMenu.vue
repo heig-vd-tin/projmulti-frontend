@@ -1,5 +1,5 @@
 <template>
-  <v-menu location="bottom end" offset="8">
+  <v-menu location="bottom end" offset="8" :close-on-content-click="false">
     <template #activator="{ props }">
       <v-chip v-bind="props" color="warning" variant="tonal" size="small" :prepend-icon="compact ? undefined : 'mdi-account-switch-outline'" aria-label="Changer d'utilisateur de test">
         <v-icon v-if="compact" icon="mdi-account-switch-outline" size="16" />

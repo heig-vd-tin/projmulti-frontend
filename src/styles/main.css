@@ -20,6 +20,9 @@
   --info-bg: #eaf0f7;
   --error-bg: #fbeceb;
   --success-bg: #e8f3ec;
+  /* Rang d'un choix d'étudiant : 1 (meilleur) le plus foncé, 5 le plus clair, une seule teinte neutre */
+  --rank-1: #1f2328; --rank-2: #3a3f46; --rank-3: #4d535c; --rank-4: #5e656f; --rank-5: #6b727d;
+  --rank-fg: #ffffff;
 }
 .v-theme--dark {
   --text-secondary: #a3a8b0;
@@ -33,6 +36,8 @@
   --info-bg: #1c2733;
   --error-bg: #331d1c;
   --success-bg: #1a2b21;
+  --rank-1: #eef0f3; --rank-2: #d5d9e0; --rank-3: #c0c6ce; --rank-4: #acb3bd; --rank-5: #9aa1ac;
+  --rank-fg: #16191d;
 }
 
 html { overflow-y: auto; }
@@ -146,6 +151,7 @@ a { color: var(--link); }
   background: var(--neutral-chip-bg); color: var(--text-secondary);
 }
 .tag--ok { background: var(--success-bg); color: rgb(var(--v-theme-success)); }
+.tag--draft { background: var(--warn-bg); color: rgb(var(--v-theme-warning)); }
 .line-clamp-2, .line-clamp-3 { display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden; }
 .line-clamp-2 { -webkit-line-clamp: 2; line-clamp: 2; }
 .line-clamp-3 { -webkit-line-clamp: 3; line-clamp: 3; }

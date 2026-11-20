@@ -46,7 +46,7 @@
           <v-col v-for="p in visible" :key="p.id" cols="12" md="6" xl="4">
             <article class="sel-card" :class="{ 'sel-card--off': !p.selected }" data-testid="selection-card">
               <div class="d-flex align-start ga-2">
-                <button type="button" class="sel-title text-left" @click="openId = p.id">{{ p.title }}</button>
+                <button type="button" class="sel-title text-left" @click="openProject(visible, p)">{{ p.title }}</button>
                 <v-spacer />
                 <v-icon v-if="p.isLocked" icon="mdi-lock-outline" size="18" class="muted" aria-label="Verrouillé" />
               </div>
@@ -71,23 +71,22 @@
                   @update:model-value="(v) => toggle(p, v)"
                 />
                 <v-spacer />
-                <v-btn variant="text" prepend-icon="mdi-eye-outline" @click="openId = p.id">Détail</v-btn>
+                <v-btn variant="text" prepend-icon="mdi-eye-outline" @click="openProject(visible, p)">Détail</v-btn>
               </div>
             </article>
           </v-col>
         </v-row>
       </div>
     </div>
-
-    <ProjectDetailDialog :project-id="openId" :project="openProject" @close="openId = null" />
   </div>
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import EmptyState from '@/components/common/EmptyState.vue'
 import DomainBadges from '@/components/projects/DomainBadges.vue'
-import ProjectDetailDialog from '@/components/projects/ProjectDetailDialog.vue'
+import { useOpenProject } from '@/composables/useOpenProject'
 import { useAdminStore } from '@/stores/admin'
 import { useNotifyStore } from '@/stores/notify'
 import { useSessionStore } from '@/stores/session'
@@ -99,9 +98,17 @@ const notify = useNotifyStore()
 
 const loading = ref(false)
 const busy = ref(null)
-const ownerFilter = ref(null)
-const openId = ref(null)
-const sort = ref('popular')
+// Filtre et tri gardés dans l'adresse (?owner=12&sort=title) : retrouvés au retour d'un projet.
+const route = useRoute()
+const router = useRouter()
+const ownerFilter = ref(Number(route.query.owner) > 0 ? Number(route.query.owner) : null)
+const sort = ref(['popular', 'title', 'owner'].includes(route.query.sort) ? route.query.sort : 'popular')
+watch([ownerFilter, sort], () => {
+  const next = {}
+  if (ownerFilter.value !== null) next.owner = String(ownerFilter.value)
+  if (sort.value !== 'popular') next.sort = sort.value
+  router.replace({ query: next })
+})
 const sortItems = [
   { title: 'Les plus choisis', value: 'popular' },
   { title: 'Titre', value: 'title' },
@@ -110,7 +117,7 @@ const sortItems = [
 
 const collator = new Intl.Collator('fr', { sensitivity: 'base' })
 const selectedCount = computed(() => admin.projects.filter((p) => p.selected).length)
-const openProject = computed(() => admin.projectById.get(openId.value) || null)
+const openProject = useOpenProject('Sélection des projets')
 
 const teacherRows = computed(() => {
   const rows = admin.teachers.map((t) => {
